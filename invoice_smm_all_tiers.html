@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FitfluxStudio — Social Media Management Invoice</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:#F4F8EE;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.wrap{max-width:480px;width:100%}
+.page{display:none}
+.page.active{display:block}
+.dark{background:#0D1F00;border-radius:12px;overflow:hidden;margin-bottom:10px}
+.hdr{background:#0D1F00;padding:18px 22px 14px;border-bottom:3px solid #CCFF00}
+.eyebrow{font-size:10px;font-weight:500;letter-spacing:.15em;text-transform:uppercase;color:#CCFF00;opacity:.7;margin-bottom:6px}
+.h1{font-size:26px;font-weight:300;color:#fff;line-height:1.05}
+.h1 span{color:#CCFF00}
+.msg-box{background:rgba(255,255,255,.05);border:0.5px solid rgba(255,255,255,.12);border-radius:8px;padding:14px 16px;font-size:12px;color:#fff;line-height:1.85;white-space:pre-wrap;margin-bottom:16px;font-family:monospace}
+.btns{display:flex;gap:10px}
+.btn-lime{flex:1;background:#CCFF00;color:#0D1F00;font-size:12px;font-weight:700;padding:12px;border:none;border-radius:6px;cursor:pointer;letter-spacing:.04em;text-transform:uppercase}
+.btn-outline{flex:1;background:transparent;color:#CCFF00;font-size:12px;font-weight:700;padding:12px;border:1px solid rgba(204,255,0,.5);border-radius:6px;cursor:pointer;letter-spacing:.04em;text-transform:uppercase}
+.btn-ig{display:block;width:100%;background:#CCFF00;color:#0D1F00;font-size:13px;font-weight:700;padding:14px;border:none;border-radius:6px;cursor:pointer;letter-spacing:.04em;text-transform:uppercase;margin-top:14px;text-align:center;text-decoration:none}
+.btn-back{width:100%;background:#f4f8ee;color:#0D1F00;font-size:12px;font-weight:700;padding:12px;border:0.5px solid #dde8cc;border-radius:6px;cursor:pointer;letter-spacing:.04em;text-transform:uppercase;margin-top:10px}
+.steps{border:0.5px solid #dde8cc;border-radius:8px;overflow:hidden;margin-bottom:14px}
+.steps-head{background:#f4f8ee;padding:10px 16px;border-bottom:0.5px solid #dde8cc;font-size:12px;font-weight:700;color:#0D1F00}
+.step{display:flex;gap:12px;padding:12px 16px;border-top:0.5px solid #dde8cc;align-items:flex-start}
+.step:first-child{border-top:none}
+.num{width:22px;height:22px;border-radius:50%;background:#CCFF00;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#0D1F00;flex-shrink:0}
+.num.g{background:#2D6A0F;color:#CCFF00}
+.step-title{font-size:12px;font-weight:700;color:#0D1F00;margin-bottom:2px}
+.step-desc{font-size:11px;color:#6B7A5A;line-height:1.55}
+.foot-note{text-align:center;font-size:11px;color:#6B7A5A;line-height:1.7;margin-bottom:4px}
+.hint{font-size:10px;color:#AAB899;text-align:center;padding:6px 0;letter-spacing:.05em}
+.confirm-row{background:#f4f8ee;border:0.5px solid #dde8cc;border-radius:8px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+.pills{display:flex;gap:6px;margin-bottom:12px}
+.pill{flex:1;padding:9px 6px;border-radius:8px;border:1.5px solid rgba(204,255,0,.25);background:rgba(255,255,255,.04);color:#AAB899;font-size:10px;font-weight:700;text-align:center;cursor:pointer;transition:all .15s}
+.pill.active{background:#CCFF00;color:#0D1F00;border-color:#CCFF00}
+.pill-name{display:block;font-size:11px;margin-bottom:2px}
+.pill-price{display:block;font-size:10px;opacity:.75}
+.pill.active .pill-price{opacity:.6}
+.save-tag{display:inline-block;background:rgba(204,255,0,.15);color:#CCFF00;font-size:9px;font-weight:700;padding:2px 7px;border-radius:8px;margin-top:3px}
+.sec-label{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(204,255,0,.6);margin-bottom:8px}
+.divider{height:1px;background:rgba(255,255,255,.08);margin:14px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- PAGE 1 -->
+  <div class="page active" id="page-1">
+    <div class="dark">
+      <div class="hdr">
+        <div class="eyebrow">Social Media Management · Step 1 of 2</div>
+        <div class="h1">Choose your plan,<br><span>copy &amp; continue.</span></div>
+      </div>
+      <div style="background:#0D1F00;padding:18px 22px 20px">
+
+        <div class="sec-label">Choose your tier</div>
+        <div class="pills" id="tierPills">
+          <div class="pill active" onclick="setTier(this,'Presence')">
+            <span class="pill-name">Presence</span>
+            <span class="pill-price" id="pricePillPresence">$350/mo</span>
+          </div>
+          <div class="pill" onclick="setTier(this,'Authority')">
+            <span class="pill-name">Authority</span>
+            <span class="pill-price" id="pricePillAuthority">$700/mo</span>
+          </div>
+          <div class="pill" onclick="setTier(this,'Category King/Queen')">
+            <span class="pill-name">Category</span>
+            <span class="pill-price" id="pricePillCategory">$1,200/mo</span>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+        <div class="sec-label" style="margin-top:12px">Choose billing period</div>
+        <div class="pills" id="billingPills">
+          <div class="pill active" onclick="setBilling(this,'Monthly')">
+            <span class="pill-name">Monthly</span>
+            <span class="pill-price" id="billingPriceMonthly">$350/mo</span>
+          </div>
+          <div class="pill" onclick="setBilling(this,'2-Month')">
+            <span class="pill-name">2 Months</span>
+            <span class="pill-price" id="billingPrice2month">$300/mo</span>
+            <span class="save-tag">Save $100</span>
+          </div>
+          <div class="pill" onclick="setBilling(this,'3-Month')">
+            <span class="pill-name">3 Months</span>
+            <span class="pill-price" id="billingPrice3month">$250/mo</span>
+            <span class="save-tag">Save $300</span>
+          </div>
+        </div>
+
+        <div class="divider"></div>
+        <div style="font-size:11px;color:#AAB899;margin-bottom:12px;line-height:1.65;margin-top:14px">Copy the message below. On the next page you'll open our Instagram DM and paste it.</div>
+        <div class="msg-box" id="dmMsg"></div>
+        <div class="btns">
+          <button class="btn-lime" id="copyBtn" onclick="copyMsg()">Copy message</button>
+          <button class="btn-outline" onclick="goPage2()">Continue →</button>
+        </div>
+      </div>
+    </div>
+    <div class="hint">▼ copy first, then continue</div>
+  </div>
+
+  <!-- PAGE 2 -->
+  <div class="page" id="page-2">
+    <div class="dark">
+      <div class="hdr">
+        <div class="eyebrow">Social Media Management · Step 2 of 2</div>
+        <div class="h1">Here's what happens<br><span>when you send it.</span></div>
+      </div>
+      <div style="background:#fff;padding:20px 22px">
+        <div class="confirm-row">
+          <div style="font-size:11px;color:#6B7A5A">Selected plan</div>
+          <div style="font-size:12px;font-weight:700;color:#0D1F00" id="confirmLabel">Presence — $350/mo · Monthly</div>
+        </div>
+        <div class="steps">
+          <div class="steps-head">What happens next</div>
+          <div class="step"><div class="num">1</div><div><div class="step-title">Team confirms your territory</div><div class="step-desc">We verify your niche + city is available and no other coach is running it.</div></div></div>
+          <div class="step"><div class="num">2</div><div><div class="step-title">Invoice sent to your email</div><div class="step-desc">Clean invoice with your tier, territory, deliverables, and terms in writing.</div></div></div>
+          <div class="step"><div class="num">3</div><div><div class="step-title">Content system goes live</div><div class="step-desc">Brand voice built, content calendar live, and consistent posting begins within the first week.</div></div></div>
+          <div class="step"><div class="num g">4</div><div><div class="step-title">Month 3 — content converting clients</div><div class="step-desc">Your content story is fully built. Warm followers are converting. Territory locked — no competitor in your niche + city gets the same system.</div></div></div>
+        </div>
+        <div class="foot-note">Questions before you pay? Reply to the DM or message us directly.<br>We don't pressure close. The numbers do the work.</div>
+        <a class="btn-ig" href="https://ig.me/m/fitflux_studio" target="_blank">Open Instagram DM & paste your message ↗</a>
+        <button class="btn-back" onclick="goPage1()">← Back to copy message</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script>
+var tiers = {
+  'Presence':          { monthly:'$350', '2month':'$300', '3month':'$250' },
+  'Authority':         { monthly:'$700', '2month':'$650', '3month':'$600' },
+  'Category King/Queen':{ monthly:'$1,200','2month':'$1,150','3month':'$1,100' }
+};
+var saves = { 'Monthly':'', '2-Month':'\nBilling: Billed as 2 months · Save $100 total', '3-Month':'\nBilling: Billed as 3 months · Save $300 total' };
+var billingKeys = { 'Monthly':'monthly', '2-Month':'2month', '3-Month':'3month' };
+var currentTier = 'Presence';
+var currentBilling = 'Monthly';
+
+function getPrice(){ return tiers[currentTier][billingKeys[currentBilling]]; }
+
+function updateAll(){
+  var price = getPrice();
+  // Update billing pill prices for current tier
+  document.getElementById('billingPriceMonthly').textContent = tiers[currentTier].monthly + '/mo';
+  document.getElementById('billingPrice2month').textContent  = tiers[currentTier]['2month'] + '/mo';
+  document.getElementById('billingPrice3month').textContent  = tiers[currentTier]['3month'] + '/mo';
+  // Update tier pill prices for current billing
+  document.getElementById('pricePillPresence').textContent         = tiers['Presence'][billingKeys[currentBilling]] + '/mo';
+  document.getElementById('pricePillAuthority').textContent        = tiers['Authority'][billingKeys[currentBilling]] + '/mo';
+  document.getElementById('pricePillCategory').textContent         = tiers['Category King/Queen'][billingKeys[currentBilling]] + '/mo';
+  // Update message
+  document.getElementById('dmMsg').textContent =
+    'Hi FitfluxStudio! I want to claim my territory.\n\nPlan: ' + currentTier + ' — ' + price + '/month (' + currentBilling + ')' + (saves[currentBilling]||'') + '\nPackage: Social Media Management\nEmail: yourname@email.com\nInstagram: @yourhandle\n\nPlease confirm my territory is available and send me the invoice.';
+  // Update confirm label
+  document.getElementById('confirmLabel').textContent = currentTier + ' — ' + price + '/mo · ' + currentBilling;
+}
+
+function setTier(el, name){
+  document.querySelectorAll('#tierPills .pill').forEach(function(p){ p.classList.remove('active'); });
+  el.classList.add('active');
+  currentTier = name;
+  updateAll();
+}
+
+function setBilling(el, label){
+  document.querySelectorAll('#billingPills .pill').forEach(function(p){ p.classList.remove('active'); });
+  el.classList.add('active');
+  currentBilling = label;
+  updateAll();
+}
+
+function goPage2(){ document.getElementById('page-1').classList.remove('active'); document.getElementById('page-2').classList.add('active'); window.scrollTo(0,0); }
+function goPage1(){ document.getElementById('page-2').classList.remove('active'); document.getElementById('page-1').classList.add('active'); window.scrollTo(0,0); }
+function copyMsg(){
+  var txt = document.getElementById('dmMsg').textContent;
+  navigator.clipboard.writeText(txt).then(function(){
+    var b = document.getElementById('copyBtn');
+    b.textContent = 'Copied!';
+    setTimeout(function(){ b.textContent = 'Copy message'; }, 2000);
+  });
+}
+
+// Init
+updateAll();
+</script>
+</body>
+</html>
