@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FitfluxStudio — Presence Invoice</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:#F4F8EE;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.wrap{max-width:480px;width:100%}
+.page{display:none}
+.page.active{display:block}
+.dark{background:#0D1F00;border-radius:12px;overflow:hidden;margin-bottom:10px}
+.hdr{background:#0D1F00;padding:18px 22px 14px;border-bottom:3px solid #CCFF00}
+.eyebrow{font-size:10px;font-weight:500;letter-spacing:.15em;text-transform:uppercase;color:#CCFF00;opacity:.7;margin-bottom:6px}
+.h1{font-size:26px;font-weight:300;color:#fff;line-height:1.05}
+.h1 span{color:#CCFF00}
+.tier-badge{display:inline-block;background:#CCFF00;color:#0D1F00;font-size:11px;font-weight:700;padding:5px 14px;border-radius:20px;margin-bottom:14px;letter-spacing:.04em}
+.msg-box{background:rgba(255,255,255,.05);border:0.5px solid rgba(255,255,255,.12);border-radius:8px;padding:14px 16px;font-size:12px;color:#fff;line-height:1.85;white-space:pre-wrap;margin-bottom:16px;font-family:monospace}
+.btns{display:flex;gap:10px}
+.btn-lime{flex:1;background:#CCFF00;color:#0D1F00;font-size:12px;font-weight:700;padding:12px;border:none;border-radius:6px;cursor:pointer;letter-spacing:.04em;text-transform:uppercase}
+.btn-outline{flex:1;background:transparent;color:#CCFF00;font-size:12px;font-weight:700;padding:12px;border:1px solid rgba(204,255,0,.5);border-radius:6px;cursor:pointer;letter-spacing:.04em;text-transform:uppercase}
+.btn-ig{display:block;width:100%;background:#CCFF00;color:#0D1F00;font-size:13px;font-weight:700;padding:14px;border:none;border-radius:6px;cursor:pointer;letter-spacing:.04em;text-transform:uppercase;margin-top:14px;text-align:center;text-decoration:none}
+.btn-back{width:100%;background:#f4f8ee;color:#0D1F00;font-size:12px;font-weight:700;padding:12px;border:0.5px solid #dde8cc;border-radius:6px;cursor:pointer;letter-spacing:.04em;text-transform:uppercase;margin-top:10px}
+.steps{border:0.5px solid #dde8cc;border-radius:8px;overflow:hidden;margin-bottom:14px}
+.steps-head{background:#f4f8ee;padding:10px 16px;border-bottom:0.5px solid #dde8cc;font-size:12px;font-weight:700;color:#0D1F00}
+.step{display:flex;gap:12px;padding:12px 16px;border-top:0.5px solid #dde8cc;align-items:flex-start}
+.step:first-child{border-top:none}
+.num{width:22px;height:22px;border-radius:50%;background:#CCFF00;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#0D1F00;flex-shrink:0}
+.num.g{background:#2D6A0F;color:#CCFF00}
+.step-title{font-size:12px;font-weight:700;color:#0D1F00;margin-bottom:2px}
+.step-desc{font-size:11px;color:#6B7A5A;line-height:1.55}
+.foot-note{text-align:center;font-size:11px;color:#6B7A5A;line-height:1.7;margin-bottom:4px}
+.hint{font-size:10px;color:#AAB899;text-align:center;padding:6px 0;letter-spacing:.05em}
+.confirm-row{background:#f4f8ee;border:0.5px solid #dde8cc;border-radius:8px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;justify-content:space-between}
+.billing-pills{display:flex;gap:6px;margin-bottom:16px}
+.bp{flex:1;padding:9px 6px;border-radius:8px;border:1.5px solid rgba(204,255,0,.25);background:rgba(255,255,255,.04);color:#AAB899;font-size:10px;font-weight:700;text-align:center;cursor:pointer;transition:all .15s}
+.bp.active{background:#CCFF00;color:#0D1F00;border-color:#CCFF00}
+.bp-label{display:block;font-size:11px;margin-bottom:2px}
+.bp-price{display:block;font-size:10px;opacity:.75}
+.bp.active .bp-price{opacity:.6}
+.save-tag{display:inline-block;background:rgba(204,255,0,.15);color:#CCFF00;font-size:9px;font-weight:700;padding:2px 7px;border-radius:8px;margin-top:4px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- PAGE 1 -->
+  <div class="page active" id="page-1">
+    <div class="dark">
+      <div class="hdr">
+        <div class="eyebrow">Social Media Management · Step 1 of 2</div>
+        <div class="h1">Copy this message<br><span>then continue.</span></div>
+      </div>
+      <div style="background:#0D1F00;padding:18px 22px 20px">
+        <div class="tier-badge">Presence — Starter</div>
+
+        <div style="font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:rgba(204,255,0,.6);margin-bottom:8px">Choose billing period</div>
+        <div class="billing-pills">
+          <div class="bp active" onclick="setBilling(this,'monthly','$350','Monthly')">
+            <span class="bp-label">Monthly</span>
+            <span class="bp-price">$350/mo</span>
+          </div>
+          <div class="bp" onclick="setBilling(this,'2month','$300','2-Month')">
+            <span class="bp-label">2 Months</span>
+            <span class="bp-price">$300/mo</span>
+            <span class="save-tag">Save $100</span>
+          </div>
+          <div class="bp" onclick="setBilling(this,'3month','$250','3-Month')">
+            <span class="bp-label">3 Months</span>
+            <span class="bp-price">$250/mo</span>
+            <span class="save-tag">Save $300</span>
+          </div>
+        </div>
+
+        <div style="font-size:11px;color:#AAB899;margin-bottom:12px;line-height:1.65">Copy the message below. On the next page you'll open our Instagram DM and paste it.</div>
+        <div class="msg-box" id="dmMsg">Hi FitfluxStudio! I want to claim my territory.
+
+Plan: Presence — $350/month (Monthly)
+Package: Social Media Management
+Email: yourname@email.com
+Instagram: @yourhandle
+
+Please confirm my territory is available and send me the invoice.</div>
+        <div class="btns">
+          <button class="btn-lime" id="copyBtn" onclick="copyMsg()">Copy message</button>
+          <button class="btn-outline" onclick="goPage2()">Continue →</button>
+        </div>
+      </div>
+    </div>
+    <div class="hint">▼ copy first, then continue</div>
+  </div>
+
+  <!-- PAGE 2 -->
+  <div class="page" id="page-2">
+    <div class="dark">
+      <div class="hdr">
+        <div class="eyebrow">Social Media Management · Step 2 of 2</div>
+        <div class="h1">Here's what happens<br><span>when you send it.</span></div>
+      </div>
+      <div style="background:#fff;padding:20px 22px">
+        <div class="confirm-row">
+          <div style="font-size:11px;color:#6B7A5A">Selected plan</div>
+          <div style="font-size:13px;font-weight:700;color:#0D1F00" id="confirmLabel">Presence — $350/mo · Monthly</div>
+        </div>
+        <div class="steps">
+          <div class="steps-head">What happens next</div>
+          <div class="step"><div class="num">1</div><div><div class="step-title">Team confirms your territory</div><div class="step-desc">We verify your niche + city is available and no other coach is running it.</div></div></div>
+          <div class="step"><div class="num">2</div><div><div class="step-title">Invoice sent to your email</div><div class="step-desc">Clean invoice with your tier, territory, deliverables, and terms in writing.</div></div></div>
+          <div class="step"><div class="num">3</div><div><div class="step-title">Content system goes live</div><div class="step-desc">Brand voice built, content calendar live, and consistent posting begins within the first week.</div></div></div>
+          <div class="step"><div class="num g">4</div><div><div class="step-title">Month 3 — content converting clients</div><div class="step-desc">Your content story is fully built. Warm followers are converting. Territory locked — no competitor in your niche + city gets the same system.</div></div></div>
+        </div>
+        <div class="foot-note">Questions before you pay? Reply to the DM or message us directly.<br>We don't pressure close. The numbers do the work.</div>
+        <a class="btn-ig" href="https://ig.me/m/fitflux_studio" target="_blank">Open Instagram DM & paste your message ↗</a>
+        <button class="btn-back" onclick="goPage1()">← Back to copy message</button>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script>
+var currentPrice = '$350';
+var currentBilling = 'Monthly';
+
+var billingData = {
+  monthly:  { price: '$350', label: 'Monthly',  note: '' },
+  '2month': { price: '$300', label: '2-Month',  note: 'Billed as 2 months · Save $100 total' },
+  '3month': { price: '$250', label: '3-Month',  note: 'Billed as 3 months · Save $300 total' }
+};
+
+function setBilling(el, key, price, label){
+  document.querySelectorAll('.bp').forEach(function(p){ p.classList.remove('active'); });
+  el.classList.add('active');
+  currentPrice = price;
+  currentBilling = label;
+  updateMsg();
+  document.getElementById('confirmLabel').textContent = 'Presence — ' + price + '/mo · ' + label;
+}
+
+function updateMsg(){
+  var d = billingData[currentBilling.toLowerCase().replace('-','').replace(' ','')] || billingData.monthly;
+  var note = currentBilling !== 'Monthly' ? '\nBilling: ' + billingData[Object.keys(billingData).find(k => billingData[k].label === currentBilling)].note : '';
+  document.getElementById('dmMsg').textContent =
+    'Hi FitfluxStudio! I want to claim my territory.\n\nPlan: Presence — ' + currentPrice + '/month (' + currentBilling + ')' + note + '\nPackage: Social Media Management\nEmail: yourname@email.com\nInstagram: @yourhandle\n\nPlease confirm my territory is available and send me the invoice.';
+}
+
+function goPage2(){
+  document.getElementById('page-1').classList.remove('active');
+  document.getElementById('page-2').classList.add('active');
+  window.scrollTo(0,0);
+  sendToN8n({
+    package: 'Social Media Management',
+    tier: 'Presence',
+    price: currentPrice,
+    billing: currentBilling,
+    timestamp: new Date().toISOString()
+  });
+}
+function goPage1(){ document.getElementById('page-2').classList.remove('active'); document.getElementById('page-1').classList.add('active'); window.scrollTo(0,0); }
+function copyMsg(){
+  var txt = document.getElementById('dmMsg').textContent;
+  navigator.clipboard.writeText(txt).then(function(){
+    var b = document.getElementById('copyBtn');
+    b.textContent = 'Copied!';
+    setTimeout(function(){ b.textContent = 'Copy message'; }, 2000);
+  });
+}
+
+function sendToN8n(data){
+  fetch("https://primary-production-e0a9.up.railway.app/webhook/291aff5d-7988-4adf-a4d1-a15b7c144ba2", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(data)
+  }).catch(function(e){ console.log("Webhook error:", e); });
+}
+</script>
+</body>
+</html>
