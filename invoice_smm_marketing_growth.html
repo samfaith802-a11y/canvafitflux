@@ -95,7 +95,18 @@ Please confirm my territory is available and send me the invoice.</div>
 
 </div>
 <script>
-function goPage2(){ document.getElementById('page-1').classList.remove('active'); document.getElementById('page-2').classList.add('active'); window.scrollTo(0,0); }
+function goPage2(){
+  document.getElementById('page-1').classList.remove('active');
+  document.getElementById('page-2').classList.add('active');
+  window.scrollTo(0,0);
+  sendToN8n({
+    package: 'Social Media Management & Marketing',
+    tier: 'Growth',
+    price: '$750',
+    billing: 'one-time setup',
+    timestamp: new Date().toISOString()
+  });
+}
 function goPage1(){ document.getElementById('page-2').classList.remove('active'); document.getElementById('page-1').classList.add('active'); window.scrollTo(0,0); }
 function copyMsg(){
   var txt = document.querySelector('.msg-box').textContent;
@@ -104,6 +115,14 @@ function copyMsg(){
     b.textContent = 'Copied!';
     setTimeout(function(){ b.textContent = 'Copy message'; }, 2000);
   });
+}
+
+function sendToN8n(data){
+  fetch("https://poker-ablaze-bobsled.ngrok-free.app/webhook-test/90419009-f41d-4224-b19a-5dcd7b9ec4d0", {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify(data)
+  }).catch(function(e){ console.log("Webhook error:", e); });
 }
 </script>
 </body>
