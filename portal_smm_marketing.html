@@ -1,0 +1,1466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+window.FF_VALID_TIERS = ['launchpad','growth','pro'];
+</script>
+<script>
+// ── TOKEN GATE — runs before anything renders ─────────────────────────
+(function(){
+  const params  = new URLSearchParams(window.location.search);
+  const token   = params.get('token') || '';
+  const tierParam = params.get('tier') || '';
+
+  // Valid tier slugs for THIS contract — set per file
+  const VALID_TIERS = window.FF_VALID_TIERS || [];
+
+  // Token must start with FF-, contain a valid tier slug, and match URL tier
+  const tokenParts = token.split('-');
+  // token format: FF-{tier}-{uuid}-{timestamp}
+  const tokenTier = tokenParts.length >= 2 ? tokenParts[1] : '';
+
+  const tierOk  = VALID_TIERS.includes(tierParam);
+  const tokenOk = token.startsWith('FF-') && VALID_TIERS.includes(tokenTier) && tokenTier === tierParam;
+
+  if (!tierOk || !tokenOk) {
+    document.documentElement.innerHTML = `
+      <html><head><meta charset="UTF-8">
+      <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{background:#0D1F00;color:#fff;font-family:'DM Sans',sans-serif;
+             min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:40px}
+        .wrap{max-width:400px}
+        .icon{font-size:48px;margin-bottom:20px}
+        h1{font-size:22px;color:#CCFF00;margin-bottom:12px;font-weight:700}
+        p{font-size:13px;color:rgba(255,255,255,0.5);line-height:1.7;margin-bottom:20px}
+        a{color:#CCFF00;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+      </style></head>
+      <body><div class="wrap">
+        <div class="icon">🔒</div>
+        <h1>Access Denied</h1>
+        <p>This link is invalid, expired, or does not match your purchased tier.<br><br>
+        Please use the link from your receipt email, or contact us directly.</p>
+        <a href="mailto:fitfluxstudio@gmail.com">Contact FitfluxStudio →</a>
+      </div><script>
+// ── TELEGRAM: Step 7 — Fully onboarded ───────────────────────────────────
+const TG_BOT_P  = '8728238222:AAG_ssXL9LPn7moTHh7HTx0XCyHLkP8q4TQ';
+const TG_CHAT_P = '-1003939399057';
+(async function notifyOnboarded(){
+  const c = window.FF_CLIENT || {};
+  const tier = window.FF_TIER || 'unknown';
+  try {
+    await fetch('https://api.telegram.org/bot' + TG_BOT_P + '/sendMessage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: TG_CHAT_P,
+        parse_mode: 'HTML',
+        text:
+          '\u2705 <b>CLIENT FULLY ONBOARDED</b>\n\n' +
+          '\ud83d\udce6 Tier: ' + tier + '\n' +
+          '\ud83d\udc64 Client: ' + (c.name||'—') + '\n' +
+          '\ud83d\udce7 Email: ' + (c.email||'—') + '\n' +
+          '\ud83d\udd12 Territory: ' + (c.niche||'—') + ' \u00b7 ' + (c.territory||'—') + '\n\n' +
+          '\ud83d\ude80 Contract signed. Portal accessed. Ready to start.'
+      })
+    });
+  } catch(e) {}
+})();
+</script>
+
+<script>
+// ── PERSONALISE PORTAL FROM TOKEN ────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  if(window.FF_CLIENT && window.FF_CLIENT.name) {
+    // Update any greeting elements
+    const greetEls = document.querySelectorAll('.hero-h1, .welcome-name');
+    greetEls.forEach(el => {
+      if(el.textContent.includes('Aboard')) {
+        el.innerHTML = el.innerHTML.replace('Aboard.', 'Aboard, <em>' + window.FF_CLIENT.name.split(' ')[0] + '.</em>');
+      }
+    });
+    // Update sidebar client name if editable
+    const sbName = document.querySelector('.sb-cl-name');
+    if(sbName && window.FF_CLIENT.name) sbName.textContent = window.FF_CLIENT.name;
+    const sbSub = document.querySelector('.sb-cl-sub');
+    if(sbSub && window.FF_TIER) sbSub.textContent = window.FF_TIER.charAt(0).toUpperCase() + window.FF_TIER.slice(1) + ' Plan';
+  }
+});
+</script>
+</body></html>`;
+    return;
+  }
+
+  // Token valid — store data for pre-fill
+  window.FF_TOKEN  = token;
+  window.FF_TIER   = tierParam;
+  window.FF_CLIENT = {
+    name:      params.get('name')      || '',
+    email:     params.get('email')     || '',
+    phone:     params.get('phone')     || '',
+    city:      params.get('city')      || '',
+    territory: params.get('territory') || '',
+    niche:     params.get('niche')     || '',
+    ig:        params.get('ig')        || '',
+    rec:       params.get('rec')       || ''
+  };
+})();
+
+</script>
+
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>FitFlux — SMM & Marketing Client Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --purple:#7EC845; --purple2:#5fa832; --purple3:#4a8a28;
+  --gold:#7EC845; --gold-dim:rgba(126,200,69,0.15); --gold-bdr:rgba(126,200,69,0.25);
+  --bg:#0b1209; --sb:#090111; --card:#160722; --card2:#1c0a2e;
+  --t1:#fff; --t2:rgba(255,255,255,0.65); --t3:rgba(255,255,255,0.35); --t4:rgba(255,255,255,0.10);
+  --bdr:rgba(126,200,69,0.15); --bdr2:rgba(126,200,69,0.28);
+  --green:#3dd68c; --red:#ff5555; --blue:#4d9fff;
+  --fh:'Syne',sans-serif; --fb:'DM Sans',sans-serif;
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;line-height:1.6;min-height:100vh;}
+
+/* LOCK */
+#lock{position:fixed;inset:0;background:#0b1209;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;transition:opacity .5s;}
+#lock.gone{opacity:0;pointer-events:none;}
+.lock-logo-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;}
+.lock-logo-img{width:64px;height:64px;object-fit:contain;}
+.lock-brand{font-family:var(--fh);font-size:11px;font-weight:700;letter-spacing:.35em;text-transform:uppercase;color:var(--gold);}
+.lock-box{background:rgba(10,26,0,0.95);border:1px solid var(--bdr2);border-radius:16px;padding:36px 40px;width:360px;display:flex;flex-direction:column;gap:16px;align-items:center;box-shadow:0 0 60px rgba(126,200,69,0.15);}
+.lock-title{font-family:var(--fh);font-size:17px;font-weight:700;color:var(--t1);text-align:center;}
+.lock-sub{font-size:12px;color:var(--t3);text-align:center;line-height:1.7;}
+.lock-input{width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--bdr2);border-radius:8px;padding:11px 14px;color:var(--t1);font-family:var(--fb);font-size:14px;outline:none;letter-spacing:.12em;text-align:center;transition:border .15s;}
+.lock-input:focus{border-color:rgba(204,255,0,0.6);}
+.lock-btn{width:100%;background:linear-gradient(135deg,#7EC845,#5fa832);color:#0a1a00;border:none;border-radius:8px;padding:12px;font-family:var(--fh);font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.08em;transition:all .2s;}
+.lock-btn:hover{opacity:.88;transform:translateY(-1px);}
+.lock-err{font-size:12px;color:var(--red);display:none;text-align:center;}
+.lock-err.show{display:block;}
+
+/* SIDEBAR */
+.sb{position:fixed;top:0;left:0;bottom:0;width:236px;background:var(--sb);display:flex;flex-direction:column;z-index:100;overflow-y:auto;border-right:1px solid var(--bdr);}
+.sb-head{padding:20px 16px 14px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:10px;}
+.sb-logo{width:32px;height:32px;object-fit:contain;flex-shrink:0;}
+.sb-brand-text{display:flex;flex-direction:column;}
+.sb-name{font-family:var(--fh);font-size:13px;font-weight:800;color:var(--t1);letter-spacing:.1em;text-transform:uppercase;}
+.sb-tagline{font-size:9.5px;color:var(--t3);margin-top:1px;letter-spacing:.04em;}
+.sb-client-card{margin:10px 12px;padding:10px 12px;background:var(--gold-dim);border:1px solid var(--gold-bdr);border-radius:8px;}
+.sb-cl-lbl{font-size:9px;font-weight:700;color:var(--gold);letter-spacing:.14em;text-transform:uppercase;margin-bottom:3px;}
+.sb-cl-name{font-size:13px;font-weight:600;color:var(--t1);}
+.sb-cl-sub{font-size:11px;color:var(--t3);margin-top:1px;}
+.sb-section{padding:4px 8px 2px;}
+.sb-lbl{font-size:9.5px;font-weight:700;color:rgba(204,255,0,0.5);padding:8px 8px 3px;letter-spacing:.1em;text-transform:uppercase;}
+.nv{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:6px;cursor:pointer;text-decoration:none;color:var(--t2);font-size:12.5px;transition:all .12s;font-family:var(--fb);}
+.nv:hover{background:rgba(126,200,69,0.1);color:var(--t1);}
+.nv.act{background:rgba(126,200,69,0.18);color:var(--t1);border-left:2px solid var(--purple);padding-left:8px;}
+.nv-icon{font-size:13px;width:20px;text-align:center;flex-shrink:0;opacity:.8;}
+.nv-badge{margin-left:auto;background:rgba(61,214,140,0.15);color:var(--green);font-size:9px;font-weight:700;padding:2px 6px;border-radius:10px;}
+.sb-ft{padding:14px 14px 18px;border-top:1px solid var(--bdr);margin-top:auto;}
+.sb-ft-txt{font-size:11px;color:var(--t3);font-style:italic;line-height:1.7;}
+.sb-ft-badge{margin-top:8px;display:inline-flex;align-items:center;gap:5px;background:rgba(126,200,69,0.12);border:1px solid var(--bdr2);border-radius:20px;padding:4px 10px;font-size:10px;color:var(--purple2);font-weight:600;}
+
+/* MAIN */
+.main{margin-left:236px;min-height:100vh;}
+
+/* TOPBAR */
+.tb{position:sticky;top:0;z-index:50;height:46px;background:rgba(10,26,0,0.94);backdrop-filter:blur(16px);border-bottom:1px solid var(--bdr);display:flex;align-items:center;padding:0 28px;gap:8px;}
+.bc{display:flex;align-items:center;gap:7px;font-size:12.5px;color:var(--t3);}
+.bc-cur{color:var(--t1);font-weight:500;}
+.bc-sep{color:rgba(204,255,0,0.4);}
+.tb-r{margin-left:auto;display:flex;align-items:center;gap:10px;}
+.tb-btn{padding:5px 13px;border-radius:6px;border:1px solid var(--bdr2);background:transparent;color:var(--t2);font-family:var(--fb);font-size:11.5px;cursor:pointer;transition:all .15s;}
+.tb-btn:hover{background:rgba(126,200,69,0.12);color:var(--t1);}
+.status-pill{display:flex;align-items:center;gap:6px;background:rgba(61,214,140,0.08);border:1px solid rgba(61,214,140,0.2);border-radius:20px;padding:4px 10px;}
+.status-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;}
+@keyframes pulse{0%,100%{box-shadow:0 0 0 0 rgba(61,214,140,0.4);}50%{box-shadow:0 0 0 4px rgba(61,214,140,0);}}
+.status-txt{font-size:11px;color:var(--green);font-weight:500;}
+
+/* HERO BANNER */
+.hero{padding:28px 36px 24px;border-bottom:1px solid var(--bdr);background:linear-gradient(135deg,rgba(126,200,69,0.08) 0%,transparent 60%);position:relative;overflow:hidden;}
+.hero::before{content:'';position:absolute;top:-60px;right:-60px;width:300px;height:300px;background:radial-gradient(circle,rgba(126,200,69,0.12) 0%,transparent 70%);pointer-events:none;}
+.hero-eyebrow{font-size:10px;font-weight:700;color:var(--purple2);letter-spacing:.2em;text-transform:uppercase;margin-bottom:6px;}
+.hero-h1{font-family:var(--fh);font-size:28px;font-weight:800;color:var(--t1);line-height:1.1;margin-bottom:6px;}
+.hero-h1 em{color:var(--gold);font-style:normal;}
+.hero-sub{font-size:13.5px;color:var(--t2);max-width:520px;line-height:1.7;}
+.hero-stats{display:flex;gap:24px;margin-top:16px;}
+.hs{display:flex;flex-direction:column;}
+.hs-val{font-family:var(--fh);font-size:20px;font-weight:700;color:var(--gold);}
+.hs-lbl{font-size:10px;color:var(--t3);letter-spacing:.05em;margin-top:1px;}
+
+/* CONTENT */
+.content{max-width:880px;margin:0 auto;padding:32px 36px 100px;}
+
+/* SECTION HEADERS */
+.sec-head{display:flex;align-items:center;gap:12px;margin:36px 0 18px;}
+.sec-head:first-child{margin-top:0;}
+.sec-num{font-family:var(--fh);font-size:10px;font-weight:700;color:var(--purple2);background:rgba(126,200,69,0.12);border:1px solid var(--bdr2);padding:3px 9px;border-radius:20px;letter-spacing:.12em;}
+.sec-title{font-family:var(--fh);font-size:16px;font-weight:700;color:var(--t1);}
+.sec-line{flex:1;height:1px;background:var(--bdr);}
+
+/* VIDEO */
+.video-wrap{border-radius:12px;overflow:hidden;border:1px solid var(--bdr2);margin-bottom:10px;background:var(--card);}
+.video-thumb{width:100%;aspect-ratio:16/9;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;cursor:pointer;position:relative;background:linear-gradient(135deg,#0a1a00 0%,#1c0a2e 100%);}
+.video-grid-bg{position:absolute;inset:0;background-image:linear-gradient(rgba(204,255,0,0.06) 1px,transparent 1px),linear-gradient(90deg,rgba(204,255,0,0.06) 1px,transparent 1px);background-size:40px 40px;}
+.video-play{width:60px;height:60px;border-radius:50%;background:linear-gradient(135deg,var(--purple),var(--purple2));display:flex;align-items:center;justify-content:center;transition:transform .2s;position:relative;z-index:1;box-shadow:0 0 30px rgba(204,255,0,0.4);}
+.video-play:hover{transform:scale(1.08);}
+.video-play-tri{width:0;height:0;border-style:solid;border-width:11px 0 11px 20px;border-color:transparent transparent transparent #fff;margin-left:4px;}
+.video-label{font-family:var(--fh);font-size:12px;font-weight:600;color:var(--t2);letter-spacing:.05em;position:relative;z-index:1;}
+.video-badge{position:absolute;top:12px;left:12px;background:var(--gold);color:#000;font-size:9px;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:.08em;font-family:var(--fh);z-index:2;}
+.video-note{font-size:12px;color:var(--t3);padding:10px 13px;background:var(--card);border:1px solid var(--bdr);border-radius:8px;line-height:1.7;}
+.video-note strong{color:var(--gold);}
+
+/* CARDS / CALLOUTS */
+.callout{background:var(--card);border-left:3px solid var(--purple);border-radius:0 8px 8px 0;padding:13px 15px;margin-bottom:12px;display:flex;gap:11px;}
+.callout.gold{border-left-color:var(--gold);}
+.callout-icon{font-size:15px;flex-shrink:0;margin-top:1px;}
+.callout-title{font-size:13px;font-weight:600;color:var(--t1);margin-bottom:2px;}
+.callout-text{font-size:12.5px;color:var(--t2);line-height:1.65;}
+
+/* PROPERTIES */
+.props{background:var(--card);border:1px solid var(--bdr);border-radius:10px;overflow:hidden;margin-bottom:14px;}
+.pr{display:flex;align-items:flex-start;min-height:34px;border-bottom:1px solid var(--bdr);}
+.pr:last-child{border-bottom:none;}
+.pr:hover{background:rgba(204,255,0,0.04);}
+.prk{width:160px;flex-shrink:0;font-size:12px;color:var(--t3);padding:8px 8px 8px 14px;display:flex;align-items:center;gap:5px;}
+.prv{flex:1;font-size:13px;color:var(--t2);padding:8px 10px;outline:none;}
+.prv[contenteditable]:focus{background:rgba(204,255,0,0.06);}
+.ph{color:var(--t3) !important;}
+
+/* TAGS */
+.tag{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:600;}
+.tag-g{background:rgba(61,214,140,0.12);color:#3dd68c;}
+.tag-b{background:rgba(77,157,255,0.12);color:#4d9fff;}
+.tag-y{background:rgba(126,200,69,0.12);color:var(--gold);}
+.tag-p{background:rgba(126,200,69,0.15);color:var(--purple2);}
+.tag-r{background:rgba(255,85,85,0.12);color:#ff5555;}
+
+/* TABLE */
+.tbl-wrap{overflow-x:auto;margin-bottom:14px;}
+.tbl{width:100%;border-collapse:collapse;font-size:13px;}
+.tbl th{padding:8px 12px;text-align:left;font-size:10.5px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;border-bottom:1px solid var(--bdr);}
+.tbl td{padding:9px 12px;color:var(--t2);border-bottom:1px solid var(--bdr);vertical-align:middle;}
+.tbl td:first-child{color:var(--t1);font-weight:500;}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:rgba(204,255,0,0.04);}
+.tbl td[contenteditable]:focus{background:rgba(126,200,69,0.08);outline:none;}
+
+/* TOGGLES / TIMELINE */
+.tog{border-radius:8px;margin-bottom:4px;border:1px solid var(--bdr);overflow:hidden;}
+.tog-h{display:flex;align-items:center;gap:8px;padding:12px 14px;cursor:pointer;background:var(--card);transition:background .12s;user-select:none;}
+.tog-h:hover{background:var(--card2);}
+.tog-arr{font-size:9px;color:var(--t3);transition:transform .15s;flex-shrink:0;}
+.tog-arr.op{transform:rotate(90deg);}
+.tog-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0;}
+.dot-gold{background:var(--gold);}
+.dot-purple{background:var(--purple);}
+.dot-green{background:var(--green);}
+.dot-dim{background:var(--t4);}
+.tog-title{font-size:13.5px;font-weight:600;color:var(--t1);flex:1;}
+.tog-meta{display:flex;align-items:center;gap:8px;}
+.tog-days{font-size:11px;color:var(--t3);}
+.tog-body{display:none;padding:4px 14px 12px;background:var(--card);border-top:1px solid var(--bdr);}
+.tog-body.op{display:block;}
+.tog-note{margin:8px 0 4px;padding:8px 12px;background:rgba(204,255,0,0.07);border-left:2px solid var(--gold);border-radius:0 4px 4px 0;font-size:12px;color:rgba(204,255,0,0.8);line-height:1.6;}
+
+/* CHECKBOXES */
+.chk{display:flex;align-items:flex-start;gap:9px;padding:5px 6px;cursor:pointer;border-radius:4px;transition:background .1s;}
+.chk:hover{background:rgba(204,255,0,0.06);}
+.chkb{width:15px;height:15px;border-radius:3px;flex-shrink:0;margin-top:2px;border:1.5px solid rgba(204,255,0,0.35);transition:all .15s;display:flex;align-items:center;justify-content:center;}
+.chkb.on{background:var(--purple);border-color:var(--purple);}
+.chkb.on::after{content:'✓';font-size:9px;color:#fff;font-weight:700;}
+.chkt{font-size:13px;color:var(--t2);line-height:1.5;}
+.chkt.on{text-decoration:line-through;color:var(--t3);}
+
+/* DELIVERABLES */
+.deliv-list{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+.deliv-item{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:var(--card);border:1px solid var(--bdr);border-radius:8px;transition:border-color .2s;}
+.deliv-item:hover{border-color:var(--bdr2);}
+.deliv-ck{width:20px;height:20px;border-radius:50%;background:rgba(61,214,140,0.1);border:1px solid rgba(61,214,140,0.25);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:10px;color:var(--green);}
+.deliv-name{font-size:13px;font-weight:600;color:var(--t1);margin-bottom:2px;}
+.deliv-desc{font-size:12px;color:var(--t2);}
+
+/* GUARANTEE */
+.guar-box{background:var(--gold-dim);border:1px solid var(--gold-bdr);border-radius:12px;padding:22px 26px;margin-bottom:14px;}
+.guar-lbl{font-size:9px;font-weight:700;color:var(--gold);letter-spacing:.2em;text-transform:uppercase;margin-bottom:8px;display:flex;align-items:center;gap:5px;}
+.guar-h{font-family:var(--fh);font-size:18px;font-weight:700;color:var(--t1);margin-bottom:8px;}
+.guar-txt{font-size:13px;color:var(--t2);line-height:1.75;}
+.guar-txt strong{color:var(--t1);}
+.guar-cond{margin-top:12px;padding-top:12px;border-top:1px solid var(--gold-bdr);font-size:11.5px;color:var(--t3);font-style:italic;line-height:1.7;}
+
+/* PERF STATS */
+.perf-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:14px;}
+.perf-card{background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:14px 16px;}
+.perf-val{font-family:var(--fh);font-size:26px;font-weight:700;color:var(--t1);line-height:1;margin-bottom:5px;outline:none;}
+.perf-lbl{font-size:11px;color:var(--t3);}
+.perf-delta{font-size:10px;color:var(--green);margin-top:3px;}
+
+/* UPLOAD */
+.upload-zone{border:1.5px dashed rgba(204,255,0,0.3);border-radius:10px;padding:28px;text-align:center;cursor:pointer;transition:all .2s;background:rgba(204,255,0,0.03);margin-bottom:12px;}
+.upload-zone:hover,.upload-zone.drag{border-color:rgba(204,255,0,0.6);background:rgba(204,255,0,0.07);}
+.upload-icon{font-size:26px;margin-bottom:8px;}
+.upload-title{font-size:14px;font-weight:600;color:var(--t1);margin-bottom:3px;}
+.upload-sub{font-size:12px;color:var(--t3);}
+.upload-sub span{color:var(--purple2);cursor:pointer;}
+.file-list{display:flex;flex-direction:column;gap:5px;}
+.file-item{background:rgba(126,200,69,0.08);border:1px solid var(--bdr);border-radius:6px;padding:9px 13px;display:flex;align-items:center;gap:9px;font-size:12.5px;}
+.file-item-name{flex:1;color:var(--t1);font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.file-item-size{font-size:11px;color:var(--t3);}
+.file-item-rm{background:none;border:none;color:var(--t3);cursor:pointer;font-size:15px;padding:0 2px;transition:color .1s;}
+.file-item-rm:hover{color:var(--red);}
+#fileInput{display:none;}
+
+/* CONTACT */
+.contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px;}
+.contact-card{background:var(--card);border:1px solid var(--bdr);border-radius:10px;padding:16px 18px;transition:border-color .2s;}
+.contact-card:hover{border-color:var(--bdr2);}
+.cc-lbl{font-size:10px;font-weight:700;color:var(--purple2);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;}
+.cc-name{font-size:14px;font-weight:600;color:var(--t1);margin-bottom:4px;}
+.cc-role{font-size:11.5px;color:var(--t3);margin-bottom:10px;}
+.cc-link{display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--purple2);text-decoration:none;padding:4px 10px;background:rgba(126,200,69,0.1);border-radius:6px;transition:background .15s;}
+.cc-link:hover{background:rgba(126,200,69,0.2);}
+
+/* NOTES */
+.notes-area{width:100%;background:var(--card);border:1px solid var(--bdr);border-radius:8px;padding:14px;color:var(--t2);font-family:var(--fb);font-size:13px;resize:vertical;outline:none;line-height:1.7;min-height:120px;transition:border .15s;}
+.notes-area:focus{border-color:var(--bdr2);}
+
+/* ENGINE CARDS */
+.engine-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;}
+.ec{background:var(--card);border:1px solid var(--bdr);border-radius:10px;padding:16px 18px;transition:border-color .2s;}
+.ec:hover{border-color:var(--bdr2);}
+.ec-num{font-family:var(--fh);font-size:20px;font-weight:800;color:var(--purple);opacity:.4;margin-bottom:5px;}
+.ec-title{font-size:13.5px;font-weight:600;color:var(--t1);margin-bottom:3px;}
+.ec-sub{font-size:11px;color:var(--purple2);font-weight:500;margin-bottom:6px;}
+.ec-desc{font-size:12px;color:var(--t2);line-height:1.6;}
+
+/* ROADMAP */
+.rm-list{display:flex;flex-direction:column;gap:3px;margin-bottom:14px;}
+.rm-item{display:flex;align-items:flex-start;gap:12px;padding:12px 14px;background:var(--card);border:1px solid var(--bdr);border-radius:8px;transition:all .2s;}
+.rm-item:hover{border-color:var(--bdr2);}
+.rm-item.active{border-color:rgba(204,255,0,0.4);background:rgba(204,255,0,0.04);}
+.rm-num{font-family:var(--fh);font-size:12px;font-weight:700;color:var(--purple2);background:rgba(126,200,69,0.12);border:1px solid var(--bdr2);width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.rm-days{font-size:10px;font-weight:700;color:var(--gold);letter-spacing:.06em;text-transform:uppercase;margin-bottom:2px;}
+.rm-title{font-size:13.5px;font-weight:600;color:var(--t1);margin-bottom:2px;}
+.rm-desc{font-size:12px;color:var(--t2);}
+
+/* PRICING */
+.price-val{font-family:var(--fh);font-size:17px;font-weight:700;color:var(--gold);}
+
+/* DIVIDER */
+.dvd{height:1px;background:var(--bdr);margin:28px 0;}
+
+/* TERRITORY */
+.terr-box{display:flex;align-items:center;gap:14px;background:var(--card2);border:1px solid var(--bdr2);border-radius:10px;padding:14px 18px;margin-bottom:12px;}
+.terr-lbl{font-size:9px;font-weight:700;color:var(--gold);letter-spacing:.12em;text-transform:uppercase;margin-bottom:2px;}
+.terr-name{font-size:14px;font-weight:600;color:var(--t1);}
+.terr-badge{margin-left:auto;background:rgba(61,214,140,0.1);border:1px solid rgba(61,214,140,0.22);color:var(--green);font-size:10px;font-weight:600;padding:3px 10px;border-radius:20px;}
+
+@media print{#lock,.sb,.tb{display:none!important;}.main{margin-left:0;}.content{padding:20px 30px;}}
+@media(max-width:768px){.sb{transform:translateX(-100%);}.main{margin-left:0;}}
+
+/* FitFlux Overrides */
+:root{--purple:#7EC845;--purple2:#5fa832;--purple3:#4a8a28;--gold:#7EC845;--bg:#0b1209;--bg2:#0d2200;--bg3:#111f00;}
+body{background:#0b1209;}
+#lock{background:#0b1209 !important;}
+.lock-box{background:#0d2200 !important;border-color:#7EC845 !important;}
+.lock-input{background:#0b1209 !important;border-color:rgba(204,255,0,0.3) !important;color:#fff !important;}
+.lock-input:focus{border-color:#7EC845 !important;box-shadow:0 0 0 3px rgba(126,200,69,0.15) !important;}
+.lock-btn{width:100%;background:linear-gradient(135deg,#7EC845,#5fa832);color:#0a1a00;border:none;border-radius:8px;padding:12px;font-family:var(--fh);font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.08em;transition:all .2s;}
+.lock-btn:hover{opacity:.88;transform:translateY(-1px);}
+.lock-brand{color:#7EC845 !important;}
+
+/* ─── 90-DAY COUNTDOWN ─────────────────────────────────────────────── */
+.countdown-wrap{margin-bottom:24px;}
+.cd-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.cd-start-row{display:flex;align-items:center;gap:10px;margin-bottom:20px;}
+.cd-start-label{font-size:11px;color:var(--t3);font-weight:600;text-transform:uppercase;letter-spacing:.1em;}
+.cd-start-input{background:var(--bg3);border:1px solid var(--bdr2);border-radius:8px;padding:6px 12px;color:var(--t1);font-size:13px;font-family:var(--fb);cursor:pointer;outline:none;}
+.cd-start-input:focus{border-color:var(--purple);}
+.cd-start-btn{padding:6px 14px;background:var(--purple);color:#0a1a00;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;font-family:var(--fb);transition:opacity .2s;}
+.cd-start-btn:hover{opacity:.85;}
+.cd-tiles{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:20px;}
+.cd-tile{background:var(--bg3);border:1px solid var(--bdr2);border-radius:12px;padding:18px 10px;text-align:center;}
+.cd-tile-num{font-size:42px;font-weight:800;color:var(--t1);font-family:var(--fh);line-height:1;margin-bottom:4px;}
+.cd-tile-lbl{font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.15em;text-transform:uppercase;}
+.cd-tile.accent .cd-tile-num{color:var(--gold);}
+.cd-progress-bar-wrap{background:var(--bg3);border-radius:100px;height:8px;overflow:hidden;margin-bottom:8px;}
+.cd-progress-bar{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--purple),var(--gold));transition:width 1s ease;}
+.cd-progress-label{display:flex;justify-content:space-between;font-size:11px;color:var(--t3);}
+
+/* ─── POST-90 LOCKED SECTION ──────────────────────────────────────── */
+.post90-locked{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:40px 20px;text-align:center;background:var(--bg3);border:1px dashed var(--bdr2);border-radius:14px;gap:10px;}
+.post90-locked-icon{font-size:36px;opacity:.4;}
+.post90-locked-title{font-size:15px;font-weight:700;color:var(--t2);}
+.post90-locked-sub{font-size:12px;color:var(--t3);max-width:340px;line-height:1.6;}
+.post90-locked-badge{display:inline-flex;align-items:center;gap:6px;background:var(--bg2);border:1px solid var(--bdr2);border-radius:20px;padding:4px 14px;font-size:11px;color:var(--t3);}
+
+/* ─── RETAINER & PERFORMANCE CARDS ───────────────────────────────── */
+.retainer-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
+.retainer-card{background:var(--bg3);border:1px solid var(--bdr2);border-radius:12px;padding:18px 20px;}
+.retainer-card.highlight{border-color:var(--purple);background:rgba(123,47,255,0.06);}
+.rc-label{font-size:10px;font-weight:700;color:var(--gold);letter-spacing:.15em;text-transform:uppercase;margin-bottom:6px;}
+.rc-value{font-size:28px;font-weight:800;color:var(--t1);font-family:var(--fh);margin-bottom:4px;}
+.rc-sub{font-size:11px;color:var(--t3);}
+.rc-input{width:100%;background:var(--bg2);border:1px solid var(--bdr2);border-radius:8px;padding:7px 10px;color:var(--t1);font-size:14px;font-family:var(--fb);margin-top:8px;outline:none;}
+.rc-input:focus{border-color:var(--purple);}
+.perf-table{width:100%;border-collapse:collapse;}
+.perf-table th{padding:8px 12px;text-align:left;font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.07em;text-transform:uppercase;border-bottom:1px solid var(--bdr2);}
+.perf-table td{padding:10px 12px;font-size:13px;color:var(--t2);border-bottom:1px solid var(--bdr3);}
+.perf-table td:first-child{color:var(--t1);font-weight:600;}
+.perf-table tr:last-child td{border-bottom:none;}
+.perf-editable{background:transparent;border:none;border-bottom:1px solid var(--bdr2);color:var(--t1);font-size:13px;font-family:var(--fb);width:80px;text-align:right;outline:none;padding:2px 4px;}
+.perf-editable:focus{border-bottom-color:var(--purple);}
+
+.cd-start-btn{background:var(--purple);color:#0a1a00 !important;border:none;}
+</style>
+</head>
+<body>
+
+<!-- LOCK -->
+<div id="lock">
+  <div class="lock-logo-wrap">
+    <div class="lock-brand" style="font-family:'Bebas Neue',sans-serif;font-size:28px;color:#CCFF00;letter-spacing:.1em;">FitfluxStudio</div>
+  </div>
+  <div class="lock-box">
+    <div class="lock-title">Client Portal Access</div>
+    <div class="lock-sub">Enter the last 8 characters of your access token to unlock your portal.</div>
+    <input class="lock-input" id="pwInput" type="text" placeholder="e.g. A1B2C3D4" maxlength="8" style="text-transform:uppercase;letter-spacing:2px;font-family:monospace;" onkeydown="if(event.key==='Enter')unlock()"/>
+    <div class="lock-err" id="lockErr">Incorrect code. Please check your receipt and try again.</div>
+    <button class="lock-btn" onclick="unlock()">Enter Portal →</button>
+    <div style="margin-top:16px;padding:12px 16px;background:rgba(204,255,0,0.04);border:1px solid rgba(204,255,0,0.12);border-radius:6px;font-size:11px;color:rgba(255,255,255,0.45);line-height:1.7;text-align:left;">
+      <strong style="color:rgba(204,255,0,0.7);display:block;margin-bottom:4px;">What is my access code?</strong>
+      Your access code is the <strong style="color:#fff;">last 8 characters</strong> of your unique token. Your token was shown on your receipt — it starts with <span style="font-family:monospace;color:rgba(204,255,0,0.7);">FF-</span>. The last 8 characters are your portal password.<br><br>
+      <strong style="color:rgba(204,255,0,0.7);">Lost it?</strong> Email <a href="mailto:fitfluxstudio@gmail.com" style="color:#CCFF00;">fitfluxstudio@gmail.com</a> with your name and we will recover it within 24 hours.
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- SIDEBAR -->
+<nav class="sb">
+  <div class="sb-head">
+    <img class="sb-logo" src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAQ4BDgDASIAAhEBAxEB/8QAHAABAAMAAwEBAAAAAAAAAAAAAAYHCAMEBQIB/8QAPxABAAIBAwECCQcLBQEBAAAAAAECAwQFEQYHEhQVISIxUYGRoRM2QXF1orMIFzNCUmFicpKxsjJUVZTRwcL/xAAcAQEAAgMBAQEAAAAAAAAAAAAABAUDBgcCAQj/xAA2EQEAAQMBBAcFBwUBAAAAAAAAAQIDBBEFBhIhExQxQUJRoTM0cZHhMlNhgbHB0RUWUmLxov/aAAwDAQACEQMRAD8Av4B+RGEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA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AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADpbFuu375s+k3fadVj1eh1eKMuDNSfJas/2n6JifLE8xLugk5lmmxkXLVPZTMx8p0ABGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHS33ddv2PZ9Xu+7arHpNDpMU5c+a8+StY/vP0REeWZ4iAG/bo7rYe2ce5dyKqommdOUxHdr3xL1TGr/9k=" alt="BK"/>
+    <div class="sb-brand-text">
+      <div class="sb-name">FitFlux</div>
+      <div class="sb-tagline">FitfluxStudio Portal</div>
+    </div>
+  </div>
+  <div class="sb-client-card">
+    <div class="sb-cl-lbl">Active Service</div>
+    <div class="sb-cl-name">SMM &amp; Marketing</div>
+    <div class="sb-cl-sub">Peak Performance Client Engine™</div>
+  </div>
+  <div class="sb-section">
+    <div class="sb-lbl">Onboarding</div>
+    <a class="nv act" href="javascript:void(0)" data-target="#welcome" onclick="nav(this,'Welcome')"><span class="nv-icon">👋</span> Welcome <span class="nv-badge">NEW</span></a>
+    <a class="nv" href="javascript:void(0)" data-target="#navigation" onclick="nav(this,'Portal Guide')"><span class="nv-icon">🎬</span> Portal Walkthrough</a>
+    <a class="nv" href="javascript:void(0)" data-target="#countdown" onclick="nav(this,'90-Day Tracker')"><span class="nv-icon">⏱️</span> 90-Day Tracker</a>
+    <a class="nv" href="javascript:void(0)" data-target="#overview" onclick="nav(this,'Project Overview')"><span class="nv-icon">📋</span> Project Overview</a>
+    <a class="nv" href="javascript:void(0)" data-target="#system" onclick="nav(this,'Your System')"><span class="nv-icon">⚡</span> Your System</a>
+    <a class="nv" href="javascript:void(0)" data-target="#roadmap" onclick="nav(this,'90-Day Roadmap')"><span class="nv-icon">🗺️</span> 90-Day Roadmap</a>
+  </div>
+  <div class="sb-section">
+    <div class="sb-lbl">Your Package</div>
+    <a class="nv" href="javascript:void(0)" data-target="#deliverables" onclick="nav(this,'Deliverables')"><span class="nv-icon">📦</span> Deliverables</a>
+    <a class="nv" href="javascript:void(0)" data-target="#pricing" onclick="nav(this,'Pricing')"><span class="nv-icon">💳</span> How We Get Paid</a>
+    <a class="nv" href="javascript:void(0)" data-target="#guarantee" onclick="nav(this,'Guarantee')"><span class="nv-icon">🛡️</span> Guarantee</a>
+  </div>
+  <div class="sb-section">
+    <div class="sb-lbl">Portal</div>
+    <a class="nv" href="javascript:void(0)" data-target="#documents" onclick="nav(this,'Documents')"><span class="nv-icon">📄</span> Documents &amp; Invoices</a>
+    <a class="nv" href="javascript:void(0)" data-target="#timeline" onclick="nav(this,'Timeline')"><span class="nv-icon">🗓️</span> Project Timeline</a>
+    <a class="nv" href="javascript:void(0)" data-target="#performance" onclick="nav(this,'Performance')"><span class="nv-icon">📊</span> Performance</a>
+    <a class="nv" href="javascript:void(0)" data-target="#uploads" onclick="nav(this,'Submit Files')"><span class="nv-icon">📤</span> Submit Files</a>
+    <a class="nv" href="javascript:void(0)" data-target="#contact" onclick="nav(this,'Contact')"><span class="nv-icon">💬</span> Contact</a>
+    <a class="nv" href="javascript:void(0)" data-target="#notes" onclick="nav(this,'Notes')"><span class="nv-icon">📝</span> Notes</a>
+  </div>
+  <div class="sb-ft">
+    <div class="sb-ft-txt">"Build something that works while you sleep."</div>
+    <div class="sb-ft-badge">⬤ System Active</div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="main">
+  <div class="tb">
+    <div class="bc">
+      <span>FitFlux</span><span class="bc-sep">/</span><span style="color:var(--gold);font-size:11px;font-weight:600;background:rgba(204,255,0,.12);padding:2px 8px;border-radius:10px;margin-right:4px;">SMM &amp; Marketing</span><span class="bc-sep">/</span><span class="bc-cur" id="tbPage">Welcome</span>
+    </div>
+    <div class="tb-r">
+      <button class="tb-btn" onclick="window.print()">⬛ Export PDF</button>
+      <div class="status-pill"><div class="status-dot"></div><span class="status-txt">System Active</span></div>
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <div class="hero">
+    <div class="hero-eyebrow">SMM & Marketing — Peak Performance Client Engine™</div>
+    <div class="hero-h1">Welcome <em>Aboard.</em></div>
+    <div class="hero-sub">Your Client Acquisition System is now being built. Track every phase, view deliverables, access documents, and watch your pipeline grow — all in one place.</div>
+    <div class="hero-stats">
+      <div class="hs"><div class="hs-val">90</div><div class="hs-lbl">Day Build</div></div>
+      <div class="hs"><div class="hs-val">3</div><div class="hs-lbl">Tiers Available</div></div>
+      <div class="hs"><div class="hs-val">5–15</div><div class="hs-lbl">Clients Guaranteed</div></div>
+      <div class="hs"><div class="hs-val">100%</div><div class="hs-lbl">Refund If Missed</div></div>
+    </div>
+  </div>
+
+  <div class="content">
+
+    <!-- 01 WELCOME VIDEO -->
+    <div id="welcome">
+      <div class="sec-head">
+        <div class="sec-num">01</div>
+        <div class="sec-title">Welcome Message</div>
+        <div class="sec-line"></div>
+      </div>
+      <div class="video-wrap">
+        <video controls style="width:100%;display:block;border-radius:0;" preload="metadata">
+          <source src="FitFlux.mp4" type="video/mp4"/>
+        </video>
+      </div>
+      <div style="margin-top:14px;">
+        <div class="callout gold">
+          <div class="callout-icon">🎯</div>
+          <div>
+            <div class="callout-title">The Peak Performance Client Engine™ Promise</div>
+            <div class="callout-text">We build and run your full Client Acquisition System — offers, landing pages, ad creatives, organic content, automated sequences, and discovery call routing — so qualified clients come to you consistently, without cold outreach.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dvd"></div>
+    <!-- 14 PORTAL WALKTHROUGH VIDEO -->
+    <div id="navigation">
+      <div class="sec-head">
+        <div class="sec-num">02</div>
+        <div class="sec-title">How to Navigate This Portal</div>
+        <div class="sec-line"></div>
+      </div>
+      <div class="video-wrap">
+        <div class="video-thumb">
+          <div class="video-grid-bg"></div>
+          <div class="video-badge">PORTAL GUIDE</div>
+          <div class="video-play"><div class="video-play-tri"></div></div>
+          <div class="video-label">Watch: Portal Navigation Walkthrough</div>
+        </div>
+      </div>
+      <div class="video-note"><strong>Remotion placeholder</strong> — Replace with your portal walkthrough video. Cover: sidebar navigation, each section explained, how to track progress, how to contact the team, and what to expect weekly. ~2–4 min.</div>
+      <div style="margin-top:14px;">
+        <div class="callout">
+          <div class="callout-icon">📋</div>
+          <div>
+            <div class="callout-title">Remotion Script Notes — Portal Navigation Video</div>
+            <div class="callout-text">
+              <strong style="color:var(--gold)">Slide 1</strong> — Welcome + portal overview (14 sections)<br>
+              <strong style="color:var(--gold)">Slide 2</strong> — Project Overview + your details<br>
+              <strong style="color:var(--gold)">Slide 3</strong> — Your 5-phase CAS system explained<br>
+              <strong style="color:var(--gold)">Slide 4</strong> — 90-day roadmap walkthrough<br>
+              <strong style="color:var(--gold)">Slide 5</strong> — Documents, invoices &amp; timeline<br>
+              <strong style="color:var(--gold)">Slide 6</strong> — Performance tracking + how to submit files<br>
+              <strong style="color:var(--gold)">Slide 7</strong> — Contact, notes &amp; closing
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dvd"></div>
+
+    
+
+<!-- ─── 90-DAY COUNTDOWN SECTION ─────────────────────────────────── -->
+<div class="sec" id="countdown">
+  <div class="sec-head">
+    <div class="sec-num" id="cd-sec-num">12</div>
+    <div class="sec-title">90-Day Countdown</div>
+    <div class="sec-line"></div>
+  </div>
+
+  <div class="callout">
+    <div class="callout-icon">⏱️</div>
+    <div>
+      <div class="callout-title">Your 90-Day Engine</div>
+      <div class="callout-text">Set your start date below. Your countdown begins and tracks progress daily. Once 90 days are complete, your Monthly Retainer &amp; Performance dashboard unlocks automatically.</div>
+    </div>
+  </div>
+
+  <div class="countdown-wrap">
+    <!-- Start Date Setter -->
+    <div class="cd-start-row">
+      <span class="cd-start-label">Start Date:</span>
+      <input type="date" class="cd-start-input" id="cdStartDate" onchange="updateCountdown()"/>
+      <button class="cd-start-btn" onclick="setStartDate()">Set Date</button>
+      <span id="cd-status-badge" style="font-size:11px;color:var(--t3);"></span>
+    </div>
+
+    <!-- Countdown Tiles -->
+    <div class="cd-tiles">
+      <div class="cd-tile accent">
+        <div class="cd-tile-num" id="cd-days">--</div>
+        <div class="cd-tile-lbl">Days Left</div>
+      </div>
+      <div class="cd-tile">
+        <div class="cd-tile-num" id="cd-hours">--</div>
+        <div class="cd-tile-lbl">Hours</div>
+      </div>
+      <div class="cd-tile">
+        <div class="cd-tile-num" id="cd-mins">--</div>
+        <div class="cd-tile-lbl">Minutes</div>
+      </div>
+      <div class="cd-tile">
+        <div class="cd-tile-num" id="cd-secs">--</div>
+        <div class="cd-tile-lbl">Seconds</div>
+      </div>
+    </div>
+
+    <!-- Progress Bar -->
+    <div class="cd-progress-bar-wrap">
+      <div class="cd-progress-bar" id="cd-progress-bar" style="width:0%;"></div>
+    </div>
+    <div class="cd-progress-label">
+      <span id="cd-day-label">Day 0 of 90</span>
+      <span id="cd-pct-label">0% Complete</span>
+    </div>
+  </div>
+
+  <!-- POST-90 SECTION — locked until 90 days complete -->
+  <div id="post90-section">
+
+    <!-- LOCKED STATE -->
+    <div class="post90-locked" id="post90-locked">
+      <div class="post90-locked-icon">🔒</div>
+      <div class="post90-locked-title">Retainer &amp; Performance Unlocks at Day 90</div>
+      <div class="post90-locked-sub">Once your 90-day engine completes, your monthly retainer dashboard and live performance tracker activate automatically here.</div>
+      <div class="post90-locked-badge">
+        <span>⏳</span>
+        <span id="cd-unlock-label">Set your start date to begin</span>
+      </div>
+    </div>
+
+    <!-- UNLOCKED STATE — hidden until day 90 -->
+    <div id="post90-unlocked" style="display:none;">
+      <div class="dvd" style="margin:28px 0 20px;"></div>
+      <div class="sec-eyebrow">Monthly Retainer</div>
+      <div class="sec-title" style="font-size:20px;margin-bottom:16px;">Ongoing Partnership</div>
+
+      <div class="retainer-grid">
+        <div class="retainer-card highlight">
+          <div class="rc-label">Monthly Retainer</div>
+          <div class="rc-value" id="rc-amount">$0</div>
+          <div class="rc-sub">Per month — billed on your billing date</div>
+          <input class="rc-input" type="text" id="rc-input" placeholder="Enter retainer amount e.g. $1,500" oninput="updateRetainer(this.value)"/>
+        </div>
+        <div class="retainer-card">
+          <div class="rc-label">Next Billing Date</div>
+          <div class="rc-value" id="rc-next-date" style="font-size:20px;">—</div>
+          <div class="rc-sub">Auto-calculated monthly from start date</div>
+        </div>
+        <div class="retainer-card">
+          <div class="rc-label">Months Active</div>
+          <div class="rc-value" id="rc-months">0</div>
+          <div class="rc-sub">Since retainer began</div>
+        </div>
+        <div class="retainer-card">
+          <div class="rc-label">Total Invested</div>
+          <div class="rc-value" id="rc-total">$0</div>
+          <div class="rc-sub">Setup + retainers to date</div>
+        </div>
+      </div>
+
+      <div class="dvd" style="margin:24px 0 16px;"></div>
+      <div class="sec-eyebrow">Performance Dashboard</div>
+      <div class="sec-title" style="font-size:20px;margin-bottom:16px;">Live Results Tracker</div>
+
+      <div style="background:var(--bg3);border:1px solid var(--bdr2);border-radius:12px;overflow:hidden;">
+        <table class="perf-table">
+          <thead>
+            <tr>
+              <th>Metric</th>
+              <th>This Month</th>
+              <th>Last Month</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>Leads Generated</td>
+              <td><input class="perf-editable" type="number" placeholder="0" oninput="calcPerf()"/></td>
+              <td><input class="perf-editable" type="number" placeholder="0"/></td>
+              <td class="perf-total-leads" style="color:var(--gold);font-weight:700;">0</td>
+            </tr>
+            <tr>
+              <td>Calls Booked</td>
+              <td><input class="perf-editable" type="number" placeholder="0" oninput="calcPerf()"/></td>
+              <td><input class="perf-editable" type="number" placeholder="0"/></td>
+              <td class="perf-total-calls" style="color:var(--gold);font-weight:700;">0</td>
+            </tr>
+            <tr>
+              <td>Deals Closed</td>
+              <td><input class="perf-editable" type="number" placeholder="0" oninput="calcPerf()"/></td>
+              <td><input class="perf-editable" type="number" placeholder="0"/></td>
+              <td class="perf-total-deals" style="color:var(--gold);font-weight:700;">0</td>
+            </tr>
+            <tr>
+              <td>Revenue Attributed</td>
+              <td><input class="perf-editable" type="text" placeholder="$0" oninput="calcPerf()"/></td>
+              <td><input class="perf-editable" type="text" placeholder="$0"/></td>
+              <td class="perf-total-rev" style="color:var(--gold);font-weight:700;">$0</td>
+            </tr>
+            <tr>
+              <td>Conversion Rate</td>
+              <td id="perf-conv-rate" style="color:var(--gold);font-weight:700;">0%</td>
+              <td>—</td>
+              <td>—</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Status note -->
+      <div style="margin-top:16px;padding:14px 16px;background:rgba(123,47,255,0.08);border:1px solid var(--bdr2);border-radius:10px;font-size:12px;color:var(--t3);line-height:1.7;">
+        🎯 <strong style="color:var(--t1);">You're in ongoing mode.</strong> Your 90-day engine has completed. These numbers update as your system keeps running. Contact your FitFlux team anytime to review performance.
+      </div>
+    </div>
+  </div>
+</div>
+<!-- 03 PROJECT OVERVIEW -->
+    <div id="overview">
+      <div class="sec-head">
+        <div class="sec-num">03</div>
+        <div class="sec-title">Project Overview</div>
+        <div class="sec-line"></div>
+      </div>
+      <div class="props">
+        <div class="pr"><div class="prk">🏢 Business</div><div class="prv ph" contenteditable="true">[Client Business Name]</div></div>
+        <div class="pr"><div class="prk">👤 Contact</div><div class="prv ph" contenteditable="true">[Contact Name]</div></div>
+        <div class="pr"><div class="prk">📧 Email</div><div class="prv ph" contenteditable="true">[Email Address]</div></div>
+        <div class="pr"><div class="prk">📱 Phone</div><div class="prv ph" contenteditable="true">[Phone Number]</div></div>
+        <div class="pr"><div class="prk">🎯 Niche</div><div class="prv ph" contenteditable="true">[e.g. Personal Fitness Coaching]</div></div>
+        <div class="pr"><div class="prk">📍 Territory</div><div class="prv ph" contenteditable="true">[City, Country]</div></div>
+        <div class="pr"><div class="prk">📦 Tier</div><div class="prv"><span class="tag tag-b" contenteditable="true">Launchpad / Growth / Pro</span></div></div>
+        <div class="pr"><div class="prk">📅 Start Date</div><div class="prv ph" contenteditable="true">[DD/MM/YYYY]</div></div>
+        <div class="pr"><div class="prk">📅 Day 90</div><div class="prv ph" contenteditable="true">[DD/MM/YYYY]</div></div>
+        <div class="pr"><div class="prk">💰 Setup Fee</div><div class="prv ph" contenteditable="true">$[Amount]</div></div>
+        <div class="pr"><div class="prk">💰 Retainer</div><div class="prv ph" contenteditable="true">$[Amount]/month</div></div>
+        <div class="pr"><div class="prk">● Status</div><div class="prv"><span class="tag tag-g">Active</span></div></div>
+      </div>
+      <div class="terr-box">
+        <div style="font-size:24px;">📍</div>
+        <div><div class="terr-lbl">Territory Status</div><div class="terr-name" contenteditable="true">Your Territory — Locked &amp; Protected</div></div>
+        <div class="terr-badge">✓ Exclusive</div>
+      </div>
+    </div>
+
+    <div class="dvd"></div>
+
+    <!-- 04 YOUR SYSTEM -->
+    <div id="system">
+      <div class="sec-head">
+        <div class="sec-num">04</div>
+        <div class="sec-title">Your Client Acquisition System</div>
+        <div class="sec-line"></div>
+      </div>
+      <div class="callout">
+        <div class="callout-icon">⚡</div>
+        <div>
+          <div class="callout-title">The Peak Performance Client Engine™</div>
+          <div class="callout-text">A fully integrated client acquisition system — each component feeds the next. From offer architecture to paid traffic, automation, and content — every piece built and managed by your dedicated team.</div>
+        </div>
+      </div>
+      <div class="engine-grid">
+        <div class="ec"><div class="ec-num">01</div><div class="ec-title">Offer Architecture</div><div class="ec-sub">Foundation Layer</div><div class="ec-desc">1–5 categorical offers built to your niche, positioned to convert cold traffic into paying clients.</div></div>
+        <div class="ec"><div class="ec-num">02</div><div class="ec-title">Landing Pages</div><div class="ec-sub">Conversion Layer</div><div class="ec-desc">High-converting pages (1–5 per tier) built to capture leads and book discovery calls.</div></div>
+        <div class="ec"><div class="ec-num">03</div><div class="ec-title">Ad Creatives & Paid Traffic</div><div class="ec-sub">Traffic Layer</div><div class="ec-desc">Full ad creative suite built for Months 1–2. From Month 3 your team handles strategy; you control ad spend.</div></div>
+        <div class="ec"><div class="ec-num">04</div><div class="ec-title">Automated Sequences</div><div class="ec-sub">Nurture Layer</div><div class="ec-desc">Opt-in flows, follow-up sequences, objection-handling automations and discovery call routing — all running 24/7.</div></div>
+        <div class="ec" style="grid-column:1/-1"><div class="ec-num">05</div><div class="ec-title">Organic Content Strategy</div><div class="ec-sub">Authority Layer</div><div class="ec-desc">Strategic content plan tied to your offers — builds authority, warms your audience, and routes engaged followers into your discovery call pipeline.</div></div>
+      </div>
+    </div>
+
+    <div class="dvd"></div>
+
+    <!-- 05 ROADMAP -->
+    <div id="roadmap">
+      <div class="sec-head">
+        <div class="sec-num">05</div>
+        <div class="sec-title">Your 90-Day Roadmap</div>
+        <div class="sec-line"></div>
+      </div>
+      <div class="rm-list">
+        <div class="rm-item active"><div class="rm-num">1</div><div><div class="rm-days">Days 1–5</div><div class="rm-title">Onboarding & Brand Discovery</div><div class="rm-desc">Brand voice intake, niche confirmation, ideal client profiling, offer positioning, and territory lock confirmed.</div></div></div>
+        <div class="rm-item"><div class="rm-num">2</div><div><div class="rm-days">Days 6–21</div><div class="rm-title">Build</div><div class="rm-desc">Categorical offers built, landing pages live, ad creatives produced, automated sequences configured.</div></div></div>
+        <div class="rm-item"><div class="rm-num">3</div><div><div class="rm-days">Days 22–60</div><div class="rm-title">Launch & Generate</div><div class="rm-desc">System goes live. Ads running. Discovery calls booking. First clients enrolling. Guarantee clock tracking.</div></div></div>
+        <div class="rm-item"><div class="rm-num">4</div><div><div class="rm-days">Days 61–90</div><div class="rm-title">Optimise & Scale</div><div class="rm-desc">Performance reviewed, sequences tightened, ad spend optimised, guarantee benchmarks hit, retainer model confirmed.</div></div></div>
+      </div>
+    </div>
+
+    <div class="dvd"></div>
+
+    <!-- 06 DELIVERABLES -->
+    <div id="deliverables">
+      <div class="sec-head">
+        <div class="sec-num">06</div>
+        <div class="sec-title">What's Included</div>
+        <div class="sec-line"></div>
+      </div>
+      <div class="deliv-list">
+        <div class="deliv-item"><div class="deliv-ck">✓</div><div><div class="deliv-name">Categorical Offer Build</div><div class="deliv-desc">1–5 clearly positioned offers built to convert your ideal client (Launchpad: 1, Growth: 3, Pro: 5).</div></div></div>
+        <div class="deliv-item"><div class="deliv-ck">✓</div><div><div class="deliv-name">Landing Pages</div><div class="deliv-desc">High-converting landing pages built per offer (Launchpad: 1, Growth: 3, Pro: 5).</div></div></div>
+        <div class="deliv-item"><div class="deliv-ck">✓</div><div><div class="deliv-name">Ad Creative Suite</div><div class="deliv-desc">Full ad creative design for months 1–2 — image, video, and copy optimised for your niche.</div></div></div>
+        <div class="deliv-item"><div class="deliv-ck">✓</div><div><div class="deliv-name">Automated Opt-In &amp; Follow-Up Sequences</div><div class="deliv-desc">Email/DM sequences that nurture leads automatically — from opt-in to booked call, on autopilot.</div></div></div>
+        <div class="deliv-item"><div class="deliv-ck">✓</div><div><div class="deliv-name">Organic Content Strategy</div><div class="deliv-desc">Content calendar, captions, and posting schedule aligned with your offer and audience.</div></div></div>
+        <div class="deliv-item"><div class="deliv-ck">✓</div><div><div class="deliv-name">Discovery Call Routing System</div><div class="deliv-desc">Booking system configured to route qualified leads directly to your calendar.</div></div></div>
+        <div class="deliv-item"><div class="deliv-ck">✓</div><div><div class="deliv-name">Objection Handling Sequences (Growth+)</div><div class="deliv-desc">Automated follow-up that handles common objections and re-engages cold leads.</div></div></div>
+        <div class="deliv-item"><div class="deliv-ck">✓</div><div><div class="deliv-name">Premium Clarity Session Framework (Pro only)</div><div class="deliv-desc">High-ticket $3,000+ offer framework with full discovery-to-close process built in.</div></div></div>
+      </div>
+    </div>
+
+    <div class="dvd"></div>
+
+    <!-- 07 PRICING -->
+    <div id="pricing">
+      <div class="sec-head">
+        <div class="sec-num">07</div>
+        <div class="sec-title">How We Get Paid</div>
+        <div class="sec-line"></div>
+      </div>
+      <div class="callout">
+        <div class="callout-icon">💡</div>
+        <div><div class="callout-title">Shared Outcomes Model</div><div class="callout-text">We don't charge a flat retainer regardless of results. Our pricing is structured to align our incentives with yours.</div></div>
+      </div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead><tr><th>Payment Type</th><th>Amount</th><th>Details</th></tr></thead>
+          <tbody>
+            <tr><td>Launchpad — Setup Fee</td><td><span class="price-val">$500</span></td><td>1 offer, 1 landing page, ad creative, opt-in &amp; follow-up sequences, organic content strategy, discovery call routing.</td></tr>
+            <tr><td>Growth — Setup Fee</td><td><span class="price-val">$750</span></td><td>3 offers, 3 landing pages, full ad creative suite, objection-handling sequences, organic content, monthly reporting.</td></tr>
+            <tr><td>Pro — Setup Fee</td><td><span class="price-val">$1,200</span></td><td>5 offers, 5 landing pages, full ad creative suite, conversion sequences, monthly reporting, premium clarity session framework.</td></tr>
+            <tr><td>Retainer (Month 3+)</td><td><span class="price-val">TBD</span></td><td>Mutually agreed before Month 3 based on results &amp; growth targets. Not charged until Month 3.</td></tr>
+            <tr><td>Ad Spend (Client-Managed)</td><td><span class="price-val">Variable</span></td><td>Months 1–2: confirmed with you before any campaign goes live. Month 3+: managed by you; strategy &amp; creative by us.</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="dvd"></div>
+
+    <!-- 08 GUARANTEE -->
+    <div id="guarantee">
+      <div class="sec-head">
+        <div class="sec-num">08</div>
+        <div class="sec-title">The Guarantee</div>
+        <div class="sec-line"></div>
+      </div>
+      <div class="guar-box">
+        <div class="guar-lbl">⚡ Performance Guarantee</div>
+        <div class="guar-h">Clients Enrolled by Month 3 — Or Your Setup Fee Is Refunded.</div>
+        <div class="guar-txt">Launchpad: <strong>1–3 clients month 1</strong>, scaling to <strong>5–10/mo by month 3</strong>.<br>Growth: <strong>3–5 clients month 1</strong>, scaling to <strong>7–12/mo by month 3</strong>.<br>Pro: <strong>5–8 clients month 1</strong>, scaling to <strong>10–15/mo by month 3</strong>.<br><br>If your tier's threshold is not met by Month 3, we refund your full setup fee within <strong>7 business days</strong> of written request — no questions asked.</div>
+        <div class="guar-cond">"Enrolled" = a client who has paid their first invoice to you. Guarantee is contingent on you completing onboarding, maintaining recommended ad spend, and responding to leads within the agreed timeframes.</div>
+      </div>
+    </div>
+
+    <div class="dvd"></div>
+
+    <!-- 09 DOCUMENTS & INVOICES -->
+    <div id="documents">
+      <div class="sec-head">
+        <div class="sec-num">09</div>
+        <div class="sec-title">Documents &amp; Invoices</div>
+        <div class="sec-line"></div>
+      </div>
+      <div style="margin-bottom:16px;">
+        <div style="font-family:var(--fh);font-size:13px;font-weight:600;color:var(--t1);margin-bottom:8px;">Agreements</div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr><th>Document</th><th>Status</th><th>Date</th><th>Link</th></tr></thead>
+            <tbody>
+              <tr><td>Client Services Agreement</td><td><span class="tag tag-g">✓ Signed</span></td><td contenteditable="true" class="ph">[DD/MM/YYYY]</td><td contenteditable="true" class="ph" style="color:var(--blue)">[Add Link]</td></tr>
+              <tr><td>NDA / Confidentiality</td><td><span class="tag tag-y">⏳ Pending</span></td><td contenteditable="true" class="ph">[DD/MM/YYYY]</td><td contenteditable="true" class="ph" style="color:var(--blue)">[Add Link]</td></tr>
+              <tr><td>Strategy Brief</td><td><span class="tag tag-p">📋 Sent</span></td><td contenteditable="true" class="ph">[DD/MM/YYYY]</td><td contenteditable="true" class="ph" style="color:var(--blue)">[Add Link]</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div>
+        <div style="font-family:var(--fh);font-size:13px;font-weight:600;color:var(--t1);margin-bottom:8px;">Invoices</div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr><th>#</th><th>Description</th><th>Amount</th><th>Date</th><th>Status</th><th>Link</th></tr></thead>
+            <tbody>
+              <tr><td>FF-0001</td><td>Setup / Onboarding Fee</td><td contenteditable="true" class="ph">$[Amount]</td><td contenteditable="true" class="ph">[Date]</td><td><span class="tag tag-g">✓ Paid</span></td><td contenteditable="true" class="ph" style="color:var(--blue)">[Link]</td></tr>
+              <tr><td>FF-0002</td><td>Monthly Retainer — Month 1</td><td contenteditable="true" class="ph">$[Amount]</td><td contenteditable="true" class="ph">[Date]</td><td><span class="tag tag-y">⏳ Pending</span></td><td contenteditable="true" class="ph" style="color:var(--blue)">[Link]</td></tr>
+              <tr><td>FF-0003</td><td>Monthly Retainer — Month 2</td><td contenteditable="true" class="ph">$[Amount]</td><td contenteditable="true" class="ph">[Date]</td><td><span class="tag tag-y">⏳ Pending</span></td><td contenteditable="true" class="ph" style="color:var(--blue)">[Link]</td></tr>
+              <tr><td>FF-0004</td><td>Performance Fee</td><td contenteditable="true" class="ph">$[Amount]</td><td contenteditable="true" class="ph">[Date]</td><td><span class="tag tag-y">⏳ Pending</span></td><td contenteditable="true" class="ph" style="color:var(--blue)">[Link]</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="dvd"></div>
+
+    <!-- 10 PROJECT TIMELINE -->
+    <div id="timeline">
+      <div class="sec-head">
+        <div class="sec-num">10</div>
+        <div class="sec-title">Project Timeline</div>
+        <div class="sec-line"></div>
+      </div>
+
+      <div class="tog">
+        <div class="tog-h" onclick="tp(this)">
+          <span class="tog-arr op">▶</span><div class="tog-dot dot-gold"></div>
+          <span class="tog-title">Phase 1 — Brand Discovery &amp; System Architecture</span>
+          <div class="tog-meta"><span class="tog-days">Days 1–7</span><span class="tag tag-b">Active</span></div>
+        </div>
+        <div class="tog-body op">
+          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Onboarding questionnaire completed</div></div>
+          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Brand assets, logos, and credentials submitted</div></div>
+          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Coaching niche and ideal client profile confirmed</div></div>
+          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Territory lock confirmed</div></div>
+          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Signed contract uploaded to portal</div></div>
+          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Ad account access granted (if running ads)</div></div>
+          <div class="tog-note">⚡ Action required: Complete all onboarding steps within 5 business days of signing. Assets &amp; approvals within 48 hours of request.</div>
+        </div>
+      </div>
+
+      <div class="tog">
+        <div class="tog-h" onclick="tp(this)">
+          <span class="tog-arr">▶</span><div class="tog-dot dot-dim"></div>
+          <span class="tog-title">Phase 2 — Build &amp; Traffic Launch</span>
+          <div class="tog-meta"><span class="tog-days">Days 8–30</span><span class="tag tag-p">Upcoming</span></div>
+        </div>
+        <div class="tog-body">
+          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Categorical offer(s) built and approved</div></div>
+          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Landing page(s) designed and live</div></div>
+          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Ad creatives designed and approved</div></div>
+          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Opt-in and follow-up sequences configured</div></div>
+          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Organic content strategy and calendar built</div></div>
+          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Discovery call routing system live</div></div>
+          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">All channels connected and tested</div></div>
+        </div>
+      </div>
+
+      <div class="tog">
+        <div class="tog-h" onclick="tp(this)">
+          <span class="tog-arr">▶</span><div class="tog-dot dot-dim"></div>
+          <span class="tog-title">Phase 3 — Full System Active</span>
+          <div class="tog-meta"><span class="tog-days">Days 31–60</span><span class="tag tag-p">Upcoming</span></div>
+        </div>
+        <div class="tog-body">
+          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">First enrolled clients tracked in dashboard</div></div>
+          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Discovery calls routing consistently</div></div>
+          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Ad campaigns optimised based on early data</div></div>
+          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Objection-handling sequences live (Growth+)</div></div>
+          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Content calendar running on schedule</div></div>
+          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Mid-point performance report delivered</div></div>
+        </div>
+      </div>
+
+      <div class="tog">
+        <div class="tog-h" onclick="tp(this)">
+          <span class="tog-arr">▶</span><div class="tog-dot dot-dim"></div>
+          <span class="tog-title">Phase 4 — Scale &amp; Optimise</span>
+          <div class="tog-meta"><span class="tog-days">Days 61–90</span><span class="tag tag-p">Upcoming</span></div>
+        </div>
+        <div class="tog-body">
+          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Guarantee threshold hit (tier-specific)</div></div>
+          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Pipeline running at full cadence</div></div>
+          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Premium Clarity Session Framework live (Pro)</div></div>
+          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">90-day performance report delivered</div></div>
+          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Month 3+ retainer plan agreed</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="dvd"></div>
+
+    <!-- 11 PERFORMANCE -->
+    <div id="performance">
+      <div class="sec-head">
+        <div class="sec-num">11</div>
+        <div class="sec-title">Performance Reports</div>
+        <div class="sec-line"></div>
+      </div>
+      <div class="callout">
+        <div class="callout-icon">📊</div>
+        <div><div class="callout-title">Live Metrics</div><div class="callout-text">Numbers update as your system runs. Click any value to edit manually, or connect your dashboard for live tracking.</div></div>
+      </div>
+      <div class="perf-grid">
+        <div class="perf-card"><div class="perf-val" contenteditable="true">0</div><div class="perf-lbl">Leads Generated</div><div class="perf-delta">↑ Target: tier-based</div></div>
+        <div class="perf-card"><div class="perf-val" contenteditable="true">0</div><div class="perf-lbl">Enrolled Clients</div><div class="perf-delta">↑ Guarantee: 1–15/mo by Mo3</div></div>
+        <div class="perf-card"><div class="perf-val" contenteditable="true">0%</div><div class="perf-lbl">Funnel Conversion Rate</div><div class="perf-delta">↑ Target: 15%+</div></div>
+        <div class="perf-card"><div class="perf-val" contenteditable="true">$0</div><div class="perf-lbl">Revenue Attributed</div><div class="perf-delta">↑ Tracking active</div></div>
+      </div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead><tr><th>Report</th><th>Period</th><th>Status</th><th>Link</th></tr></thead>
+          <tbody>
+            <tr><td>Week 1 Report</td><td contenteditable="true" class="ph">[Date Range]</td><td><span class="tag tag-y">⏳ Pending</span></td><td contenteditable="true" class="ph" style="color:var(--blue)">[Add Link]</td></tr>
+            <tr><td>Week 2 Report</td><td contenteditable="true" class="ph">[Date Range]</td><td><span class="tag tag-y">⏳ Pending</span></td><td contenteditable="true" class="ph" style="color:var(--blue)">[Add Link]</td></tr>
+            <tr><td>30-Day Report</td><td contenteditable="true" class="ph">[Date Range]</td><td><span class="tag tag-y">⏳ Pending</span></td><td contenteditable="true" class="ph" style="color:var(--blue)">[Add Link]</td></tr>
+            <tr><td>60-Day Report</td><td contenteditable="true" class="ph">[Date Range]</td><td><span class="tag tag-y">⏳ Pending</span></td><td contenteditable="true" class="ph" style="color:var(--blue)">[Add Link]</td></tr>
+            <tr><td>90-Day Final Report</td><td contenteditable="true" class="ph">[Date Range]</td><td><span class="tag tag-y">⏳ Pending</span></td><td contenteditable="true" class="ph" style="color:var(--blue)">[Add Link]</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="dvd"></div>
+
+    <!-- 12 SUBMIT FILES -->
+    <div id="uploads">
+      <div class="sec-head">
+        <div class="sec-num">12</div>
+        <div class="sec-title">Submit Files</div>
+        <div class="sec-line"></div>
+      </div>
+      <div class="callout">
+        <div class="callout-icon">📤</div>
+        <div><div class="callout-title">Upload Brand Assets</div><div class="callout-text">Upload your logos, brand guidelines, existing content, access credentials, and any files we've requested.</div></div>
+      </div>
+      <div style="margin-bottom:16px;">
+        <div style="font-size:11px;font-weight:700;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;">Zone 1 — Brand Assets</div>
+        <div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
+          <div class="upload-icon">📁</div>
+          <div class="upload-title">Drop brand assets here or <span>browse</span></div>
+          <div class="upload-sub">Logos, brand guidelines, ad assets, credentials — Max 50MB per file</div>
+        </div>
+        <input type="file" id="fileInput" multiple onchange="handleFiles(this.files,'assets')"/>
+        <div class="file-list" id="fileList"></div>
+      </div>
+      <div>
+        <div style="font-size:11px;font-weight:700;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;">Zone 2 — Signed Contract</div>
+        <div class="callout" style="margin-bottom:10px;">
+          <div class="callout-icon">📋</div>
+          <div><div class="callout-title">Upload your signed contract PDF</div><div class="callout-text">Once uploaded, your contract is sent directly to FitfluxStudio for review and approval. You'll see a confirmation below.</div></div>
+        </div>
+        <div class="upload-zone" id="contractDropZone" onclick="document.getElementById('contractInput').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleContractDrop(event)">
+          <div class="upload-icon">📄</div>
+          <div class="upload-title">Drop your signed contract PDF here or <span>browse</span></div>
+          <div class="upload-sub">PDF only — your signed contract from the contract page</div>
+        </div>
+        <input type="file" id="contractInput" accept=".pdf" onchange="handleContractFile(this.files[0])"/>
+        <div id="contractStatus" style="display:none;margin-top:10px;padding:12px 14px;background:rgba(61,214,140,0.08);border:1px solid rgba(61,214,140,0.2);border-radius:8px;font-size:12px;color:var(--green);">✅ Contract submitted — awaiting FitfluxStudio approval.</div>
+      </div>
+    </div>
+
+    <div class="dvd"></div>
+
+    <!-- 13 CONTACT -->
+    <div id="contact">
+      <div class="sec-head">
+        <div class="sec-num">13</div>
+        <div class="sec-title">Contact Your Team</div>
+        <div class="sec-line"></div>
+      </div>
+      <div class="contact-grid">
+        <div class="contact-card">
+          <div class="cc-lbl">Strategy Lead</div>
+          <div class="cc-name">FitFlux Team</div>
+          <div class="cc-role">Funnel Strategist &amp; Account Manager</div>
+          <a class="cc-link" href="mailto:fitfluxstudio@gmail.com">📧 fitfluxstudio@gmail.com</a>
+        </div>
+        <div class="contact-card">
+          <div class="cc-lbl">Support</div>
+          <div class="cc-name">Client Support</div>
+          <div class="cc-role">Questions, approvals &amp; urgent requests</div>
+          <a class="cc-link" href="mailto:fitfluxstudio@gmail.com">💬 fitfluxstudio@gmail.com</a>
+        </div>
+      </div>
+      <div class="callout gold">
+        <div class="callout-icon">⚡</div>
+        <div><div class="callout-title">Response Time</div><div class="callout-text">We respond to all client messages within 24 hours on business days. For urgent approvals, message directly via email or your dedicated channel.</div></div>
+      </div>
+    </div>
+
+    <div class="dvd"></div>
+
+    <!-- 14 NOTES -->
+    <div id="notes">
+      <div class="sec-head">
+        <div class="sec-num">14</div>
+        <div class="sec-title">Notes</div>
+        <div class="sec-line"></div>
+      </div>
+      <textarea class="notes-area" placeholder="Add your notes, questions, or reminders here…"></textarea>
+    </div>
+
+    <div class="dvd"></div>
+
+  </div>
+</div>
+
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js">
+// ─── 90-DAY COUNTDOWN ───────────────────────────────────────────────
+let cdInterval = null;
+let cdStartDate = null;
+
+function setStartDate(){
+  const input = document.getElementById('cdStartDate');
+  if(!input.value) return;
+  localStorage.setItem('cdStart', input.value);
+  updateCountdown();
+}
+
+function updateCountdown(){
+  const input = document.getElementById('cdStartDate');
+  const stored = localStorage.getItem('cdStart');
+  const val = input.value || stored;
+  if(!val) return;
+  if(stored && !input.value) input.value = stored;
+
+  const start = new Date(val);
+  start.setHours(0,0,0,0);
+  const end = new Date(start);
+  end.setDate(end.getDate() + 90);
+  cdStartDate = start;
+
+  if(cdInterval) clearInterval(cdInterval);
+  cdInterval = setInterval(()=>tickCountdown(start, end), 1000);
+  tickCountdown(start, end);
+}
+
+function tickCountdown(start, end){
+  const now = new Date();
+  const total = 90 * 24 * 60 * 60 * 1000;
+  const elapsed = now - start;
+  const remaining = end - now;
+  const dayElapsed = Math.floor(elapsed / (1000*60*60*24));
+  const pct = Math.min(100, Math.max(0, (elapsed/total)*100));
+
+  document.getElementById('cd-progress-bar').style.width = pct.toFixed(1)+'%';
+  document.getElementById('cd-day-label').textContent = 'Day '+Math.min(90,Math.max(0,dayElapsed))+' of 90';
+  document.getElementById('cd-pct-label').textContent = pct.toFixed(0)+'% Complete';
+
+  if(remaining <= 0){
+    // 90 DAYS COMPLETE — UNLOCK
+    document.getElementById('cd-days').textContent = '0';
+    document.getElementById('cd-hours').textContent = '0';
+    document.getElementById('cd-mins').textContent = '0';
+    document.getElementById('cd-secs').textContent = '0';
+    document.getElementById('cd-status-badge').textContent = '✅ 90 Days Complete!';
+    document.getElementById('cd-status-badge').style.color = 'var(--gold)';
+    unlockPost90();
+    clearInterval(cdInterval);
+    return;
+  }
+
+  const days = Math.floor(remaining / (1000*60*60*24));
+  const hours = Math.floor((remaining % (1000*60*60*24)) / (1000*60*60));
+  const mins = Math.floor((remaining % (1000*60*60)) / (1000*60));
+  const secs = Math.floor((remaining % (1000*60)) / 1000);
+
+  document.getElementById('cd-days').textContent = days;
+  document.getElementById('cd-hours').textContent = String(hours).padStart(2,'0');
+  document.getElementById('cd-mins').textContent = String(mins).padStart(2,'0');
+  document.getElementById('cd-secs').textContent = String(secs).padStart(2,'0');
+
+  // Update unlock label
+  document.getElementById('cd-unlock-label').textContent = days+' days remaining until unlock';
+
+  // Update retainer billing date if already unlocked
+  updateRetainerDates();
+}
+
+function unlockPost90(){
+  document.getElementById('post90-locked').style.display = 'none';
+  document.getElementById('post90-unlocked').style.display = 'block';
+  updateRetainerDates();
+}
+
+function updateRetainerDates(){
+  if(!cdStartDate) return;
+  const end = new Date(cdStartDate);
+  end.setDate(end.getDate() + 90);
+  const now = new Date();
+  const monthsActive = Math.max(0, Math.floor((now - end) / (1000*60*60*24*30)));
+  document.getElementById('rc-months').textContent = monthsActive;
+  
+  // Next billing date — same day each month from end date
+  const next = new Date(end);
+  while(next <= now) next.setMonth(next.getMonth()+1);
+  document.getElementById('rc-next-date').textContent = next.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'numeric'});
+  
+  calcTotalInvested();
+}
+
+function updateRetainer(val){
+  const clean = val.replace(/[^0-9.]/g,'');
+  const num = parseFloat(clean) || 0;
+  document.getElementById('rc-amount').textContent = '$'+num.toLocaleString();
+  localStorage.setItem('rcAmount', num);
+  calcTotalInvested();
+}
+
+function calcTotalInvested(){
+  const months = parseInt(document.getElementById('rc-months').textContent)||0;
+  const rate = parseFloat(localStorage.getItem('rcAmount'))||0;
+  const setup = parseFloat(localStorage.getItem('setupFee'))||0;
+  const total = setup + (rate * months);
+  document.getElementById('rc-total').textContent = '$'+total.toLocaleString();
+}
+
+function calcPerf(){
+  const rows = document.querySelectorAll('.perf-table tbody tr');
+  // Leads
+  const lCur = parseInt(rows[0].querySelectorAll('input')[0].value)||0;
+  const lPrev = parseInt(rows[0].querySelectorAll('input')[1].value)||0;
+  rows[0].querySelector('.perf-total-leads').textContent = (lCur+lPrev);
+  // Calls
+  const cCur = parseInt(rows[1].querySelectorAll('input')[0].value)||0;
+  const cPrev = parseInt(rows[1].querySelectorAll('input')[1].value)||0;
+  rows[1].querySelector('.perf-total-calls').textContent = (cCur+cPrev);
+  // Deals
+  const dCur = parseInt(rows[2].querySelectorAll('input')[0].value)||0;
+  const dPrev = parseInt(rows[2].querySelectorAll('input')[1].value)||0;
+  rows[2].querySelector('.perf-total-deals').textContent = (dCur+dPrev);
+  // Conv rate
+  const conv = lCur > 0 ? ((dCur/lCur)*100).toFixed(1)+'%' : '0%';
+  document.getElementById('perf-conv-rate').textContent = conv;
+}
+
+// Init on load
+document.addEventListener('DOMContentLoaded',()=>{
+  const stored = localStorage.getItem('cdStart');
+  if(stored){
+    document.getElementById('cdStartDate').value = stored;
+    updateCountdown();
+  }
+  const rc = localStorage.getItem('rcAmount');
+  if(rc) document.getElementById('rc-input').value = '$'+parseFloat(rc).toLocaleString();
+});
+
+</script><script>
+// Token-based password: last 8 chars of token from URL, uppercased
+const urlToken = new URLSearchParams(window.location.search).get('token') || '';
+const PW = urlToken ? urlToken.slice(-8).toUpperCase() : 'FF2024';
+function unlock(){
+  const raw = (document.getElementById('pwInput').value || '').trim().toUpperCase();
+  const err = document.getElementById('lockErr');
+  // PW is last 8 chars of token from URL, uppercased
+  // Also allow full token as fallback
+  const fullToken = (new URLSearchParams(window.location.search).get('token') || '').toUpperCase();
+  const isValid = (raw === PW) || (raw === fullToken) || (raw.length === 0 ? false : fullToken.endsWith(raw));
+  if(isValid){
+    const lk = document.getElementById('lock');
+    lk.style.opacity = '0';
+    lk.style.transition = 'opacity .4s';
+    setTimeout(() => { lk.style.display = 'none'; }, 450);
+    // Welcome modal on first entry
+    setTimeout(() => showWelcomeModal(), 600);
+  } else {
+    err.classList.add('show');
+    document.getElementById('pwInput').value = '';
+    setTimeout(() => err.classList.remove('show'), 3000);
+  }
+}
+
+function showWelcomeModal() {
+  // Only show once per session
+  if(sessionStorage.getItem('ff_welcomed')) return;
+  sessionStorage.setItem('ff_welcomed', '1');
+  const c = window.FF_CLIENT || {};
+  const firstName = (c.name || 'there').split(' ')[0];
+  const tier = (window.FF_TIER || '').charAt(0).toUpperCase() + (window.FF_TIER || '').slice(1);
+  const modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(4px);';
+  modal.innerHTML = `
+    <div style="background:#101C00;border:1.5px solid rgba(204,255,0,.3);border-radius:16px;padding:40px 32px;max-width:440px;width:100%;text-align:center;">
+      <div style="font-size:40px;margin-bottom:16px;">🎉</div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:32px;color:#CCFF00;letter-spacing:.04em;margin-bottom:8px;">Welcome, ${firstName}!</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.6);line-height:1.8;margin-bottom:8px;">Your <strong style="color:#fff;">${tier}</strong> plan is now active.</div>
+      <div style="font-size:12px;color:rgba(255,255,255,.4);line-height:1.7;margin-bottom:24px;">Your territory is locked. Your team is being notified. Check back here daily to track your progress — this is your command centre.</div>
+      <button onclick="this.closest('div[style]').remove()" style="background:#CCFF00;color:#0D1F00;border:none;border-radius:8px;padding:14px 32px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.06em;text-transform:uppercase;">Let's Go →</button>
+    </div>`;
+  document.body.appendChild(modal);
+}
+function nav(el,page){
+  document.querySelectorAll('.nv').forEach(n=>n.classList.remove('act'));
+  el.classList.add('act');
+  document.getElementById('tbPage').textContent = page;
+  const href = el.getAttribute('data-target') || el.getAttribute('href');
+  if(href && href.startsWith('#')){
+    const target = document.getElementById(href.slice(1));
+    if(target){
+      const offset = 62;
+      const top = target.getBoundingClientRect().top + window.scrollY - offset;
+      window.scrollTo({top, behavior:'smooth'});
+    }
+  }
+  return false;
+}
+function tp(h){
+  const arr = h.querySelector('.tog-arr');
+  const body = h.nextElementSibling;
+  arr.classList.toggle('op');
+  body.classList.toggle('op');
+}
+function tc(el){
+  const b = el.querySelector('.chkb');
+  const t = el.querySelector('.chkt');
+  b.classList.toggle('on');
+  t.classList.toggle('on');
+}
+
+// ─── TELEGRAM UPLOAD (Brand Assets + Contracts) ─────────────────────
+const TG_BOT = '8728238222:AAG_ssXL9LPn7moTHh7HTx0XCyHLkP8q4TQ';
+const TG_ASSETS = '-1003888423178';
+const TG_CONTRACTS = '-1003939399057';
+
+async function sendToTelegramFile(file, chatId, context) {
+  const fd = new FormData();
+  fd.append('chat_id', chatId);
+  fd.append('document', file, file.name);
+  fd.append('caption', context);
+  try {
+    const res = await fetch('https://api.telegram.org/bot'+TG_BOT+'/sendDocument', { method:'POST', body:fd });
+    return res.ok;
+  } catch(e) { return false; }
+}
+
+function handleFiles(files, type) {
+  const list = document.getElementById('fileList');
+  Array.from(files).forEach(async f => {
+    const item = document.createElement('div');
+    item.className = 'file-item';
+    const size = f.size > 1048576 ? (f.size/1048576).toFixed(1)+'MB' : (f.size/1024).toFixed(0)+'KB';
+    item.innerHTML = '<span style="font-size:16px">📄</span><span class="file-item-name">'+f.name+'</span><span class="file-item-size">'+size+' · Uploading…</span><button class="file-item-rm" onclick="this.parentElement.remove()">×</button>';
+    list.appendChild(item);
+    const ok = await sendToTelegramFile(f, TG_ASSETS, '📁 Brand Asset — SMM & Marketing Portal
+File: '+f.name+'
+Size: '+size);
+    const sizeEl = item.querySelector('.file-item-size');
+    if(sizeEl) sizeEl.textContent = size + (ok ? ' · ✅ Received' : ' · ⚠ Retry manually');
+  });
+  document.getElementById('dropZone').classList.remove('drag');
+}
+
+function handleContractFile(file) {
+  if(!file) return;
+  const statusEl = document.getElementById('contractStatus');
+  statusEl.style.display = 'block';
+  statusEl.style.color = 'var(--t3)';
+  statusEl.textContent = '⏳ Uploading contract…';
+  sendToTelegramFile(file, TG_CONTRACTS, '📄 SIGNED CONTRACT — SMM & Marketing
+File: '+file.name+'
+Portal: Onboarding Portal
+
+Contract submitted for review/approval.').then(ok => {
+    statusEl.style.color = ok ? 'var(--green)' : '#ff5555';
+    statusEl.textContent = ok ? '✅ Contract submitted — awaiting FitfluxStudio approval.' : '⚠ Upload failed. Please email your contract to fitfluxstudio@gmail.com.';
+  });
+}
+
+function handleContractDrop(e) {
+  e.preventDefault();
+  document.getElementById('contractDropZone').classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if(file) handleContractFile(file);
+}
+
+function handleDrop(e){
+  e.preventDefault();
+  document.getElementById('dropZone').classList.remove('drag');
+  handleFiles(e.dataTransfer.files,'assets');
+}
+
+function copyLink(){
+  const url = window.location.href;
+  navigator.clipboard.writeText(url).then(()=>{
+    const btn = document.querySelector('.copy-btn');
+    if(btn){ btn.textContent='Copied!'; setTimeout(()=>btn.textContent='Copy Link',2000); }
+  });
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  const firstNav = document.querySelector('.nv');
+  if(firstNav) firstNav.classList.add('act');
+});
+
+// ─── VIEW TOGGLE ────────────────────────────────────────────────────
+function setView(v){
+  ['daily','weekly','monthly'].forEach(id=>{
+    const el = document.getElementById('view-'+id);
+    const btn = document.getElementById('vt-'+id);
+    if(el){ el.style.display = id===v ? 'block' : 'none'; }
+    if(btn){
+      btn.style.background = id===v ? 'rgba(126,200,69,0.18)' : 'transparent';
+      btn.style.color = id===v ? '#7EC845' : 'rgba(255,255,255,.4)';
+    }
+  });
+}
+
+// ─── TELEGRAM BOT ──────────────────────────────────────────────────
+const TG_BOT = '8728238222:AAG_ssXL9LPn7moTHh7HTx0XCyHLkP8q4TQ';
+const TG_CONTRACTS = '-1003939399057';
+const TG_ASSETS = '-1003888423178';
+
+let contractFile = null;
+let assetFiles = [];
+
+function handleContract(files){
+  if(!files.length) return;
+  contractFile = files[0];
+  const prev = document.getElementById('contract-file-preview');
+  prev.style.display = 'flex';
+  prev.innerHTML = '<div style="background:rgba(126,200,69,.08);border:1px solid rgba(126,200,69,.2);border-radius:6px;padding:8px 14px;display:flex;align-items:center;gap:8px;font-size:12px"><span>📄</span><span style="color:#fff;font-weight:600">'+contractFile.name+'</span><span style="color:rgba(255,255,255,.4)">'+Math.round(contractFile.size/1024)+'KB</span></div>';
+  document.getElementById('contract-upload-btn').style.display = 'inline-block';
+}
+
+function handleContractDrop(e){
+  e.preventDefault();
+  document.getElementById('contractDropZone').classList.remove('drag');
+  const f = e.dataTransfer.files;
+  if(f.length) handleContract(f);
+}
+
+async function uploadContract(){
+  if(!contractFile) return;
+  const statusEl = document.getElementById('contract-status');
+  statusEl.style.display = 'block';
+  statusEl.style.color = 'rgba(255,255,255,.5)';
+  statusEl.textContent = '⏳ Sending contract to FitfluxStudio...';
+  try{
+    const msg = '📄 SIGNED CONTRACT SUBMITTED\n\n✅ Portal: SMM & Marketing\n📋 File: '+contractFile.name+'\n📦 Size: '+Math.round(contractFile.size/1024)+'KB\n\nClient has submitted their signed contract for review.';
+    await fetch(`https://api.telegram.org/bot${TG_BOT}/sendMessage`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({chat_id:TG_CONTRACTS,text:msg})
+    });
+    statusEl.style.color = '#3dd68c';
+    statusEl.textContent = '✅ Contract submitted — FitfluxStudio has been notified. You\'ll receive email confirmation shortly.';
+    document.getElementById('contract-upload-btn').disabled = true;
+  }catch(e){
+    statusEl.style.color = '#ff5555';
+    statusEl.textContent = '❌ Upload failed. Please email your contract directly to fitfluxstudio@gmail.com';
+  }
+}
+
+function uploadAssets(){
+  const listEl = document.getElementById('fileList');
+  const items = listEl.querySelectorAll('.file-item-name');
+  if(!items.length){ alert('No files selected. Please add files first.'); return; }
+  const statusEl = document.getElementById('asset-status');
+  statusEl.style.display = 'block';
+  const names = Array.from(items).map(i=>i.textContent).join(', ');
+  const msg = '📁 BRAND ASSETS SUBMITTED\n\n✅ Portal: SMM & Marketing\n📋 Files: '+names+'\n\nClient has submitted brand assets for review.';
+  fetch(`https://api.telegram.org/bot${TG_BOT}/sendMessage`,{
+    method:'POST',headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({chat_id:TG_ASSETS,text:msg})
+  }).then(()=>{
+    statusEl.style.color = '#3dd68c';
+    statusEl.textContent = '✅ FitfluxStudio has been notified. Your team will confirm receipt by email.';
+  }).catch(()=>{
+    statusEl.style.color = 'rgba(255,255,255,.4)';
+    statusEl.textContent = '📧 Please also email your files directly to fitfluxstudio@gmail.com';
+  });
+}
+</script>
+
+</body>
+</html>

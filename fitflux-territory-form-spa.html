@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>FitFlux Studio — Claim Your Territory</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --lime:#CCFF00; --lime2:#DEFF4D;
+    --dark:#0A1800; --dark2:#0D2200; --dark3:#142900;
+    --ink:#1C2200; --gray:#6B7A5A; --line:#D6E8B0;
+    --bg:#F2FFD6; --white:#FFFFFF;
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'DM Sans',sans-serif; background:var(--dark); min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:32px 16px; }
+
+  .wrap { width:100%; max-width:520px; }
+  .stage { display:none; }
+  .stage.active { display:block; }
+
+  /* CARD */
+  .card { background:var(--white); border-radius:6px; overflow:hidden; box-shadow:0 8px 80px rgba(0,0,0,0.4); }
+  .card-accent { height:4px; background:var(--lime); }
+  .card-dark-top { background:var(--dark2); padding:22px 36px 18px; display:flex; align-items:center; gap:14px; border-bottom:1px solid rgba(204,255,0,0.15); }
+  .brand-logo { width:38px; height:38px; object-fit:contain; border-radius:6px; }
+  .brand-name { font-family:'Cormorant Garamond',serif; font-size:20px; font-weight:700; color:var(--lime); letter-spacing:-0.3px; line-height:1; }
+  .brand-tag { font-size:9px; color:rgba(204,255,0,0.5); font-weight:600; letter-spacing:2px; text-transform:uppercase; margin-top:2px; }
+  .card-body { padding:30px 36px 32px; }
+
+  .pkg-tag { display:inline-flex; align-items:center; gap:6px; background:var(--dark2); color:var(--lime); font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:5px 12px; border-radius:20px; margin-bottom:14px; }
+  h1 { font-family:'Cormorant Garamond',serif; font-size:28px; font-weight:700; color:var(--dark2); line-height:1.1; margin-bottom:7px; }
+  .sub { font-size:13px; color:var(--gray); line-height:1.6; margin-bottom:24px; }
+
+  .field { margin-bottom:14px; }
+  .field label { display:block; font-size:9px; font-weight:700; letter-spacing:2px; text-transform:uppercase; color:#3A6600; margin-bottom:5px; }
+  .field input, .field select {
+    width:100%; padding:11px 13px;
+    border:1.5px solid var(--line); border-radius:4px;
+    font-family:'DM Sans',sans-serif; font-size:13px; color:var(--ink);
+    background:var(--bg); outline:none; transition:border 0.2s;
+    -webkit-appearance:none; appearance:none;
+  }
+  .field input:focus, .field select:focus { border-color:#3A6600; background:#FBFFEE; }
+  .field input::placeholder { color:#AAB890; }
+  .row2 { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+
+  .btn-check {
+    width:100%; padding:14px; margin-top:6px;
+    background:var(--dark2); color:var(--lime);
+    border:none; border-radius:4px;
+    font-family:'DM Sans',sans-serif; font-size:13px; font-weight:700;
+    letter-spacing:0.5px; cursor:pointer; transition:all 0.2s;
+  }
+  .btn-check:hover { background:#1A3D00; }
+
+  .lock-note {
+    margin-top:14px; padding:11px 14px;
+    background:var(--bg); border:1.5px solid var(--line); border-radius:4px;
+    font-size:11px; color:#3A6600; line-height:1.7;
+    display:flex; gap:8px; align-items:flex-start;
+  }
+
+  /* LOADER */
+  .loader-card { background:var(--dark2); border-radius:6px; overflow:hidden; box-shadow:0 8px 80px rgba(0,0,0,0.5); }
+  .loader-body { padding:44px 36px; text-align:center; }
+  .loader-eyebrow { font-size:9px; font-weight:700; letter-spacing:2.5px; text-transform:uppercase; color:rgba(204,255,0,0.5); margin-bottom:10px; }
+  .loader-title { font-family:'Cormorant Garamond',serif; font-size:28px; font-weight:700; color:var(--lime); margin-bottom:6px; line-height:1.1; }
+  .loader-city { font-size:13px; color:rgba(255,255,255,0.55); margin-bottom:32px; }
+  .bar-wrap { background:rgba(255,255,255,0.08); border-radius:100px; height:5px; overflow:hidden; margin-bottom:12px; }
+  .bar { background:var(--lime); height:100%; width:0%; border-radius:100px; transition:width 0.45s ease; }
+  .bar-label { font-size:11px; color:rgba(255,255,255,0.4); letter-spacing:0.5px; min-height:16px; }
+  .loader-steps { margin-top:28px; display:flex; flex-direction:column; gap:8px; text-align:left; }
+  .lstep { display:flex; align-items:center; gap:10px; font-size:12px; color:rgba(255,255,255,0.3); transition:color 0.3s; }
+  .lstep.done { color:rgba(204,255,0,0.8); }
+  .lstep .dot { width:6px; height:6px; border-radius:50%; background:rgba(255,255,255,0.15); flex-shrink:0; transition:background 0.3s; }
+  .lstep.done .dot { background:var(--lime); }
+
+  /* SUCCESS */
+  .success-card { background:var(--white); border-radius:6px; overflow:hidden; box-shadow:0 8px 80px rgba(0,0,0,0.4); }
+  .success-dark { background:var(--dark2); padding:28px 36px; text-align:center; border-bottom:3px solid var(--lime); }
+  .avail-badge { display:inline-flex; align-items:center; gap:6px; background:rgba(204,255,0,0.15); border:1px solid rgba(204,255,0,0.35); color:var(--lime); font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:5px 14px; border-radius:20px; margin-bottom:14px; }
+  .success-hed { font-family:'Cormorant Garamond',serif; font-size:30px; font-weight:700; color:var(--white); line-height:1.1; margin-bottom:6px; }
+  .success-hed span { color:var(--lime); }
+  .success-sub { font-size:12px; color:rgba(255,255,255,0.5); line-height:1.65; }
+  .success-body { padding:24px 36px 28px; }
+  .territory-pill {
+    display:flex; align-items:center; gap:8px;
+    background:var(--bg); border:1.5px solid var(--line);
+    border-radius:6px; padding:12px 16px; margin-bottom:20px;
+  }
+  .tp-icon { font-size:18px; }
+  .tp-label { font-size:10px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; color:#3A6600; margin-bottom:2px; }
+  .tp-value { font-size:13px; font-weight:600; color:var(--dark2); }
+  .slots-note { font-size:11px; color:#CC4400; font-weight:600; margin-bottom:20px; padding:8px 12px; background:#FFF7ED; border:1px solid #FED7AA; border-radius:4px; }
+  .btn-invoice {
+    width:100%; padding:15px;
+    background:var(--lime); color:var(--dark2);
+    border:none; border-radius:4px;
+    font-family:'DM Sans',sans-serif; font-size:13px; font-weight:700;
+    letter-spacing:0.5px; cursor:pointer; transition:all 0.2s;
+  }
+  .btn-invoice:hover { background:var(--lime2); }
+  .expire-note { text-align:center; font-size:11px; color:var(--gray); margin-top:10px; }
+
+  @media(max-width:420px){
+    .card-body,.loader-body,.success-body,.success-dark,.card-dark-top { padding-left:20px; padding-right:20px; }
+    .row2 { grid-template-columns:1fr; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <!-- STAGE 1: FORM -->
+  <div class="stage active" id="s-form">
+    <div class="card">
+      <div class="card-accent"></div>
+      <div class="card-dark-top">
+        <img src="data:image/png;base64,/9j/4AAQSkZJRgABAQAAAQABAAD/4gHYSUNDX1BST0ZJTEUAAQEAAAHIAAAAAAQwAABtbnRyUkdCIFhZWiAH4AABAAEAAAAAAABhY3NwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAA9tYAAQAAAADTLQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAlkZXNjAAAA8AAAACRyWFlaAAABFAAAABRnWFlaAAABKAAAABRiWFlaAAABPAAAABR3dHB0AAABUAAAABRyVFJDAAABZAAAAChnVFJDAAABZAAAAChiVFJDAAABZAAAAChjcHJ0AAABjAAAADxtbHVjAAAAAAAAAAEAAAAMZW5VUwAAAAgAAAAcAHMAUgBHAEJYWVogAAAAAAAAb6IAADj1AAADkFhZWiAAAAAAAABimQAAt4UAABjaWFlaIAAAAAAAACSgAAAPhAAAts9YWVogAAAAAAAA9tYAAQAAAADTLXBhcmEAAAAAAAQAAAACZmYAAPKnAAANWQAAE9AAAApbAAAAAAAAAABtbHVjAAAAAAAAAAEAAAAMZW5VUwAAACAAAAAcAEcAbwBvAGcAbABlACAASQBuAGMALgAgADIAMAAxADb/2wBDAAUDBAQEAwUEBAQFBQUGBwwIBwcHBw8LCwkMEQ8SEhEPERETFhwXExQaFRERGCEYGh0dHx8fExciJCIeJBweHx7/2wBDAQUFBQcGBw4ICA4eFBEUHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh4eHh7/wAARCAQ4BDgDASIAAhEBAxEB/8QAHAABAAMAAwEBAAAAAAAAAAAAAAYHCAMEBQIB/8QAPxABAAIBAwECCQcLBQEBAAAAAAECAwQFEQYHEhQVISIxUYGRoRM2QXF1orMIFzNCUmFicpKxsjJUVZTRwcL/xAAcAQEAAgMBAQEAAAAAAAAAAAAABAUDBgcCAQj/xAA2EQEAAQMBBAcFBwUBAAAAAAAAAQIDBBEFBhIhExQxQUJRoTM0cZHhMlNhgbHB0RUWUmLxov/aAAwDAQACEQMRAD8Av4B+RGEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA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AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAADpbFuu375s+k3fadVj1eh1eKMuDNSfJas/2n6JifLE8xLugk5lmmxkXLVPZTMx8p0ABGAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAHS33ddv2PZ9Xu+7arHpNDpMU5c+a8+StY/vP0REeWZ4iAG/bo7rYe2ce5dyKqommdOUxHdr3xL1TGr/9k=" alt="FitFlux Studio" class="brand-logo"/>
+        <div>
+          <div class="brand-name">FitFlux Studio</div>
+          <div class="brand-tag">Digital Media Agency</div>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="pkg-tag">🔒 <span id="pkg-label">Territory Claim</span></div>
+        <h1>Claim Your Territory</h1>
+        <p class="sub">Your niche + city gets locked exclusively — max 3 coaches per territory, ever. Let's check if yours is still available.</p>
+
+        <div class="field"><label>Full Name</label><input type="text" id="f-name" placeholder="Your full name"/></div>
+        <div class="row2">
+          <div class="field"><label>Email</label><input type="email" id="f-email" placeholder="your@email.com"/></div>
+          <div class="field"><label>Phone</label><input type="tel" id="f-phone" placeholder="+1 000 000 0000"/></div>
+        </div>
+        <div class="row2">
+          <div class="field"><label>City</label><input type="text" id="f-city" placeholder="e.g. Austin, TX"/></div>
+          <div class="field"><label>Territory / Region</label><input type="text" id="f-territory" placeholder="e.g. South Austin"/></div>
+        </div>
+        <div class="field">
+          <label>Your Niche / Industry</label>
+          <select id="f-niche">
+            <option value="">Select your niche...</option>
+            <option>Personal Training / Fitness Coaching</option>
+            <option>Weight Loss Coaching</option>
+            <option>Strength &amp; Conditioning</option>
+            <option>Yoga / Pilates / Flexibility</option>
+            <option>Nutrition &amp; Meal Planning</option>
+            <option>Sports Performance</option>
+            <option>Online Fitness Coaching</option>
+            <option>Gym / Studio Owner</option>
+            <option>Wellness &amp; Lifestyle</option>
+            <option>Other Fitness Brand</option>
+          </select>
+        </div>
+        <div class="field"><label>Instagram Handle</label><input type="text" id="f-ig" placeholder="@yourhandle"/></div>
+        <button class="btn-check" onclick="submitForm()">Check Territory Availability →</button>
+        <div class="lock-note">
+          <span>🔒</span>
+          <span><strong>Territory exclusivity in every plan.</strong> Your niche + city is locked — max 3 coaches per territory, ever. Once full, that territory is permanently closed.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STAGE 2: LOADER -->
+  <div class="stage" id="s-loader">
+    <div class="loader-card">
+      <div class="card-accent"></div>
+      <div class="loader-body">
+        <div class="loader-eyebrow">Territory Check</div>
+        <div class="loader-title">Scanning availability...</div>
+        <div class="loader-city" id="loader-city">Checking your niche + city</div>
+        <div class="bar-wrap"><div class="bar" id="prog-bar"></div></div>
+        <div class="bar-label" id="bar-label">Connecting to database...</div>
+        <div class="loader-steps">
+          <div class="lstep" id="ls0"><div class="dot"></div>Connecting to territory database</div>
+          <div class="lstep" id="ls1"><div class="dot"></div>Scanning coaches in your city</div>
+          <div class="lstep" id="ls2"><div class="dot"></div>Checking niche overlap</div>
+          <div class="lstep" id="ls3"><div class="dot"></div>Verifying exclusivity slots</div>
+          <div class="lstep" id="ls4"><div class="dot"></div>Confirming territory status</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- STAGE 3: SUCCESS -->
+  <div class="stage" id="s-success">
+    <div class="success-card">
+      <div class="card-accent"></div>
+      <div class="success-dark">
+        <div class="avail-badge">✓ Territory Available</div>
+        <div class="success-hed" id="success-hed">Your territory is <span>open.</span></div>
+        <div class="success-sub" id="success-sub">Proceed to your personalised invoice to secure it now.</div>
+      </div>
+      <div class="success-body">
+        <div class="territory-pill">
+          <div class="tp-icon">🔒</div>
+          <div>
+            <div class="tp-label">Territory Reserved</div>
+            <div class="tp-value" id="tp-value">Loading...</div>
+          </div>
+        </div>
+        <div class="slots-note" id="slots-note">⚡ Only 2 spots remaining in this territory this month.</div>
+        <button class="btn-invoice" onclick="goToInvoice()">View My Personalised Invoice &amp; Secure Territory →</button>
+        <div class="expire-note">⏱ Territory hold expires in 48 hours — your invoice will reflect this.</div>
+      </div>
+    </div>
+  </div>
+
+</div>
+<script>
+const PACKAGES = {
+  presence:          { label:'Offer 01 — Presence · $350/mo' },
+  authority:         { label:'Offer 01 — Authority · $700/mo' },
+  categoryking:      { label:'Offer 01 — Category King/Queen · $1,200/mo' },
+  launchpad:         { label:'Offer 02 — Launchpad · $500' },
+  growth:            { label:'Offer 02 — Growth · $750' },
+  pro:               { label:'Offer 02 — Pro · $1,200' },
+  luxurycontent:     { label:'Spa Offer 01 — Luxury Content · $500/mo' },
+  premiumsocial:     { label:'Spa Offer 01 — Premium Social · $900/mo' },
+  elitepresence:     { label:'Spa Offer 01 — Elite Presence · $1,500/mo' },
+  brandlaunch:       { label:'Spa Offer 02 — Brand Launch · $800' },
+  fullgrowth:        { label:'Spa Offer 02 — Full Growth · $1,500' },
+  eliteacquisition:  { label:'Spa Offer 02 — Elite Acquisition · $2,500' },
+};
+const urlP = new URLSearchParams(window.location.search);
+const tierKey = (urlP.get('tier') || 'presence').toLowerCase().replace(/[\s\/]/g,'');
+const pkg = PACKAGES[tierKey] || PACKAGES['presence'];
+document.getElementById('pkg-label').textContent = pkg.label;
+
+let fd = {};
+
+function submitForm() {
+  const name = document.getElementById('f-name').value.trim();
+  const email = document.getElementById('f-email').value.trim();
+  const phone = document.getElementById('f-phone').value.trim();
+  const city = document.getElementById('f-city').value.trim();
+  const territory = document.getElementById('f-territory').value.trim();
+  const niche = document.getElementById('f-niche').value;
+  const ig = document.getElementById('f-ig').value.trim();
+  if (!name || !email || !city || !territory || !niche || !ig) {
+    alert('Please fill in all fields to check territory availability.'); return;
+  }
+  fd = { name, email, phone, city, territory, niche, ig };
+  document.getElementById('s-form').classList.remove('active');
+  document.getElementById('s-loader').classList.add('active');
+  document.getElementById('loader-city').textContent = niche + ' · ' + city + ', ' + territory;
+  // ── TELEGRAM: Step 1 — New lead submitted territory form ──
+  tgPing('👀 <b>NEW LEAD — TERRITORY FORM SUBMITTED</b>\n\n' +
+    '👤 Name: ' + name + '\n' +
+    '📧 Email: ' + email + '\n' +
+    '📱 Phone: ' + (phone||'—') + '\n' +
+    '📸 Instagram: ' + ig + '\n' +
+    '📦 Tier: ' + tierKey + '\n' +
+    '🏙 Niche: ' + niche + '\n' +
+    '📍 Location: ' + city + ', ' + territory + '\n\n' +
+    '➡️ Checking territory availability now...');
+  runLoader();
+}
+
+function runLoader() {
+  const bar = document.getElementById('prog-bar');
+  const lbl = document.getElementById('bar-label');
+  const steps = [
+    [18,  'Connecting to territory database...', 0],
+    [36,  'Scanning coaches in ' + fd.city + '...', 1],
+    [54,  'Checking niche overlap for ' + fd.niche + '...', 2],
+    [78,  'Verifying exclusivity status...', 3],
+    [100, 'Territory confirmed ✓', 4],
+  ];
+  // Realistic timing per step: 1.2s, 1.8s, 1.5s, 2s, 1.5s
+  const stepTimings = [1200, 1800, 1500, 2000, 1500];
+  let i = 0;
+  function tick() {
+    if (i >= steps.length) { setTimeout(showSuccess, 900); return; }
+    bar.style.width = steps[i][0] + '%';
+    lbl.textContent = steps[i][1];
+    const stepEl = document.getElementById('ls' + steps[i][2]);
+    if (stepEl) stepEl.classList.add('done');
+    const delay = stepTimings[i] || 1200;
+    i++;
+    setTimeout(tick, delay);
+  }
+  tick();
+}
+
+function showSuccess() {
+  document.getElementById('s-loader').classList.remove('active');
+  document.getElementById('s-success').classList.add('active');
+  const first = fd.name.split(' ')[0];
+  document.getElementById('success-hed').innerHTML = 'Great news, ' + first + '.<br/>Your territory is <span>open.</span>';
+  document.getElementById('success-sub').textContent = fd.niche + ' in ' + fd.city + ' has an available slot. Your invoice has been personalised — secure your territory now before it closes.';
+  document.getElementById('tp-value').textContent = '🏙 ' + fd.niche + ' · ' + fd.city + ', ' + fd.territory;
+  const slots = [1, 2][Math.floor(Math.random() * 2)];
+  document.getElementById('slots-note').textContent = '⚡ Only ' + slots + ' spot' + (slots > 1 ? 's' : '') + ' remaining in this territory this month.';
+}
+
+function goToInvoice() {
+  const p = new URLSearchParams({ tier: tierKey, ...fd });
+  window.location.href = 'fitflux-invoice-smm.html?' + p.toString();
+}
+
+// ── TELEGRAM NOTIFY ─────────────────────────────────────────────────
+const TG_BOT  = '8728238222:AAG_ssXL9LPn7moTHh7HTx0XCyHLkP8q4TQ';
+const TG_CHAT = '-1003939399057';
+async function tgPing(msg) {
+  try {
+    await fetch('https://api.telegram.org/bot' + TG_BOT + '/sendMessage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: TG_CHAT, text: msg, parse_mode: 'HTML' })
+    });
+  } catch(e) {}
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,961 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<script>
+// Set valid tiers for this contract BEFORE the gate runs
+window.FF_VALID_TIERS = ['luxurycontent','premiumsocial','elitepresence'];
+</script>
+<script>
+// ── TOKEN GATE — runs before anything renders ─────────────────────────
+(function(){
+  const params  = new URLSearchParams(window.location.search);
+  const token   = params.get('token') || '';
+  const tierParam = params.get('tier') || '';
+
+  // Valid tier slugs for THIS contract — set per file
+  const VALID_TIERS = window.FF_VALID_TIERS || [];
+
+  // Token must start with FF-, contain a valid tier slug, and match URL tier
+  const tokenParts = token.split('-');
+  // token format: FF-{tier}-{uuid}-{timestamp}
+  const tokenTier = tokenParts.length >= 2 ? tokenParts[1] : '';
+
+  const tierOk  = VALID_TIERS.includes(tierParam);
+  const tokenOk = token.startsWith('FF-') && VALID_TIERS.includes(tokenTier) && tokenTier === tierParam;
+
+  if (!tierOk || !tokenOk) {
+    document.documentElement.innerHTML = `
+      <html><head><meta charset="UTF-8">
+      <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{background:#0D1F00;color:#fff;font-family:'DM Sans',sans-serif;
+             min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:40px}
+        .wrap{max-width:400px}
+        .icon{font-size:48px;margin-bottom:20px}
+        h1{font-size:22px;color:#CCFF00;margin-bottom:12px;font-weight:700}
+        p{font-size:13px;color:rgba(255,255,255,0.5);line-height:1.7;margin-bottom:20px}
+        a{color:#CCFF00;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}
+      </style></head>
+      <body><div class="wrap">
+        <div class="icon">🔒</div>
+        <h1>Access Denied</h1>
+        <p>This link is invalid, expired, or does not match your purchased tier.<br><br>
+        Please use the link from your receipt email, or contact us directly.</p>
+        <a href="mailto:fitfluxstudio@gmail.com">Contact FitfluxStudio →</a>
+      </div></body></html>`;
+    return;
+  }
+
+  // Token valid — store data for pre-fill
+  window.FF_TOKEN  = token;
+  window.FF_TIER   = tierParam;
+  window.FF_CLIENT = {
+    name:      params.get('name')      || '',
+    email:     params.get('email')     || '',
+    phone:     params.get('phone')     || '',
+    city:      params.get('city')      || '',
+    territory: params.get('territory') || '',
+    niche:     params.get('niche')     || '',
+    ig:        params.get('ig')        || '',
+    rec:       params.get('rec')       || ''
+  };
+})();
+
+</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FitfluxStudio — Social Media Management Contract</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+:root{
+  --lime:#CCFF00;--dg:#2D6A0F;--deep:#0D1F00;--white:#fff;
+  --off:#F4F8EE;--muted:#6B7A5A;--border:#DDE8CC;--card:#101C00;
+  --cardtext:#D4E8B0;--cardmuted:#9BAA88;--cardborder:#1A2C00;
+  --amber:#E09B20;--amberCard:#2a1c06;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{overflow-x:hidden}
+body{font-family:'DM Sans',sans-serif;background:var(--deep);color:var(--white);min-height:100vh}
+.header{background:var(--deep);padding:20px 32px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid rgba(204,255,0,.15);position:sticky;top:0;z-index:100;backdrop-filter:blur(10px)}
+.logo-row{display:flex;align-items:center;gap:8px}
+.lm{display:flex;gap:4px;align-items:flex-end}
+.b{background:var(--lime);border-radius:2px}
+.b1{width:7px;height:22px;transform:rotate(-8deg);transform-origin:bottom center}
+.b2{width:7px;height:14px}
+.b3{width:7px;height:22px;transform:rotate(8deg);transform-origin:bottom center}
+.brand-name{font-family:'Bebas Neue',sans-serif;font-size:18px;letter-spacing:.12em;color:var(--lime)}
+.header-badge{background:rgba(204,255,0,.1);border:1px solid rgba(204,255,0,.3);color:var(--lime);font-size:10px;font-weight:700;letter-spacing:.1em;padding:4px 10px;border-radius:20px}
+.main{max-width:800px;margin:0 auto;padding:40px 24px 80px}
+.steps{display:flex;gap:0;margin-bottom:40px;background:rgba(255,255,255,.04);border-radius:10px;overflow:hidden;border:1px solid rgba(255,255,255,.06)}
+.step{flex:1;padding:12px 16px;display:flex;align-items:center;gap:8px;font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.3);transition:all .2s}
+.step.active{background:rgba(204,255,0,.1);color:var(--lime)}
+.step.done{color:rgba(204,255,0,.6)}
+.step-num{width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.08);display:flex;align-items:center;justify-content:center;font-size:9px;flex-shrink:0}
+.step.active .step-num{background:var(--lime);color:var(--deep)}
+.step.done .step-num{background:rgba(204,255,0,.2);color:var(--lime)}
+.section{display:none}
+.section.active{display:block}
+.section-title{font-family:'Bebas Neue',sans-serif;font-size:32px;letter-spacing:.04em;color:var(--lime);margin-bottom:6px}
+.section-sub{font-size:13px;color:var(--cardmuted);margin-bottom:28px;line-height:1.6}
+
+/* BILLING TOGGLE */
+.billing-toggle{display:flex;gap:0;margin-bottom:24px;background:rgba(255,255,255,.04);border-radius:8px;overflow:hidden;border:1px solid rgba(255,255,255,.08);width:fit-content}
+.bt{padding:10px 20px;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;color:rgba(255,255,255,.4);border:none;background:transparent;font-family:'DM Sans',sans-serif;transition:all .15s}
+.bt.active{background:rgba(204,255,0,.15);color:var(--lime)}
+.billing-note{font-size:11px;color:var(--cardmuted);margin-bottom:24px;padding:10px 14px;background:rgba(204,255,0,.04);border:1px solid rgba(204,255,0,.1);border-radius:8px}
+.billing-note strong{color:var(--lime)}
+
+.tiers{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:28px}
+.tier{border:2px solid var(--cardborder);border-radius:12px;overflow:hidden;cursor:pointer;transition:all .2s;background:var(--card)}
+.tier:hover{border-color:rgba(204,255,0,.4)}
+.tier.selected-presence{border-color:var(--dg);box-shadow:0 0 0 3px rgba(45,106,15,.2)}
+.tier.selected-authority{border-color:var(--lime);box-shadow:0 0 0 3px rgba(204,255,0,.12)}
+.tier.selected-category{border-color:var(--amber);box-shadow:0 0 0 3px rgba(224,155,32,.15)}
+.tier-head{padding:14px;border-bottom:1px solid var(--cardborder)}
+.tier-badge{font-size:9px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:2px 8px;border-radius:10px;margin-bottom:8px;display:inline-block}
+.tier-name{font-family:'Bebas Neue',sans-serif;font-size:20px;color:var(--white);margin-bottom:2px}
+.tier-price{font-family:'Bebas Neue',sans-serif;font-size:32px;line-height:1}
+.tier-price-sub{font-size:10px;color:var(--cardmuted);margin-top:2px}
+.tier-pills{display:flex;gap:4px;margin-top:8px}
+.tp{flex:1;background:rgba(255,255,255,.06);border-radius:6px;padding:5px 4px;text-align:center}
+.tp-num{font-family:'Bebas Neue',sans-serif;font-size:16px;line-height:1}
+.tp-label{font-size:8px;color:rgba(255,255,255,.4);margin-top:1px;line-height:1.2}
+.tier-body{padding:12px 14px}
+.tier-row{display:flex;align-items:flex-start;gap:6px;padding:4px 0;border-bottom:1px solid var(--cardborder);font-size:10px;color:var(--cardmuted);line-height:1.4}
+.tier-row:last-child{border:none}
+.chk{width:13px;height:13px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:8px;flex-shrink:0;margin-top:1px}
+.chk-g{background:rgba(45,106,15,.2);color:#6fcf4e}
+.chk-l{background:rgba(204,255,0,.12);color:var(--lime)}
+.chk-a{background:rgba(224,155,32,.15);color:var(--amber)}
+
+/* PRESENCE TIER */
+.tier-presence .tier-head{background:rgba(45,106,15,.06)}
+.tier-presence .tier-badge{background:rgba(45,106,15,.15);color:#6fcf4e;border:1px solid rgba(45,106,15,.3)}
+.tier-presence .tier-name{color:#6fcf4e}
+.tier-presence .tier-price{color:#6fcf4e}
+.tier-presence .tp-num{color:#6fcf4e}
+/* AUTHORITY TIER */
+.tier-authority .tier-head{background:rgba(204,255,0,.06)}
+.tier-authority .tier-badge{background:rgba(204,255,0,.15);color:var(--lime);border:1px solid rgba(204,255,0,.3)}
+.tier-authority .tier-name{color:var(--lime)}
+.tier-authority .tier-price{color:var(--lime)}
+.tier-authority .tp-num{color:var(--lime)}
+/* CATEGORY TIER */
+.tier-category .tier-head{background:rgba(224,155,32,.06)}
+.tier-category .tier-badge{background:rgba(224,155,32,.15);color:var(--amber);border:1px solid rgba(224,155,32,.3)}
+.tier-category .tier-name{color:var(--amber)}
+.tier-category .tier-price{color:var(--amber)}
+.tier-category .tp-num{color:var(--amber)}
+
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:20px}
+.form-full{grid-column:1/-1}
+.form-group{display:flex;flex-direction:column;gap:6px}
+.form-label{font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:rgba(255,255,255,.4)}
+.form-label span{color:var(--lime)}
+.form-input{background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.1);border-radius:8px;padding:11px 14px;color:var(--white);font-family:'DM Sans',sans-serif;font-size:13px;outline:none;transition:border-color .2s}
+.form-input:focus{border-color:var(--lime)}
+.form-input::placeholder{color:rgba(255,255,255,.2)}
+.form-input.error{border-color:#ff6b6b}
+
+.contract-doc{background:var(--white);color:var(--deep);border-radius:12px;padding:48px;margin-bottom:24px;font-size:12px;line-height:1.8}
+.contract-logo-row{display:flex;align-items:center;gap:6px;margin-bottom:28px;padding-bottom:20px;border-bottom:2px solid var(--border)}
+.contract-lm{display:flex;gap:3px;align-items:flex-end}
+.cb{background:var(--deep);border-radius:2px}
+.cb1{width:6px;height:18px;transform:rotate(-8deg);transform-origin:bottom center}
+.cb2{width:6px;height:12px}
+.cb3{width:6px;height:18px;transform:rotate(8deg);transform-origin:bottom center}
+.contract-brand{font-family:'Bebas Neue',sans-serif;font-size:16px;letter-spacing:.12em;color:var(--deep)}
+.contract-meta{margin-left:auto;text-align:right;font-size:10px;color:var(--muted)}
+.contract-h1{font-family:'Bebas Neue',sans-serif;font-size:22px;letter-spacing:.04em;color:var(--deep);margin-bottom:4px}
+.contract-sub{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:28px;padding-bottom:16px;border-bottom:1px solid var(--border)}
+.contract-sec{margin-bottom:20px}
+.contract-sec-title{font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--dg);margin-bottom:8px;padding-bottom:4px;border-bottom:1px solid var(--border)}
+.contract-sec p{font-size:11.5px;color:#333;line-height:1.75;margin-bottom:8px}
+.contract-sec ul{padding-left:18px;margin-bottom:8px}
+.contract-sec ul li{font-size:11.5px;color:#333;line-height:1.75;margin-bottom:3px}
+.contract-highlight{background:var(--off);border-left:3px solid var(--dg);padding:10px 14px;border-radius:0 6px 6px 0;margin:10px 0;font-size:11px;color:var(--deep)}
+.contract-highlight strong{color:var(--dg)}
+.sig-grid{display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-top:28px;padding-top:20px;border-top:2px solid var(--border)}
+.sig-block{display:flex;flex-direction:column;gap:8px}
+.sig-label{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.sig-line{border-bottom:1.5px solid #ccc;height:50px;position:relative}
+.sig-name-line{border-bottom:1px solid #ddd;padding-bottom:4px;font-size:11px;color:#555;min-height:20px}
+.sig-date-line{border-bottom:1px solid #ddd;padding-bottom:4px;font-size:11px;color:#555;min-height:20px}
+.sig-sublabel{font-size:9px;color:var(--muted);margin-top:2px}
+.sig-canvas-wrap{position:relative;margin-bottom:16px;background:#fff;border-radius:10px;}
+.sig-canvas{border:2px solid rgba(204,255,0,.5);border-radius:10px;background:#fff;cursor:crosshair;display:block;touch-action:none;width:100%;height:130px;}
+.sig-canvas-label{font-size:12px;color:rgba(0,0,0,.35);position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;transition:opacity .2s;text-align:center;white-space:nowrap;}
+.sig-canvas-label.hidden{opacity:0}
+.sig-actions{display:flex;gap:10px;margin-bottom:20px}
+.sig-clear{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);color:rgba(255,255,255,.5);padding:8px 16px;border-radius:6px;font-size:11px;font-weight:600;cursor:pointer;font-family:'DM Sans',sans-serif}
+.btn-row{display:flex;gap:12px;align-items:center}
+.btn-primary{background:var(--lime);color:var(--deep);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;padding:14px 28px;border:none;border-radius:8px;cursor:pointer;transition:all .2s}
+.btn-primary:hover{background:#b8e800;transform:translateY(-1px)}
+.btn-primary:disabled{opacity:.4;cursor:not-allowed;transform:none}
+.btn-secondary{background:transparent;color:rgba(255,255,255,.5);font-family:'DM Sans',sans-serif;font-size:12px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;padding:14px 24px;border:1.5px solid rgba(255,255,255,.12);border-radius:8px;cursor:pointer;transition:all .2s}
+.btn-secondary:hover{border-color:rgba(255,255,255,.3);color:var(--white)}
+.success-wrap{text-align:center;padding:60px 20px}
+.success-icon{width:70px;height:70px;background:var(--lime);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto 24px}
+.success-h{font-family:'Bebas Neue',sans-serif;font-size:36px;color:var(--lime);margin-bottom:8px}
+.success-sub{font-size:14px;color:var(--cardmuted);margin-bottom:32px;line-height:1.6}
+.download-btns{display:flex;gap:12px;justify-content:center;flex-wrap:wrap}
+
+@media(max-width:640px){
+  .tiers{grid-template-columns:1fr}
+  .form-grid{grid-template-columns:1fr}
+  .form-full{grid-column:1}
+  .sig-grid{grid-template-columns:1fr}
+  .contract-doc{padding:24px}
+  .main{padding:24px 16px 60px}
+  .steps .step span{display:none}
+  .billing-toggle{width:100%}
+}
+
+/* ── TIER LOCK — grey out non-selected tiers ── */
+.tiers.locked .tier:not(.selected-presence):not(.selected-authority):not(.selected-category):not(.selected) {
+  opacity: 0.25;
+  pointer-events: none;
+  filter: grayscale(1);
+}
+.tiers.locked .tier {
+  cursor: default;
+}
+.tier-locked-badge {
+  display: none;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: var(--lime);
+  background: rgba(204,255,0,.1);
+  border: 1px solid rgba(204,255,0,.2);
+  border-radius: 10px;
+  padding: 3px 8px;
+  margin-bottom: 6px;
+}
+.tier.selected .tier-locked-badge,
+.tier.selected-presence .tier-locked-badge,
+.tier.selected-authority .tier-locked-badge,
+.tier.selected-category .tier-locked-badge {
+  display: inline-block;
+}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="logo-row">
+    <div class="lm"><div class="b b1"></div><div class="b b2"></div><div class="b b3"></div></div>
+    <span class="brand-name">FitfluxStudio</span>
+  </div>
+  <div class="header-badge">CLIENT CONTRACT — SPA SOCIAL MEDIA MANAGEMENT</div>
+</div>
+
+<div class="main">
+  <div class="steps">
+    <div class="step active" id="step1"><div class="step-num">1</div><span>Select Tier</span></div>
+    <div class="step" id="step2"><div class="step-num">2</div><span>Your Details</span></div>
+    <div class="step" id="step3"><div class="step-num">3</div><span>Review & Sign</span></div>
+    <div class="step" id="step4"><div class="step-num">4</div><span>Download</span></div>
+  </div>
+
+  <!-- SECTION 1: TIER -->
+  <div class="section active" id="sec1">
+    <div class="section-title">Choose Your Tier</div>
+    <div class="section-sub">Select your billing cycle, then pick the tier that fits where you are right now. Your contract will reflect your exact deliverables and territory lock.</div>
+
+    <div style="margin-bottom:12px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:rgba(255,255,255,.3)">Billing Cycle</div>
+    <div class="billing-toggle">
+      <button class="bt active" onclick="setBilling('monthly')">Monthly</button>
+      <button class="bt" onclick="setBilling('2month')">2-Month</button>
+      <button class="bt" onclick="setBilling('3month')">3-Month</button>
+    </div>
+    <div class="billing-note" id="billing-note">Monthly billing — cancel anytime after the first month.</div>
+
+    <div class="tiers">
+      <!-- LUXURY CONTENT -->
+      <div class="tier tier-presence" id="t-Luxury Content" onclick="selectTier('Luxury Content')">
+        <div class="tier-head">
+          <div class="tier-badge">Starter</div>
+          <div class="tier-name">Luxury Content</div>
+          <div class="tier-price" id="price-Luxury Content">$500</div>
+          <div class="tier-price-sub" id="per-Luxury Content">/month</div>
+          <div class="tier-pills">
+            <div class="tp"><div class="tp-num" style="color:#6fcf4e">6</div><div class="tp-label">posts/wk</div></div>
+            <div class="tp"><div class="tp-num" style="color:#6fcf4e">3+3</div><div class="tp-label">vid+graphic</div></div>
+            <div class="tp"><div class="tp-num" style="color:#6fcf4e">5</div><div class="tp-label">stories/wk</div></div>
+          </div>
+        </div>
+        <div class="tier-body">
+          <div class="tier-row"><div class="chk chk-g">✓</div>Content pillar + story strategy</div>
+          <div class="tier-row"><div class="chk chk-g">✓</div>Full caption copywriting in your voice</div>
+          <div class="tier-row"><div class="chk chk-g">✓</div>Brand voice intake</div>
+          <div class="tier-row"><div class="chk chk-g">✓</div>Profile optimisation</div>
+          <div class="tier-row"><div class="chk chk-g">✓</div>Content scheduling at peak times</div>
+          <div class="tier-row"><div class="chk chk-g">✓</div>Live dashboard (daily, weekly, monthly)</div>
+          <div class="tier-row" style="opacity:.4">— Engagement management</div>
+          <div class="tier-row" style="opacity:.4">— Strategy calls</div>
+          <div class="tier-row" style="opacity:.4">— Ad creative</div>
+        </div>
+      </div>
+
+      <!-- AUTHORITY -->
+      <div class="tier tier-authority" id="t-Premium Social" onclick="selectTier('Premium Social')">
+        <div class="tier-head">
+          <div class="tier-badge">Most Popular</div>
+          <div class="tier-name">Premium Social</div>
+          <div class="tier-price" id="price-Premium Social">$900</div>
+          <div class="tier-price-sub" id="per-Premium Social">/month</div>
+          <div class="tier-pills">
+            <div class="tp"><div class="tp-num" style="color:var(--lime)">12</div><div class="tp-label">posts/wk</div></div>
+            <div class="tp"><div class="tp-num" style="color:var(--lime)">6+6</div><div class="tp-label">vid+graphic</div></div>
+            <div class="tp"><div class="tp-num" style="color:var(--lime)">10</div><div class="tp-label">stories/wk</div></div>
+          </div>
+        </div>
+        <div class="tier-body">
+          <div class="tier-row"><div class="chk chk-l">✓</div>Everything in Presence</div>
+          <div class="tier-row"><div class="chk chk-l">✓</div>Engagement management (comments & replies)</div>
+          <div class="tier-row"><div class="chk chk-l">✓</div>Monthly strategy call</div>
+          <div class="tier-row"><div class="chk chk-l">✓</div>Monthly performance report</div>
+          <div class="tier-row"><div class="chk chk-l">✓</div>Live dashboard + enquiry tracking</div>
+          <div class="tier-row" style="opacity:.4">— Ad creative</div>
+          <div class="tier-row" style="opacity:.4">— DM management</div>
+          <div class="tier-row" style="opacity:.4">— Competitor analysis</div>
+        </div>
+      </div>
+
+      <!-- CATEGORY KING/QUEEN -->
+      <div class="tier tier-category" id="t-Elite Presence" onclick="selectTier('Elite Presence')">
+        <div class="tier-head">
+          <div class="tier-badge">Premium</div>
+          <div class="tier-name">Elite Presence</div>
+          <div class="tier-price" id="price-Elite Presence">$1,500</div>
+          <div class="tier-price-sub" id="per-Elite Presence">/month</div>
+          <div class="tier-pills">
+            <div class="tp"><div class="tp-num" style="color:var(--amber)">18</div><div class="tp-label">posts/wk</div></div>
+            <div class="tp"><div class="tp-num" style="color:var(--amber)">10+8</div><div class="tp-label">vid+graphic</div></div>
+            <div class="tp"><div class="tp-num" style="color:var(--amber)">Daily</div><div class="tp-label">stories</div></div>
+          </div>
+        </div>
+        <div class="tier-body">
+          <div class="tier-row"><div class="chk chk-a">✓</div>Everything in Authority</div>
+          <div class="tier-row"><div class="chk chk-a">✓</div>Full DM management — warm leads 24/7</div>
+          <div class="tier-row"><div class="chk chk-a">✓</div>Bi-weekly strategy calls</div>
+          <div class="tier-row"><div class="chk chk-a">✓</div>Ad creative built — ready when you scale</div>
+          <div class="tier-row"><div class="chk chk-a">✓</div>Competitor analysis — monthly deep dive</div>
+          <div class="tier-row"><div class="chk chk-a">✓</div>Hook writing — every caption stops scroll</div>
+          <div class="tier-row"><div class="chk chk-a">✓</div>Live dashboard + growth projections</div>
+          <div class="tier-row"><div class="chk chk-a">👑</div>You are the ONLY coach in your niche + city</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-primary" onclick="goToStep(2)" id="btn-next1" disabled>Continue with Selected Tier →</button>
+    </div>
+  </div>
+
+  <!-- SECTION 2: CLIENT DETAILS -->
+  <div class="section" id="sec2">
+    <div class="section-title">Your Details</div>
+    <div class="section-sub">Fill in your information to populate the contract.</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label class="form-label">Business / Company Name <span>*</span></label>
+        <input class="form-input" id="f-biz" type="text" placeholder="Your coaching business name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Your Full Name <span>*</span></label>
+        <input class="form-input" id="f-name" type="text" placeholder="First & last name">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Email Address <span>*</span></label>
+        <input class="form-input" id="f-email" type="email" placeholder="your@email.com">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Phone Number</label>
+        <input class="form-input" id="f-phone" type="tel" placeholder="+1 (555) 000-0000">
+      </div>
+      <div class="form-group form-full">
+        <label class="form-label">Business Address</label>
+        <input class="form-input" id="f-address" type="text" placeholder="City, State / Country">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Coaching Niche <span>*</span></label>
+        <input class="form-input" id="f-niche" type="text" placeholder="e.g. Postpartum fitness, Executive wellness">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Territory / Region <span>*</span></label>
+        <input class="form-input" id="f-territory" type="text" placeholder="e.g. US, UK, Lagos Nigeria">
+      </div>
+      <div class="form-group">
+        <label class="form-label">Social Media Platforms <span>*</span></label>
+        <input class="form-input" id="f-platforms" type="text" placeholder="e.g. Instagram, TikTok, LinkedIn">
+      </div>
+      <div class="form-group form-full">
+        <label class="form-label">Contract Effective Date <span>*</span></label>
+        <input class="form-input" id="f-date" type="date">
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="goToStep(1)">← Back</button>
+      <button class="btn-primary" onclick="validateAndNext()">Review Contract →</button>
+    </div>
+  </div>
+
+  <!-- SECTION 3: REVIEW & SIGN -->
+  <div class="section" id="sec3">
+    <div class="section-title">Review & Sign</div>
+    <div class="section-sub">Review your contract carefully, then draw your signature below to execute the agreement.</div>
+
+    <div class="contract-doc" id="contractDoc">
+      <div class="contract-logo-row">
+        <div class="contract-lm"><div class="cb cb1"></div><div class="cb cb2"></div><div class="cb cb3"></div></div>
+        <span class="contract-brand">FitfluxStudio</span>
+        <div class="contract-meta"><div>CONFIDENTIAL</div><div id="c-date-top"></div></div>
+      </div>
+
+      <div class="contract-h1">Luxury Spa Social Media Management</div>
+      <div class="contract-sub">Luxury & Wellness Client Services Agreement — Territory Locked · Performance Backed</div>
+
+      <div class="contract-sec">
+        <div class="contract-sec-title">1. Parties to This Agreement</div>
+        <p><strong>Service Provider:</strong> FitfluxStudio | fitfluxstudio@gmail.com</p>
+        <p><strong>Client:</strong> <span id="c-biz"></span> | <span id="c-name"></span> | <span id="c-email"></span><span id="c-phone-display"></span></p>
+        <p><strong>Effective Date:</strong> <span id="c-date"></span></p>
+        <p>This Agreement is entered into between the Service Provider and the Client named above for the delivery of social media management services as described herein.</p>
+      </div>
+
+      <div class="contract-sec">
+        <div class="contract-sec-title">2. Scope of Services</div>
+        <p><strong>Selected Tier:</strong> <span id="c-tier"></span> — <span id="c-price-display"></span> (<span id="c-billing-display"></span>)</p>
+        <p><strong>Platforms:</strong> <span id="c-platforms"></span></p>
+        <div class="contract-highlight"><strong>Services include:</strong> <span id="c-services"></span></div>
+        <p><strong>Content Volume:</strong> <span id="c-content-volume"></span></p>
+      </div>
+
+      <div class="contract-sec">
+        <div class="contract-sec-title">3. Fees & Payment Model</div>
+        <p><strong>Service Fee:</strong> <span id="c-price-display2"></span> (<span id="c-billing-display2"></span>) — due at the start of each billing period before work commences for that period.</p>
+        <p><strong>Payment Terms:</strong> Payment is due in full before each billing period commences. Late payments beyond 14 days will result in suspension of services. Service Provider may terminate this Agreement for non-payment after 14 days past due.</p>
+        <p><strong>Upgrades:</strong> Client may upgrade their tier at any time. The new tier price applies from the next billing cycle. No penalty for upgrading.</p>
+      </div>
+
+      <div class="contract-sec">
+        <div class="contract-sec-title">4. Territory & Exclusivity</div>
+        <p><strong>Client Niche:</strong> <span id="c-niche"></span></p>
+        <p><strong>Territory:</strong> <span id="c-territory"></span></p>
+        <p>Service Provider agrees to territory exclusivity within the Client's specific niche and geographic market for the duration of this Agreement. Service Provider will not onboard a direct competitor operating in the same niche and territory. Maximum 3 coaches per territory, ever. Territory lock takes effect on the Effective Date.</p>
+      </div>
+
+      <div class="contract-sec">
+        <div class="contract-sec-title">5. Term of Agreement</div>
+        <p>This Agreement commences on the Effective Date and continues on a rolling basis for the selected billing cycle. Following the initial billing period, the Agreement auto-renews unless either party provides written notice of termination in accordance with Section 11 of this Agreement.</p>
+      </div>
+
+      <div class="contract-sec">
+        <div class="contract-sec-title">6. Performance Guarantee</div>
+        <p>Service Provider guarantees that by Month 3 of this Agreement, Client's content will be consistently converting followers into enquiries, with a measurable content system fully operational across their selected platforms. Specifically: Month 1 — content pillar and brand voice fully built and live; Month 2 — consistent posting cadence established, audience engagement growing; Month 3 — content converting clients, warm followers entering the enquiry pipeline.</p>
+        <div class="contract-highlight"><strong>If these milestones are not met by Month 3:</strong> Service Provider will refund the most recent month's service fee within 7 business days of written request, provided Client has fulfilled all responsibilities in Section 7. "Converting" is defined as followers taking measurable action (DM, link click, form fill) as a result of content posted under this Agreement.</div>
+      </div>
+
+      <div class="contract-sec">
+        <div class="contract-sec-title">7. Client Responsibilities</div>
+        <p>Client agrees to:</p>
+        <ul>
+          <li>Complete onboarding questionnaire and brand discovery within 5 business days of signing.</li>
+          <li>Provide access to brand assets, login credentials, and approvals within 48 business hours of request.</li>
+          <li>Maintain the recommended ad spend budget on designated ad platforms throughout the engagement.</li>
+          <li>Respond to booked discovery call leads within the timeframes established during onboarding.</li>
+          <li>Designate a primary point of contact available to respond within 48 business hours.</li>
+          <li>Not interfere with or duplicate outreach campaigns running under this Agreement.</li>
+          <li>Provide honest and complete information about your coaching niche, audience, and outcomes.</li>
+        </ul>
+      </div>
+
+      <div class="contract-sec">
+        <div class="contract-sec-title">8. Results Disclaimer</div>
+        <p>Beyond the performance guarantee outlined in Section 6, the Service Provider makes no additional warranties regarding specific revenue, lead volume beyond the guaranteed threshold, or conversion results. Marketing outcomes depend on factors including but not limited to market conditions, offer strength, client responsiveness, and platform algorithm performance.</p>
+      </div>
+
+      <div class="contract-sec">
+        <div class="contract-sec-title">9. Confidentiality</div>
+        <p>Both parties agree to keep confidential all proprietary information, strategies, client data, pricing, and business processes disclosed in connection with this Agreement. This obligation survives termination for a period of two (2) years.</p>
+      </div>
+
+      <div class="contract-sec">
+        <div class="contract-sec-title">10. Intellectual Property</div>
+        <p>All creative assets, captions, content strategies, hooks, and frameworks developed by Service Provider remain the intellectual property of Service Provider until full payment is received. Upon payment for each billing period, deliverables created for that period become Client's property. Proprietary systems, templates, and frameworks remain the exclusive property of Service Provider.</p>
+      </div>
+
+      <div class="contract-sec">
+        <div class="contract-sec-title">11. Termination</div>
+        <p>Either party may terminate this Agreement with 30 days written notice after the initial billing period. Termination does not relieve Client of obligation to pay for services already rendered. Service Provider may terminate immediately if Client engages in fraudulent, abusive, or unethical conduct, or fails to make payment after 14 days past due.</p>
+      </div>
+
+      <div class="contract-sec">
+        <div class="contract-sec-title">12. Limitation of Liability</div>
+        <p>In no event shall Service Provider be liable for indirect, incidental, or consequential damages. Service Provider's total liability under this Agreement shall not exceed the total fees paid by Client in the three (3) months preceding the claim.</p>
+      </div>
+
+      <div class="contract-sec">
+        <div class="contract-sec-title">13. Dispute Resolution</div>
+        <p>The parties agree to first attempt resolution through good-faith negotiation. If unresolved within 30 days, disputes shall be submitted to binding arbitration in accordance with the rules of the American Arbitration Association.</p>
+      </div>
+
+      <div class="contract-sec">
+        <div class="contract-sec-title">14. Entire Agreement</div>
+        <p>This Agreement constitutes the entire agreement between the parties and supersedes all prior discussions, representations, or agreements. Amendments must be in writing and signed by both parties.</p>
+      </div>
+
+      <div class="sig-grid">
+        <div class="sig-block">
+          <div class="sig-label">Service Provider</div>
+          <div class="sig-line"></div>
+          <div class="sig-sublabel">Authorized Signature</div>
+          <div class="sig-name-line">FitfluxStudio</div>
+          <div class="sig-sublabel">Printed Name</div>
+          <div class="sig-date-line" id="providerDate"></div>
+          <div class="sig-sublabel">Date</div>
+        </div>
+        <div class="sig-block">
+          <div class="sig-label">Client</div>
+          <div class="sig-line" id="clientSigPreview"></div>
+          <div class="sig-sublabel">Authorized Signature</div>
+          <div class="sig-name-line" id="clientNamePreview"></div>
+          <div class="sig-sublabel">Printed Name</div>
+          <div class="sig-date-line" id="clientDatePreview"></div>
+          <div class="sig-sublabel">Date</div>
+        </div>
+      </div>
+      <p style="font-size:10px;color:var(--muted);margin-top:16px;padding-top:12px;border-top:1px solid var(--border)">Electronic signatures are legally binding under ESIGN and UETA. By signing below, both parties confirm they have read, understood, and agree to be bound by the terms of this Agreement.</p>
+    </div>
+
+    <div style="margin-bottom:24px">
+      <div class="form-label" style="margin-bottom:10px">Draw Your Signature <span style="color:var(--lime)">*</span></div>
+      <div class="sig-canvas-wrap" style="border-radius:10px;overflow:hidden;">
+        <canvas class="sig-canvas" id="sigCanvas" height="130"></canvas>
+        <div class="sig-canvas-label" id="sigLabel">✍️ Draw your signature here</div>
+        <div style="position:absolute;bottom:28px;left:24px;right:24px;border-bottom:1px dashed rgba(0,0,0,.2);pointer-events:none;"></div>
+        <div style="position:absolute;bottom:10px;left:24px;font-size:9px;color:rgba(0,0,0,.3);pointer-events:none;letter-spacing:.05em;">SIGNATURE</div>
+      </div>
+      <div class="sig-actions">
+        <button class="sig-clear" onclick="clearSig()">Clear Signature</button>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn-secondary" onclick="goToStep(2)">← Back</button>
+      <button class="btn-primary" id="btn-sign" onclick="submitContract()" disabled>Sign & Generate Contract →</button>
+    </div>
+  </div>
+
+  <!-- SECTION 4: SUCCESS -->
+  <div class="section" id="sec4">
+    <div class="success-wrap">
+      <div class="success-icon">✅</div>
+      <div class="success-h">Contract Signed!</div>
+      <div class="success-sub">Your contract is signed. Download a copy for your records, then click <strong>Enter My Portal</strong> to access your onboarding dashboard — it opens automatically with your details.</div>
+      <div class="download-btns">
+        <button class="btn-primary" onclick="downloadPDF()">⬇ Download Contract PDF</button>
+        <button class="btn-primary" onclick="goToPortal()" style="background:var(--lime);color:var(--deep);border:none;">Enter My Portal →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const BOT = '8728238222:AAG_ssXL9LPn7moTHh7HTx0XCyHLkP8q4TQ';
+const CHAT = '-1003939399057';
+
+let selectedTier = null;
+let billingMode = 'monthly';
+let sigCanvas, sigCtx, drawing = false, hasSig = false;
+
+const TIERS = {
+  'luxurycontent': {
+    services: 'Content pillar & luxury brand strategy, caption copywriting in your brand voice, content production & scheduling (8 posts/week, 7 stories/week), profile optimisation, live dashboard',
+    volume: '8 posts/week (4 video + 4 graphic) + 7 stories/week'
+  },
+  'premiumsocial': {
+    services: 'Everything in Luxury Content, plus: engagement management, monthly strategy call, performance report, enquiry tracking dashboard',
+    volume: '12 posts/week (6 video + 6 graphic) + 10 stories/week'
+  },
+  'elitepresence': {
+    services: 'Everything in Premium Social, plus: full DM management 24/7, bi-weekly strategy calls, ad creative built, monthly competitor intelligence, live dashboard with booking projections',
+    volume: '18 posts/week (10 video + 8 graphic) + daily stories'
+  },
+  'Presence': {
+    services: 'Content pillar & story strategy, full caption copywriting in your voice, brand voice intake, profile optimisation, content scheduling at peak times, live dashboard (daily, weekly & monthly activity)',
+    volume: '6 posts/week (3 videos + 3 graphics) + 5 stories/week'
+  },
+  'Authority': {
+    services: 'Everything in Presence, plus: engagement management (comments & replies handled in your voice), monthly strategy call, monthly performance report (follower growth, reach, engagement, enquiries), live dashboard with enquiry tracking',
+    volume: '12 posts/week (6 videos + 6 graphics) + 10 stories/week'
+  },
+  'Category King/Queen': {
+    services: 'Everything in Authority, plus: full DM management (warm leads handled in your voice 24/7), bi-weekly strategy calls, ad creative built (ready when you want to scale), competitor analysis (monthly deep dive on what\'s winning in your niche), hook writing (every caption engineered to stop the scroll), live dashboard with real-time activity & growth projections. You are the ONLY coach in your niche + city.',
+    volume: '18 posts/week (10 videos + 8 graphics) + daily stories'
+  }
+};
+
+const BILLING = {
+  'monthly': { suffix: '/month', note: 'Monthly billing — cancel anytime after the first month.', display: 'billed monthly' },
+  '2month': { suffix: '/2 months', note: 'Save with 2-month billing. Billed as one payment every 2 months.', display: 'billed every 2 months' },
+  '3month': { suffix: '/3 months', note: 'Best value — billed as 3 months. Save $300 total on Category King/Queen.', display: 'billed every 3 months (best value)' }
+};
+
+function getPriceDisplay(tier, mode) {
+  const base = { 'Presence': 350, 'Authority': 700, 'Category King/Queen': 1200 };
+  const p = base[tier];
+  if (!p) return '';
+  if (mode === 'monthly') return '$' + p.toLocaleString() + '/mo';
+  if (mode === '2month') return '$' + (p * 2).toLocaleString() + '/2 months';
+  if (mode === '3month') return '$' + (p * 3).toLocaleString() + '/3 months';
+}
+
+function setBilling(mode) {
+  billingMode = mode;
+  document.querySelectorAll('.bt').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.getElementById('billing-note').innerHTML = '<strong>' + BILLING[mode].note.split('—')[0] + '</strong>' + (BILLING[mode].note.includes('—') ? ' — ' + BILLING[mode].note.split('—')[1] : '');
+
+  // Update prices in tier cards
+  const tiers = ['Presence', 'Authority', 'Category King/Queen'];
+  const bases = { 'Presence': 350, 'Authority': 700, 'Category King/Queen': 1200 };
+  tiers.forEach(t => {
+    const el = document.getElementById('price-' + t);
+    const perEl = document.getElementById('per-' + t);
+    if (!el) return;
+    if (mode === 'monthly') { el.textContent = '$' + bases[t].toLocaleString(); perEl.textContent = '/month'; }
+    else if (mode === '2month') { el.textContent = '$' + (bases[t]*2).toLocaleString(); perEl.textContent = '/2 months'; }
+    else if (mode === '3month') { el.textContent = '$' + (bases[t]*3).toLocaleString(); perEl.textContent = '/3 months'; }
+  });
+}
+
+function selectTier(name) {
+  selectedTier = name;
+  document.querySelectorAll('.tier').forEach(t => {
+    t.classList.remove('selected-presence','selected-authority','selected-category');
+  });
+  const map = { 'Presence': 'selected-presence', 'Authority': 'selected-authority', 'Category King/Queen': 'selected-category' };
+  document.getElementById('t-' + name).classList.add(map[name]);
+  document.getElementById('btn-next1').disabled = false;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const today = new Date();
+  document.getElementById('f-date').value = today.toISOString().split('T')[0];
+
+  // ── PRE-FILL FROM TOKEN DATA ──────────────────────────────────
+  if(window.FF_CLIENT) {
+    const c = window.FF_CLIENT;
+    const set = (id, val) => { const el = document.getElementById(id); if(el && val) el.value = val; };
+    set('f-name', c.name);
+    set('f-biz',  c.name);
+    set('f-email', c.email);
+    set('f-phone', c.phone);
+    set('f-address', c.city + (c.city && c.territory ? ', ' : '') + c.territory);
+    set('f-niche', c.niche);
+    set('f-territory', c.territory);
+    set('f-platforms', 'Instagram, TikTok');
+  }
+  // Auto-select tier from token
+  if(window.FF_TIER) {
+    const tierMap = {
+      'presence': 'Presence',
+      'authority': 'Authority',
+      'categoryking': 'Category King/Queen',
+      'category king/queen': 'Category King/Queen',
+    };
+    const t = tierMap[window.FF_TIER.toLowerCase()];
+    if(t && typeof selectTier === 'function') { selectTier(t); setTimeout(lockTierSelection, 100); }
+  }
+
+  sigCanvas = document.getElementById('sigCanvas');
+  sigCtx = sigCanvas.getContext('2d');
+  sigCtx.lineWidth = 2.2; sigCtx.lineCap = 'round'; sigCtx.lineJoin = 'round'; sigCtx.strokeStyle = '#111111';
+
+  resizeCanvas();
+  window.addEventListener('resize', resizeCanvas);
+  sigCanvas.addEventListener('mousedown', startDraw);
+  sigCanvas.addEventListener('mousemove', draw);
+  sigCanvas.addEventListener('mouseup', endDraw);
+  sigCanvas.addEventListener('mouseleave', endDraw);
+  sigCanvas.addEventListener('touchstart', e => { e.preventDefault(); startDraw(e.touches[0]); }, { passive: false });
+  sigCanvas.addEventListener('touchmove', e => { e.preventDefault(); draw(e.touches[0]); }, { passive: false });
+  sigCanvas.addEventListener('touchend', endDraw);
+});
+
+function resizeCanvas() {
+  const w = sigCanvas.parentElement.offsetWidth;
+  sigCanvas.style.width = w + 'px';
+  sigCanvas.style.height = '120px';
+}
+
+function goToStep(n) {
+  for (let i = 1; i <= 4; i++) {
+    document.getElementById('sec' + i).classList.toggle('active', i === n);
+    const s = document.getElementById('step' + i);
+    s.classList.toggle('active', i === n);
+    s.classList.toggle('done', i < n);
+  }
+  window.scrollTo(0, 0);
+}
+
+function validateAndNext() {
+  const req = ['f-biz','f-name','f-email','f-niche','f-territory','f-date','f-platforms'];
+  let ok = true;
+  req.forEach(id => {
+    const el = document.getElementById(id);
+    if (!el.value.trim()) { el.classList.add('error'); ok = false; }
+    else el.classList.remove('error');
+  });
+  if (!ok) return;
+  populateContract();
+  goToStep(3);
+}
+
+function populateContract() {
+  const get = id => document.getElementById(id)?.value?.trim() || '';
+  const date = get('f-date');
+  const fmt = date ? new Date(date + 'T00:00:00').toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' }) : '';
+  const priceDisplay = getPriceDisplay(selectedTier, billingMode);
+  const billingDisplay = BILLING[billingMode].display;
+
+  document.getElementById('c-date-top').textContent = fmt;
+  document.getElementById('c-biz').textContent = get('f-biz');
+  document.getElementById('c-name').textContent = get('f-name');
+  document.getElementById('c-email').textContent = get('f-email');
+  const ph = get('f-phone');
+  document.getElementById('c-phone-display').textContent = ph ? ' | ' + ph : '';
+  document.getElementById('c-date').textContent = fmt;
+  document.getElementById('c-tier').textContent = selectedTier;
+  document.getElementById('c-price-display').textContent = priceDisplay;
+  document.getElementById('c-price-display2').textContent = priceDisplay;
+  document.getElementById('c-billing-display').textContent = billingDisplay;
+  document.getElementById('c-billing-display2').textContent = billingDisplay;
+  document.getElementById('c-platforms').textContent = get('f-platforms');
+  document.getElementById('c-services').textContent = TIERS[selectedTier]?.services || '';
+  document.getElementById('c-content-volume').textContent = TIERS[selectedTier]?.volume || '';
+  document.getElementById('c-niche').textContent = get('f-niche');
+  document.getElementById('c-territory').textContent = get('f-territory');
+  document.getElementById('clientNamePreview').textContent = get('f-name');
+  document.getElementById('clientDatePreview').textContent = fmt;
+  document.getElementById('providerDate').textContent = fmt;
+}
+
+function getPos(e) {
+  const r = sigCanvas.getBoundingClientRect();
+  return { x: (e.clientX - r.left) * sigCanvas.width / r.width, y: (e.clientY - r.top) * sigCanvas.height / r.height };
+}
+function startDraw(e) { drawing = true; const p = getPos(e); sigCtx.beginPath(); sigCtx.moveTo(p.x, p.y); document.getElementById('sigLabel').classList.add('hidden'); }
+function draw(e) { if (!drawing) return; const p = getPos(e); sigCtx.lineTo(p.x, p.y); sigCtx.stroke(); hasSig = true; document.getElementById('btn-sign').disabled = false; }
+function endDraw() { drawing = false; }
+function clearSig() { sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height); hasSig = false; document.getElementById('sigLabel').classList.remove('hidden'); document.getElementById('btn-sign').disabled = true; }
+
+function submitContract() {
+  if (!hasSig) return;
+  const sigData = sigCanvas.toDataURL('image/png');
+  document.getElementById('clientSigPreview').innerHTML = '<img src="' + sigData + '" style="max-height:44px;max-width:100%"/>';
+  sendToTelegram();
+
+// ── n8n WELCOME EMAIL — fires after contract signed ──────────────────────
+// Replace with your actual n8n webhook URL
+const N8N_URL = 'YOUR_N8N_WEBHOOK_URL_HERE';
+if(N8N_URL !== 'YOUR_N8N_WEBHOOK_URL_HERE') {
+  const c = window.FF_CLIENT || {};
+  fetch(N8N_URL, {
+    method: 'POST',
+    mode: 'no-cors',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      event:     'contract_signed',
+      name:      c.name      || document.getElementById('f-name')?.value  || '',
+      email:     c.email     || document.getElementById('f-email')?.value || '',
+      tier:      window.FF_TIER || '',
+      token:     window.FF_TOKEN || '',
+      portal_pw: (window.FF_TOKEN || '').slice(-8).toUpperCase(),
+      niche:     c.niche     || '',
+      territory: c.territory || '',
+      timestamp: new Date().toISOString()
+    })
+  }).catch(() => {});
+}
+
+  goToStep(4);
+}
+
+// ── PORTAL REDIRECT ──────────────────────────────────────────────────────
+function goToPortal() {
+  const c = window.FF_CLIENT || {};
+  const SMM_TIERS = ['presence','authority','categoryking','category king/queen'];
+  const MKT_TIERS = ['launchpad','growth','pro'];
+  const tier = (window.FF_TIER || '').toLowerCase();
+  let portalFile = '';
+  if(['luxurycontent','premiumsocial','elitepresence'].some(t => tier.includes(t))) portalFile = 'portal_spa_smm.html';
+  else if(SMM_TIERS.some(t => tier.includes(t))) portalFile = 'portal_smm.html';
+  else if(MKT_TIERS.includes(tier)) portalFile = 'portal_smm_marketing.html';
+  else portalFile = 'portal_smm.html'; // default fallback
+
+  const p = new URLSearchParams({
+    token:     window.FF_TOKEN || '',
+    tier:      window.FF_TIER  || '',
+    name:      c.name      || document.getElementById('f-name')?.value      || '',
+    email:     c.email     || document.getElementById('f-email')?.value     || '',
+    phone:     c.phone     || document.getElementById('f-phone')?.value     || '',
+    niche:     c.niche     || document.getElementById('f-niche')?.value     || '',
+    territory: c.territory || document.getElementById('f-territory')?.value || ''
+  });
+
+  window.location.href = portalFile + '?' + p.toString();
+}
+
+async function sendToTelegram() {
+  const name = document.getElementById('f-name')?.value || '';
+  const biz = document.getElementById('f-biz')?.value || '';
+  const email = document.getElementById('f-email')?.value || '';
+  const priceDisplay = getPriceDisplay(selectedTier, billingMode);
+  const msg = `📄 NEW CONTRACT SIGNED\n\n✅ Offer: Social Media Management\n📦 Tier: ${selectedTier} (${priceDisplay})\n🗓️ Billing: ${BILLING[billingMode].display}\n👤 Client: ${name}\n🏢 Business: ${biz}\n📧 Email: ${email}\n\nContract submitted for your review.`;
+  try {
+    await fetch(`https://api.telegram.org/bot${BOT}/sendMessage`, {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ chat_id: CHAT, text: msg })
+    });
+  } catch(e) {}
+}
+
+function downloadPDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+  const margin = 20, textW = 170;
+  let y = 20;
+
+  const addText = (text, size, bold, color) => {
+    doc.setFontSize(size || 11); doc.setFont('helvetica', bold ? 'bold' : 'normal');
+    doc.setTextColor(...(color || [20,30,0]));
+    const lines = doc.splitTextToSize(String(text), textW);
+    if (y + lines.length * (size||11) * 0.4 > 270) { doc.addPage(); y = 20; }
+    doc.text(lines, margin, y); y += lines.length * ((size||11) * 0.4 + 1.5);
+  };
+  const addSec = (title) => {
+    if (y > 240) { doc.addPage(); y = 20; }
+    y += 4;
+    doc.setFillColor(240,248,238); doc.rect(margin, y-4, textW, 8, 'F');
+    doc.setFontSize(9); doc.setFont('helvetica','bold'); doc.setTextColor(45,106,15);
+    doc.text(title, margin+2, y+1); y += 8; doc.setTextColor(20,30,0);
+  };
+
+  doc.setFillColor(13,31,0); doc.rect(0,0,210,28,'F');
+  doc.setFontSize(18); doc.setFont('helvetica','bold'); doc.setTextColor(204,255,0);
+  doc.text('FitfluxStudio', margin, 16);
+  doc.setFontSize(9); doc.setFont('helvetica','normal'); doc.setTextColor(170,184,153);
+  doc.text('SOCIAL MEDIA MANAGEMENT — TERRITORY LOCKED · PERFORMANCE BACKED', margin, 23);
+  y = 36;
+
+  addText('SOCIAL MEDIA MANAGEMENT — CLIENT SERVICES AGREEMENT', 16, true);
+  y += 2; addText('CONFIDENTIAL', 9, false, [100,120,90]); y += 4;
+
+  const get = id => document.getElementById(id)?.textContent?.trim() || '';
+  const priceDisplay = getPriceDisplay(selectedTier, billingMode);
+  const billingDisplay = BILLING[billingMode].display;
+
+  addSec('1. PARTIES TO THIS AGREEMENT');
+  addText('Service Provider: FitfluxStudio | fitfluxstudio@gmail.com');
+  addText('Client: ' + get('c-biz') + ' | ' + get('c-name') + ' | ' + get('c-email'));
+  addText('Effective Date: ' + get('c-date'));
+
+  addSec('2. SCOPE OF SERVICES');
+  addText('Tier: ' + selectedTier + ' — ' + priceDisplay + ' (' + billingDisplay + ')');
+  addText('Platforms: ' + get('c-platforms'));
+  addText('Services: ' + (TIERS[selectedTier]?.services || ''));
+  addText('Content Volume: ' + (TIERS[selectedTier]?.volume || ''));
+
+  addSec('3. FEES & PAYMENT MODEL');
+  addText('Service Fee: ' + priceDisplay + ' (' + billingDisplay + ') — due at the start of each billing period.');
+  addText('Payment Terms: Due in full before each period commences. Late payments beyond 14 days result in suspension. Upgrades take effect from the next billing cycle — no penalty.');
+
+  addSec('4. TERRITORY & EXCLUSIVITY');
+  addText('Client Niche: ' + get('c-niche'));
+  addText('Territory: ' + get('c-territory'));
+  addText('Service Provider agrees to territory exclusivity within the Client\'s specific niche and geographic market. Maximum 3 coaches per territory, ever. Territory lock takes effect on the Effective Date.');
+
+  addSec('5. TERM OF AGREEMENT');
+  addText('Agreement commences on the Effective Date and auto-renews per the selected billing cycle unless either party provides 30 days written notice of termination.');
+
+  addSec('6. PERFORMANCE GUARANTEE');
+  addText('By Month 3: Month 1 — content pillar & brand voice fully built and live. Month 2 — consistent posting cadence established, audience engagement growing. Month 3 — content converting clients, warm followers entering the enquiry pipeline.');
+  addText('If milestones are not met by Month 3, Service Provider will refund the most recent month\'s service fee within 7 business days of written request, provided Client has fulfilled all Section 7 responsibilities.');
+
+  addSec('7. CLIENT RESPONSIBILITIES');
+  ['Complete onboarding questionnaire and brand discovery within 5 business days of signing.',
+   'Provide access to brand assets, login credentials, and approvals within 48 business hours of request.',
+   'Maintain the recommended ad spend budget on designated ad platforms throughout the engagement.',
+   'Respond to booked discovery call leads within the timeframes established during onboarding.',
+   'Designate a primary point of contact available to respond within 48 business hours.',
+   'Not interfere with or duplicate outreach campaigns running under this Agreement.',
+   'Provide honest and complete information about your coaching niche, audience, and outcomes.'
+  ].forEach((r,i) => addText((i+1) + '. ' + r));
+
+  addSec('8. RESULTS DISCLAIMER');
+  addText('Beyond the performance guarantee in Section 6, Service Provider makes no additional warranties regarding specific revenue, lead volume, or conversion results.');
+  addSec('9. CONFIDENTIALITY');
+  addText('Both parties agree to keep confidential all proprietary information for two (2) years after termination.');
+  addSec('10. INTELLECTUAL PROPERTY');
+  addText('Deliverables become Client\'s property upon payment for each billing period. Proprietary systems and frameworks remain exclusively Service Provider\'s.');
+  addSec('11. TERMINATION');
+  addText('Either party may terminate with 30 days written notice after the initial billing period. Immediate termination for fraud, abuse, or non-payment after 14 days past due.');
+  addSec('12. LIMITATION OF LIABILITY');
+  addText('Service Provider\'s total liability shall not exceed total fees paid in the three (3) months preceding the claim.');
+  addSec('13. DISPUTE RESOLUTION');
+  addText('Good-faith negotiation first. If unresolved within 30 days, binding arbitration under the American Arbitration Association.');
+  addSec('14. ENTIRE AGREEMENT');
+  addText('This Agreement supersedes all prior discussions. Amendments must be in writing and signed by both parties.');
+
+  if (y > 200) { doc.addPage(); y = 20; }
+  y += 8;
+  doc.setDrawColor(200,220,180); doc.line(margin, y, 190, y); y += 10;
+  addText('SIGNATURES & ELECTRONIC CONSENT', 12, true);
+  addText('Electronic signatures are legally binding under ESIGN and UETA.', 9, false, [100,120,90]);
+  y += 6;
+
+  doc.setFillColor(244,248,238); doc.rect(margin, y, 80, 36, 'F'); doc.setDrawColor(200,220,180); doc.rect(margin, y, 80, 36);
+  doc.setFontSize(8); doc.setFont('helvetica','bold'); doc.setTextColor(100,120,90);
+  doc.text('SERVICE PROVIDER', margin+2, y+6); doc.setFont('helvetica','normal'); doc.setTextColor(20,30,0);
+  doc.text('FitfluxStudio', margin+2, y+16); doc.setTextColor(100,120,90); doc.text('Date: ' + get('c-date'), margin+2, y+24);
+
+  const cx = margin + 90;
+  doc.setFillColor(244,248,238); doc.rect(cx, y, 80, 36, 'F'); doc.rect(cx, y, 80, 36);
+  doc.setFont('helvetica','bold'); doc.setTextColor(100,120,90); doc.text('CLIENT', cx+2, y+6);
+  doc.setFont('helvetica','normal'); doc.setTextColor(20,30,0);
+  const sigData = sigCanvas.toDataURL('image/png');
+  doc.addImage(sigData, 'PNG', cx+2, y+8, 70, 18);
+  doc.setTextColor(20,30,0); doc.text(get('clientNamePreview'), cx+2, y+28);
+  doc.setTextColor(100,120,90); doc.text('Date: ' + get('c-date'), cx+2, y+32);
+
+  const name = document.getElementById('f-name')?.value?.trim() || 'contract';
+  doc.save('FitfluxStudio_SMM_Contract_' + name.replace(/\s+/g,'_') + '.pdf');
+}
+
+// ── LOCK TIERS after auto-select from token ──────────────────────────────
+function lockTierSelection() {
+  const tiersEl = document.querySelector('.tiers');
+  if(tiersEl) tiersEl.classList.add('locked');
+  // Add "Your Tier" badge to selected
+  document.querySelectorAll('.tier-badge').forEach(b => {
+    const tier = b.closest('.tier');
+    if(tier && (tier.classList.contains('selected') ||
+       tier.classList.contains('selected-presence') ||
+       tier.classList.contains('selected-authority') ||
+       tier.classList.contains('selected-category'))) {
+      const badge = document.createElement('div');
+      badge.className = 'tier-locked-badge';
+      badge.textContent = '✓ Your Tier';
+      tier.querySelector('.tier-head')?.prepend(badge);
+    }
+  });
+}
+
+</script>
+</body>
+</html>
