@@ -749,7 +749,7 @@ function getPos(e) {
   return { x: (e.clientX - r.left) * sigCanvas.width / r.width, y: (e.clientY - r.top) * sigCanvas.height / r.height };
 }
 function startDraw(e) { drawing = true; const p = getPos(e); sigCtx.beginPath(); sigCtx.moveTo(p.x, p.y); document.getElementById('sigLabel').classList.add('hidden'); }
-function draw(e) { if (!drawing) return; const p = getPos(e); sigCtx.lineTo(p.x, p.y); sigCtx.stroke(); hasSig = true; document.getElementById('btn-sign').disabled = false; }
+function draw(e) { if (!drawing) return; const p = getPos(e); sigCtx.lineTo(p.x, p.y); sigCtx.stroke(); sigCtx.beginPath(); sigCtx.moveTo(p.x, p.y); hasSig = true; document.getElementById('btn-sign').disabled = false; }
 function endDraw() { drawing = false; }
 function clearSig() { sigCtx.clearRect(0, 0, sigCanvas.width, sigCanvas.height); hasSig = false; document.getElementById('sigLabel').classList.remove('hidden'); document.getElementById('btn-sign').disabled = true; }
 
