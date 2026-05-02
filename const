@@ -1307,12 +1307,6 @@ function tc(el){
   b.classList.toggle('on');
   t.classList.toggle('on');
 }
-
-// ─── TELEGRAM UPLOAD (Brand Assets + Contracts) ─────────────────────
-const TG_BOT = '8728238222:AAG_ssXL9LPn7moTHh7HTx0XCyHLkP8q4TQ';
-const TG_ASSETS = '-1003888423178';
-const TG_CONTRACTS = '-1003939399057';
-
 async function sendToTelegramFile(file, chatId, context) {
   const fd = new FormData();
   fd.append('chat_id', chatId);
