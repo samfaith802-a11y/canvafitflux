@@ -12,7 +12,7 @@ window.FF_VALID_TIERS = ['presence','authority','categoryking','category king/qu
   const tierParam = params.get('tier') || '';
 
   // Valid tier slugs for THIS contract — set per file
-  const VALID_TIERS = window.FF_VALID_TIERS || [];
+  const VALID_TIERS = window.FF_VALID_TIERS || ['presence', 'authority', 'categoryking'];
 
   // Token must start with FF-, contain a valid tier slug, and match URL tier
   const tokenParts = token.split('-');
