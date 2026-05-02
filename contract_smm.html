@@ -540,7 +540,11 @@ body{font-family:'DM Sans',sans-serif;background:var(--deep);color:var(--white);
         <div style="position:absolute;bottom:10px;left:24px;font-size:9px;color:rgba(0,0,0,.3);pointer-events:none;letter-spacing:.05em;">SIGNATURE</div>
       </div>
       <div class="sig-actions">
-        <button class="sig-clear" onclick="clearSig()">Clear Signature</button>
+       <button class="sig-clear" onclick="clearSig()">Clear Signature</button>
+<div style="display:flex;align-items:center;gap:10px;margin-left:auto;">
+  <span style="font-size:11px;color:rgba(255,255,255,0.5);">Thickness</span>
+  <input type="range" min="1" max="8" value="2" style="width:80px;cursor:pointer;" oninput="sigCtx.lineWidth=this.value">
+</div>
       </div>
     </div>
 
