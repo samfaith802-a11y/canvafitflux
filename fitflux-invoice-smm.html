@@ -461,6 +461,7 @@ let uploadedFileName = '';
 
 function handleUpload(input){
   const file = input.files[0]; if(!file) return;
+  input.value = '';
   uploadedFileName = file.name;
   const pw = document.getElementById('preview-wrap');
   const pi = document.getElementById('preview-img');
