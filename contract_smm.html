@@ -680,9 +680,16 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function resizeCanvas() {
-  const w = sigCanvas.parentElement.offsetWidth;
+  const wrap = sigCanvas.parentElement;
+  const w = wrap.offsetWidth || wrap.getBoundingClientRect().width || 600;
+  sigCanvas.width = w;
+  sigCanvas.height = 120;
   sigCanvas.style.width = w + 'px';
   sigCanvas.style.height = '120px';
+  sigCtx.lineWidth = 2.2;
+  sigCtx.lineCap = 'round';
+  sigCtx.lineJoin = 'round';
+  sigCtx.strokeStyle = '#111111';
 }
 
 function goToStep(n) {
