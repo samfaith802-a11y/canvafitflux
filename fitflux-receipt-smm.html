@@ -9,9 +9,9 @@
   :root {
     --lime:#CCFF00; --lime2:#DEFF4D;
     --dark:#0A1800; --dark2:#0D2200; --dark3:#142900;
-    --ink:#1C2200; --gray:#6B7A5A; --line:#D6E8B0;
-    --bg:#F2FFD6; --white:#FFFFFF;
-    --green:#16A34A; --green-bg:#F0FDF4; --green-border:#BBF7D0;
+    --ink:#ffffff; --gray:rgba(255,255,255,0.55); --line:(255,255,255,0.1);
+    --bg:#1a3608; --white:#122409;
+    --green:#b5f03c; --green-bg:rgba(181,240,60,0.08); --green-border:rgba(181,240,60,0.25);
   }
   * { margin:0; padding:0; box-sizing:border-box; }
   body { font-family:'DM Sans',sans-serif; background:var(--dark); min-height:100vh; padding:32px 16px 60px; }
@@ -24,18 +24,18 @@
   .btn-ghost { background:rgba(255,255,255,0.08); color:rgba(255,255,255,0.7); border:1px solid rgba(255,255,255,0.2); }
   .btn-ghost:hover { border-color:var(--lime); color:var(--lime); }
 
-  .rec { max-width:860px; margin:0 auto; background:var(--white); border-radius:6px; overflow:hidden; box-shadow:0 8px 80px rgba(0,0,0,0.5); }
+  .rec { max-width:860px; margin:0 auto; background:#122409; border-radius:6px; overflow:hidden; box-shadow:0 8px 80px rgba(0,0,0,0.5); }
   .rec-top { height:5px; background:var(--lime); }
   .rec-dark { background:var(--dark2); height:4px; }
 
   /* HEADER */
   .rec-header { padding:38px 52px 30px; display:flex; justify-content:space-between; align-items:flex-start; border-bottom:1px solid var(--line); }
   .brand-logo { width:52px; height:52px; object-fit:contain; border-radius:8px; margin-bottom:10px; }
-  .brand-name { font-family:'Cormorant Garamond',serif; font-size:32px; font-weight:700; color:var(--dark2); letter-spacing:-0.5px; line-height:1; }
+  .brand-name { font-family:'Cormorant Garamond',serif; font-size:32px; font-weight:700; color:#b5f03c; letter-spacing:-0.5px; line-height:1; }
   .brand-tag { font-size:10px; color:#3A6600; font-weight:700; letter-spacing:2px; text-transform:uppercase; margin-top:3px; }
   .brand-contact { margin-top:10px; font-size:12px; color:var(--gray); line-height:1.9; }
   .rec-title-block { text-align:right; }
-  .rec-word { font-family:'Cormorant Garamond',serif; font-size:52px; font-weight:600; color:var(--dark2); letter-spacing:-1.5px; line-height:1; }
+ .rec-word { font-family:'Cormorant Garamond',serif; font-size:52px; font-weight:600; color:#ffffff; letter-spacing:-1.5px; line-height:1; }
   .rec-meta { margin-top:10px; }
   .rec-meta table { margin-left:auto; }
   .rec-meta td { font-size:12px; padding:2px 0 2px 20px; vertical-align:top; }
@@ -46,7 +46,7 @@
   .paid-wrap { padding:22px 52px 0; }
   .paid-banner { padding:14px 20px; background:var(--green-bg); border:1.5px solid var(--green-border); border-radius:5px; display:flex; align-items:center; gap:12px; }
   .paid-badge { background:var(--green); color:white; font-size:10px; font-weight:700; letter-spacing:2px; padding:4px 12px; border-radius:20px; text-transform:uppercase; flex-shrink:0; }
-  .paid-text { font-size:12.5px; color:var(--green); font-weight:500; line-height:1.5; }
+ .paid-text { font-size:12.5px; color:#b5f03c; font-weight:500; line-height:1.5; }
 
   /* INFO */
   .rec-info { padding:26px 52px; display:grid; grid-template-columns:1fr 1fr; gap:36px; border-bottom:1px solid var(--line); background:var(--bg); margin-top:22px; }
