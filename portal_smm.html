@@ -7,8 +7,7 @@ window.FF_VALID_TIERS = ['presence','authority','categoryking','category king/qu
 <script>
 // ── TOKEN GATE — runs before anything renders ─────────────────────────
 (function(){
-  const params  = new URLSearchParams(window.loca
-                                      tion.search);
+ const params = new URLSearchParams(window.location.search);
   const token   = params.get('token') || '';
   const tierParam = params.get('tier') || '';
 
