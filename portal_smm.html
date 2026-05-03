@@ -1392,15 +1392,6 @@ const TG_ASSETS = '-1003888423178';
 let contractFile = null;
 let assetFiles = [];
 
-function handleContract(files){
-  if(!files.length) return;
-  contractFile = files[0];
-  const prev = document.getElementById('contract-file-preview');
-  prev.style.display = 'flex';
-  prev.innerHTML = '<div style="background:rgba(126,200,69,.08);border:1px solid rgba(126,200,69,.2);border-radius:6px;padding:8px 14px;display:flex;align-items:center;gap:8px;font-size:12px"><span>📄</span><span style="color:#fff;font-weight:600">'+contractFile.name+'</span><span style="color:rgba(255,255,255,.4)">'+Math.round(contractFile.size/1024)+'KB</span></div>';
-  document.getElementById('contract-upload-btn').style.display = 'inline-block';
-}
-
 function handleContractDrop(e){
   e.preventDefault();
   document.getElementById('contractDropZone').classList.remove('drag');
