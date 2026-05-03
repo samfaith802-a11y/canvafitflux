@@ -1396,7 +1396,7 @@ function handleContractDrop(e){
   e.preventDefault();
   document.getElementById('contractDropZone').classList.remove('drag');
   const f = e.dataTransfer.files;
-  if(f.length) handleContract(f);
+ if(f.length) handleContractFile(f[0]);
 }
 
 async function uploadContract(){
