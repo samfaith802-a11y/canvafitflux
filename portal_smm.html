@@ -7,7 +7,8 @@ window.FF_VALID_TIERS = ['presence','authority','categoryking','category king/qu
 <script>
 // ── TOKEN GATE — runs before anything renders ─────────────────────────
 (function(){
-  const params  = new URLSearchParams(window.location.search);
+  const params  = new URLSearchParams(window.loca
+                                      tion.search);
   const token   = params.get('token') || '';
   const tierParam = params.get('tier') || '';
 
@@ -1096,7 +1097,7 @@ body{background:#0b1209;}
   </div>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js">
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
 // ─── 90-DAY COUNTDOWN ───────────────────────────────────────────────
 let cdInterval = null;
 let cdStartDate = null;
