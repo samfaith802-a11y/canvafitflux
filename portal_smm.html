@@ -1352,13 +1352,6 @@ Contract submitted for review/approval.').then(ok => {
   });
 }
 
-function handleContractDrop(e) {
-  e.preventDefault();
-  document.getElementById('contractDropZone').classList.remove('drag');
-  const file = e.dataTransfer.files[0];
-  if(file) handleContractFile(file);
-}
-
 function handleDrop(e){
   e.preventDefault();
   document.getElementById('dropZone').classList.remove('drag');
