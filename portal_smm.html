@@ -41,53 +41,8 @@ window.FF_VALID_TIERS = ['presence','authority','categoryking','category king/qu
         <p>This link is invalid, expired, or does not match your purchased tier.<br><br>
         Please use the link from your receipt email, or contact us directly.</p>
         <a href="mailto:fitfluxstudio@gmail.com">Contact FitfluxStudio →</a>
-      </div><script>
-// ── TELEGRAM: Step 7 — Fully onboarded ───────────────────────────────────
-const TG_BOT_P  = '8728238222:AAG_ssXL9LPn7moTHh7HTx0XCyHLkP8q4TQ';
-const TG_CHAT_P = '-1003939399057';
-(async function notifyOnboarded(){
-  const c = window.FF_CLIENT || {};
-  const tier = window.FF_TIER || 'unknown';
-  try {
-    await fetch('https://api.telegram.org/bot' + TG_BOT_P + '/sendMessage', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chat_id: TG_CHAT_P,
-        parse_mode: 'HTML',
-        text:
-          '\u2705 <b>CLIENT FULLY ONBOARDED</b>\n\n' +
-          '\ud83d\udce6 Tier: ' + tier + '\n' +
-          '\ud83d\udc64 Client: ' + (c.name||'—') + '\n' +
-          '\ud83d\udce7 Email: ' + (c.email||'—') + '\n' +
-          '\ud83d\udd12 Territory: ' + (c.niche||'—') + ' \u00b7 ' + (c.territory||'—') + '\n\n' +
-          '\ud83d\ude80 Contract signed. Portal accessed. Ready to start.'
-      })
-    });
-  } catch(e) {}
-})();
-</script>
 
-<script>
-// ── PERSONALISE PORTAL FROM TOKEN ────────────────────────────────────
-document.addEventListener('DOMContentLoaded', function() {
-  if(window.FF_CLIENT && window.FF_CLIENT.name) {
-    // Update any greeting elements
-    const greetEls = document.querySelectorAll('.hero-h1, .welcome-name');
-    greetEls.forEach(el => {
-      if(el.textContent.includes('Aboard')) {
-        el.innerHTML = el.innerHTML.replace('Aboard.', 'Aboard, <em>' + window.FF_CLIENT.name.split(' ')[0] + '.</em>');
-      }
-    });
-    // Update sidebar client name if editable
-    const sbName = document.querySelector('.sb-cl-name');
-    if(sbName && window.FF_CLIENT.name) sbName.textContent = window.FF_CLIENT.name;
-    const sbSub = document.querySelector('.sb-cl-sub');
-    if(sbSub && window.FF_TIER) sbSub.textContent = window.FF_TIER.charAt(0).toUpperCase() + window.FF_TIER.slice(1) + ' Plan';
-  }
-});
-</script>
-</body></html>`;
+      </div></body></html>`;
     return;
   }
 
