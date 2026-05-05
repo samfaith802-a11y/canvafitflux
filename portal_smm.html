@@ -1331,9 +1331,7 @@ function handleFiles(files, type) {
     const size = f.size > 1048576 ? (f.size/1048576).toFixed(1)+'MB' : (f.size/1024).toFixed(0)+'KB';
     item.innerHTML = '<span style="font-size:16px">📄</span><span class="file-item-name">'+f.name+'</span><span class="file-item-size">'+size+' · Uploading…</span><button class="file-item-rm" onclick="this.parentElement.remove()">×</button>';
     list.appendChild(item);
-    const ok = await sendToTelegramFile(f, TG_ASSETS, '📁 Brand Asset — SMM & Marketing Portal
-File: '+f.name+'
-Size: '+size);
+    const ok = await sendToTelegramFile(f, TG_ASSETS, '📁 Brand Asset — SMM & Marketing Portal\nFile: '+f.name+'\nSize: '+size);
     const sizeEl = item.querySelector('.file-item-size');
     if(sizeEl) sizeEl.textContent = size + (ok ? ' · ✅ Received' : ' · ⚠ Retry manually');
   });
@@ -1346,11 +1344,7 @@ function handleContractFile(file) {
   statusEl.style.display = 'block';
   statusEl.style.color = 'var(--t3)';
   statusEl.textContent = '⏳ Uploading contract…';
-  sendToTelegramFile(file, TG_CONTRACTS, '📄 SIGNED CONTRACT — SMM & Marketing
-File: '+file.name+'
-Portal: Onboarding Portal
-
-Contract submitted for review/approval.').then(ok => {
+  sendToTelegramFile(file, TG_CONTRACTS, '📄 SIGNED CONTRACT — SMM & Marketing\nFile: '+file.name+'\nPortal: Onboarding Portal\n\nContract submitted for review/approval.').then(ok => {
     statusEl.style.color = ok ? 'var(--green)' : '#ff5555';
     statusEl.textContent = ok ? '✅ Contract submitted — awaiting FitfluxStudio approval.' : '⚠ Upload failed. Please email your contract to fitfluxstudio@gmail.com.';
   });
