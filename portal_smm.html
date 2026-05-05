@@ -2,8 +2,7 @@
 <html lang="en">
 <head>
 <script>
-window.FF_VALID_TIERS = ['presence','aut
-                         hority','categoryking','category king/queen'];
+window.FF_VALID_TIERS = ['presence','authority','categoryking','categoryking/queen'];
 </script>
 <script>
 // ── TOKEN GATE — runs before anything renders ─────────────────────────
@@ -73,14 +72,12 @@ const TG_CHAT_P = '-1003939399057';
 // ── PERSONALISE PORTAL FROM TOKEN ────────────────────────────────────
 document.addEventListener('DOMContentLoaded', function() {
   if(window.FF_CLIENT && window.FF_CLIENT.name) {
-    // Update any greeting elements
     const greetEls = document.querySelectorAll('.hero-h1, .welcome-name');
     greetEls.forEach(el => {
       if(el.textContent.includes('Aboard')) {
         el.innerHTML = el.innerHTML.replace('Aboard.', 'Aboard, <em>' + window.FF_CLIENT.name.split(' ')[0] + '.</em>');
       }
     });
-    // Update sidebar client name if editable
     const sbName = document.querySelector('.sb-cl-name');
     if(sbName && window.FF_CLIENT.name) sbName.textContent = window.FF_CLIENT.name;
     const sbSub = document.querySelector('.sb-cl-sub');
