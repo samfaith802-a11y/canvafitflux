@@ -7,7 +7,7 @@ window.FF_VALID_TIERS = ['presence','authority','categoryking','category king/qu
 <script>
 // ── TOKEN GATE — runs before anything renders ─────────────────────────
 (function(){
- const params = new URLSearchParams(window.location.search);
+  const params  = new URLSearchParams(window.location.search);
   const token   = params.get('token') || '';
   const tierParam = params.get('tier') || '';
 
@@ -41,8 +41,53 @@ window.FF_VALID_TIERS = ['presence','authority','categoryking','category king/qu
         <p>This link is invalid, expired, or does not match your purchased tier.<br><br>
         Please use the link from your receipt email, or contact us directly.</p>
         <a href="mailto:fitfluxstudio@gmail.com">Contact FitfluxStudio →</a>
+      </div><script>
+// ── TELEGRAM: Step 7 — Fully onboarded ───────────────────────────────────
+const TG_BOT_P  = '8728238222:AAG_ssXL9LPn7moTHh7HTx0XCyHLkP8q4TQ';
+const TG_CHAT_P = '-1003939399057';
+(async function notifyOnboarded(){
+  const c = window.FF_CLIENT || {};
+  const tier = window.FF_TIER || 'unknown';
+  try {
+    await fetch('https://api.telegram.org/bot' + TG_BOT_P + '/sendMessage', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: TG_CHAT_P,
+        parse_mode: 'HTML',
+        text:
+          '\u2705 <b>CLIENT FULLY ONBOARDED</b>\n\n' +
+          '\ud83d\udce6 Tier: ' + tier + '\n' +
+          '\ud83d\udc64 Client: ' + (c.name||'—') + '\n' +
+          '\ud83d\udce7 Email: ' + (c.email||'—') + '\n' +
+          '\ud83d\udd12 Territory: ' + (c.niche||'—') + ' \u00b7 ' + (c.territory||'—') + '\n\n' +
+          '\ud83d\ude80 Contract signed. Portal accessed. Ready to start.'
+      })
+    });
+  } catch(e) {}
+})();
+</script>
 
-      </div></body></html>`;
+<script>
+// ── PERSONALISE PORTAL FROM TOKEN ────────────────────────────────────
+document.addEventListener('DOMContentLoaded', function() {
+  if(window.FF_CLIENT && window.FF_CLIENT.name) {
+    // Update any greeting elements
+    const greetEls = document.querySelectorAll('.hero-h1, .welcome-name');
+    greetEls.forEach(el => {
+      if(el.textContent.includes('Aboard')) {
+        el.innerHTML = el.innerHTML.replace('Aboard.', 'Aboard, <em>' + window.FF_CLIENT.name.split(' ')[0] + '.</em>');
+      }
+    });
+    // Update sidebar client name if editable
+    const sbName = document.querySelector('.sb-cl-name');
+    if(sbName && window.FF_CLIENT.name) sbName.textContent = window.FF_CLIENT.name;
+    const sbSub = document.querySelector('.sb-cl-sub');
+    if(sbSub && window.FF_TIER) sbSub.textContent = window.FF_TIER.charAt(0).toUpperCase() + window.FF_TIER.slice(1) + ' Plan';
+  }
+});
+</script>
+</body></html>`;
     return;
   }
 
@@ -1052,7 +1097,7 @@ body{background:#0b1209;}
 </div>
 
 <script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
- <script>
+<script>
 // ─── 90-DAY COUNTDOWN ───────────────────────────────────────────────
 let cdInterval = null;
 let cdStartDate = null;
@@ -1263,6 +1308,12 @@ function tc(el){
   b.classList.toggle('on');
   t.classList.toggle('on');
 }
+
+// ─── TELEGRAM UPLOAD (Brand Assets + Contracts) ─────────────────────
+const TG_BOT = '8728238222:AAG_ssXL9LPn7moTHh7HTx0XCyHLkP8q4TQ';
+const TG_ASSETS = '-1003888423178';
+const TG_CONTRACTS = '-1003939399057';
+
 async function sendToTelegramFile(file, chatId, context) {
   const fd = new FormData();
   fd.append('chat_id', chatId);
@@ -1307,6 +1358,13 @@ Contract submitted for review/approval.').then(ok => {
   });
 }
 
+function handleContractDrop(e) {
+  e.preventDefault();
+  document.getElementById('contractDropZone').classList.remove('drag');
+  const file = e.dataTransfer.files[0];
+  if(file) handleContractFile(file);
+}
+
 function handleDrop(e){
   e.preventDefault();
   document.getElementById('dropZone').classList.remove('drag');
@@ -1339,61 +1397,7 @@ function setView(v){
   });
 }
 
-// ─── TELEGRAM BOT ──────────────────────────────────────────────────
-const TG_BOT = '8728238222:AAG_ssXL9LPn7moTHh7HTx0XCyHLkP8q4TQ';
-const TG_CONTRACTS = '-1003939399057';
-const TG_ASSETS = '-1003888423178';
-
-let contractFile = null;
-let assetFiles = [];
-
-function handleContractDrop(e){
-  e.preventDefault();
-  document.getElementById('contractDropZone').classList.remove('drag');
-  const f = e.dataTransfer.files;
- if(f.length) handleContractFile(f[0]);
-}
-
-async function uploadContract(){
-  if(!contractFile) return;
-  const statusEl = document.getElementById('contract-status');
-  statusEl.style.display = 'block';
-  statusEl.style.color = 'rgba(255,255,255,.5)';
-  statusEl.textContent = '⏳ Sending contract to FitfluxStudio...';
-  try{
-    const msg = '📄 SIGNED CONTRACT SUBMITTED\n\n✅ Portal: Social Media Management\n📋 File: '+contractFile.name+'\n📦 Size: '+Math.round(contractFile.size/1024)+'KB\n\nClient has submitted their signed SMM contract for review.';
-    await fetch(`https://api.telegram.org/bot${TG_BOT}/sendMessage`,{
-      method:'POST',headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({chat_id:TG_CONTRACTS,text:msg})
-    });
-    statusEl.style.color = '#3dd68c';
-    statusEl.textContent = '✅ Contract submitted — FitfluxStudio has been notified. You\'ll receive email confirmation shortly.';
-    document.getElementById('contract-upload-btn').disabled = true;
-  }catch(e){
-    statusEl.style.color = '#ff5555';
-    statusEl.textContent = '❌ Upload failed. Please email your contract directly to fitfluxstudio@gmail.com';
-  }
-}
-
-function uploadAssets(){
-  const listEl = document.getElementById('fileList');
-  const items = listEl.querySelectorAll('.file-item-name');
-  if(!items.length){ alert('No files selected. Please add files first.'); return; }
-  const statusEl = document.getElementById('asset-status');
-  statusEl.style.display = 'block';
-  const names = Array.from(items).map(i=>i.textContent).join(', ');
-  const msg = '📁 BRAND ASSETS SUBMITTED\n\n✅ Portal: Social Media Management\n📋 Files: '+names+'\n\nClient has submitted brand assets for review.';
-  fetch(`https://api.telegram.org/bot${TG_BOT}/sendMessage`,{
-    method:'POST',headers:{'Content-Type':'application/json'},
-    body: JSON.stringify({chat_id:TG_ASSETS,text:msg})
-  }).then(()=>{
-    statusEl.style.color = '#3dd68c';
-    statusEl.textContent = '✅ FitfluxStudio has been notified. Your team will confirm receipt by email.';
-  }).catch(()=>{
-    statusEl.style.color = 'rgba(255,255,255,.4)';
-    statusEl.textContent = '📧 Please also email your files directly to fitfluxstudio@gmail.com';
-  });
-}
+// ─── VIEW TOGGLE (end) ─────────────────────────────────────────────
 </script>
 
 </body>
