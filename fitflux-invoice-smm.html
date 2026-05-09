@@ -122,12 +122,31 @@
     [contenteditable]:hover,[contenteditable]:focus { background:transparent !important; box-shadow:none !important; }
   }
   @media(max-width:600px){
-    .inv-header,.inv-info,.inv-services,.inv-totals,.inv-payment,.inv-guarantee,.inv-notes,.inv-upload,.inv-footer { padding-left:22px; padding-right:22px; }
-    .inv-info,.acct-grid { grid-template-columns:1fr; gap:20px; }
-    .inv-header { flex-direction:column; gap:16px; }
-    .inv-title-block { text-align:left; }
-    .inv-meta table { margin-left:0; }
-  }
+  body { padding:16px 8px 40px; }
+  .toolbar { flex-direction:column; align-items:flex-start; gap:8px; }
+  .toolbar-hint { font-size:11px; }
+  .btn { width:100%; text-align:center; padding:10px; }
+  .inv-header,.inv-info,.inv-services,.inv-totals,.inv-payment,.inv-guarantee,.inv-notes,.inv-upload,.inv-footer { padding-left:18px; padding-right:18px; }
+  .inv-header { flex-direction:column; gap:16px; padding-top:24px; padding-bottom:20px; }
+  .inv-title-block { text-align:left; }
+  .inv-meta table { margin-left:0; }
+  .inv-word { font-size:36px; }
+  .brand-name { font-size:24px; }
+  .inv-info { grid-template-columns:1fr; gap:20px; padding-top:20px; padding-bottom:20px; }
+  .svc-table thead th:nth-child(3),.svc-table tbody td:nth-child(3) { display:none; }
+  .svc-table { font-size:12px; }
+  .svc-table tbody td { padding:10px 8px; }
+  .svc-name { font-size:12px; }
+  .svc-desc { font-size:10.5px; }
+  .inv-totals { padding-top:0; }
+  .totals-box { width:100%; }
+  .acct-grid { grid-template-columns:1fr; gap:20px; }
+  .inv-footer { flex-direction:column; gap:8px; text-align:center; }
+  .footer-right { text-align:center; }
+  .upload-hed { font-size:18px; }
+  .upload-sub { font-size:11.5px; }
+  .btn-receipt { font-size:13px; padding:14px 10px; }
+}
 </style>
 </head>
 <body>
@@ -294,6 +313,7 @@
 
 </div><!-- /inv -->
 
+<script src="https://unpkg.com/tesseract.js@4/dist/tesseract.min.js"></script>
 <script>
 
 const PKG = {
@@ -459,37 +479,106 @@ function reveal(id, btn){
 let uploadedDataUrl = '';
 let uploadedFileName = '';
 
-function handleUpload(input){
+const RECEIPT_KEYWORDS = [
+  'transfer','debit','credit','amount','balance',
+  'bank','payment','confirmed','reference','transaction',
+  'receipt','sent','successful','approved','processed'
+];
+const ACCOUNT_NUMBERS = ['219587154504','101019644'];
+
+async function handleUpload(input){
   const file = input.files[0]; if(!file) return;
   input.value = '';
+
+  const allowed = ['image/jpeg','image/png','image/jpg','image/webp','application/pdf'];
+  if(!allowed.includes(file.type)){
+    alert('Please upload an image (JPG, PNG) or PDF of your payment receipt.');
+    return;
+  }
+
+  if(file.size < 30 * 1024){
+    alert('File is too small to be a valid receipt. Please upload a clear screenshot of your bank transfer.');
+    return;
+  }
+
   uploadedFileName = file.name;
-  const pw = document.getElementById('preview-wrap');
-  const pi = document.getElementById('preview-img');
-  const pn = document.getElementById('preview-name');
+  const pw  = document.getElementById('preview-wrap');
+  const pi  = document.getElementById('preview-img');
+  const pn  = document.getElementById('preview-name');
+  const btn = document.getElementById('btn-receipt');
+
   pn.textContent = '📎 ' + file.name;
   pw.style.display = 'flex';
+
   if(file.type.startsWith('image/')){
     const reader = new FileReader();
-    reader.onload = e => { uploadedDataUrl = e.target.result; pi.src = e.target.result; pi.style.display='block'; };
+    reader.onload = e => {
+      uploadedDataUrl = e.target.result;
+      pi.src = e.target.result;
+      pi.style.display = 'block';
+    };
     reader.readAsDataURL(file);
   } else {
     pi.style.display = 'none';
     uploadedDataUrl = '';
   }
-  document.getElementById('btn-receipt').style.display = 'block';
 
-  // ── TELEGRAM: Step 2 — Payment proof uploaded ──
-  tgPing(
-    '💰 <b>PAYMENT PROOF UPLOADED</b>\n\n' +
-    '📦 Package: ' + (typeof pkg !== "undefined" ? pkg.name : tierKey) + '\n' +
-    '👤 Client: ' + clientName + '\n' +
-    '📧 Email: ' + clientEmail + '\n' +
-    '📸 Instagram: @' + clientIg + '\n' +
-    '🔒 Territory: ' + clientNiche + ' · ' + clientCity + ', ' + clientTerritory + '\n' +
-    '📋 Invoice: ' + invNum + '\n' +
-    '📎 File: ' + file.name + '\n\n' +
-    '➡️ Client is now proceeding to their receipt.'
-  );
+  btn.style.display = 'block';
+  btn.textContent   = '🔍 Scanning receipt...';
+  btn.disabled      = true;
+  btn.style.opacity = '0.6';
+  btn.style.cursor  = 'not-allowed';
+
+  try {
+    const result = await Tesseract.recognize(file, 'eng', { logger: () => {} });
+    const text   = result.data.text.toLowerCase().replace(/\s+/g,' ');
+
+    const hasAccountNumber = ACCOUNT_NUMBERS.some(num => text.includes(num));
+    const foundKeywords = RECEIPT_KEYWORDS.filter(kw => text.includes(kw));
+    const hasEnoughKeywords = foundKeywords.length >= 2;
+
+    if(hasAccountNumber || hasEnoughKeywords){
+      btn.textContent   = '✅ Payment Uploaded — Proceed to Contract & Onboarding Portal →';
+      btn.disabled      = false;
+      btn.style.opacity = '1';
+      btn.style.cursor  = 'pointer';
+      btn.onclick       = openReceipt;
+
+      tgPing(
+        '💰 <b>PAYMENT PROOF UPLOADED</b>\n\n' +
+        '📦 Package: ' + pkg.name + '\n' +
+        '👤 Client: ' + clientName + '\n' +
+        '📧 Email: ' + clientEmail + '\n' +
+        '📸 Instagram: @' + clientIg + '\n' +
+        '🔒 Territory: ' + clientNiche + ' · ' + clientCity + ', ' + clientTerritory + '\n' +
+        '📋 Invoice: ' + invNum + '\n' +
+        '📎 File: ' + file.name + '\n' +
+        (hasAccountNumber ? '✅ Account number verified in receipt\n' : '') +
+        '🔑 Keywords found: ' + foundKeywords.join(', ') + '\n\n' +
+        '➡️ Client proceeding to receipt.'
+      );
+
+    } else {
+      btn.textContent      = '❌ Invalid Receipt — Try Again';
+      btn.disabled         = false;
+      btn.style.opacity    = '1';
+      btn.style.cursor     = 'pointer';
+      btn.style.background = '#cc0000';
+      btn.style.color      = '#ffffff';
+      btn.onclick = () => { document.getElementById('receipt-file').click(); };
+      alert('This doesn\'t look like a payment receipt.\n\nPlease upload your bank transfer confirmation screenshot showing the transfer amount, reference, and confirmation.');
+    }
+
+  } catch(err) {
+    btn.textContent      = '❌ Could Not Read Receipt — Try Again';
+    btn.disabled         = false;
+    btn.style.opacity    = '1';
+    btn.style.cursor     = 'pointer';
+    btn.style.background = '#cc0000';
+    btn.style.color      = '#ffffff';
+    btn.onclick = () => { document.getElementById('receipt-file').click(); };
+    alert('We couldn\'t read your receipt image. Please upload a clear, well-lit screenshot of your bank transfer confirmation.');
+  }
 }
 
 function openReceipt(){
