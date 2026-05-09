@@ -114,13 +114,35 @@
     .toolbar,.rec-dm { display:none !important; }
     .rec { box-shadow:none; border-radius:0; }
   }
-  @media(max-width:600px){
-    .rec-header,.rec-info,.rec-services,.rec-totals,.rec-method,.rec-thanks,.rec-dm,.rec-footer,.paid-wrap { padding-left:22px; padding-right:22px; }
-    .rec-info,.rec-method { grid-template-columns:1fr; gap:20px; }
-    .rec-header { flex-direction:column; gap:16px; }
-    .rec-title-block { text-align:left; }
-    .rec-meta table { margin-left:0; }
-  }
+@media(max-width:600px){
+  body { padding:16px 8px 40px; }
+  .toolbar { flex-direction:column; align-items:flex-start; gap:8px; }
+  .btn { width:100%; text-align:center; padding:10px; }
+  .toolbar-hint { font-size:11px; }
+  .rec-header,.rec-info,.rec-services,.rec-totals,.rec-method,.rec-thanks,.rec-dm,.rec-footer,.paid-wrap { padding-left:18px; padding-right:18px; }
+  .rec-header { flex-direction:column; gap:16px; padding-top:24px; padding-bottom:20px; }
+  .rec-title-block { text-align:left; }
+  .rec-meta table { margin-left:0; }
+  .rec-word { font-size:36px; }
+  .brand-name { font-size:24px; }
+  .rec-info,.rec-method { grid-template-columns:1fr; gap:20px; }
+  .svc-table thead th:nth-child(3),
+  .svc-table tbody td:nth-child(3),
+  .svc-table thead th:nth-child(4),
+  .svc-table tbody td:nth-child(4) { display:none; }
+  .svc-table { font-size:12px; }
+  .svc-table tbody td { padding:10px 8px; }
+  .svc-name { font-size:12px; }
+  .svc-desc { font-size:10.5px; }
+  .totals-box { width:100%; }
+  .rec-totals { padding-top:0; }
+  .rec-footer { flex-direction:column; gap:8px; text-align:center; }
+  .footer-right { text-align:center; }
+  .dm-hed { font-size:18px; }
+  .dm-btns { flex-direction:column; }
+  .btn-dm,.btn-copy { flex:none; width:100%; }
+  .paid-banner { flex-direction:column; gap:8px; }
+}
 </style>
 </head>
 <body>
