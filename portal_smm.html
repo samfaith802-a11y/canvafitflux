@@ -106,7 +106,6 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
 
 /* HERO */
 .hero{padding:32px 40px 28px;border-bottom:1px solid var(--bdr);background:linear-gradient(135deg,rgba(126,200,69,0.07) 0%,transparent 55%);position:relative;overflow:hidden;}
-.hero-inner{max-width:920px;margin:0 auto;}
 .hero::before{content:'';position:absolute;top:-80px;right:-80px;width:350px;height:350px;background:radial-gradient(circle,rgba(126,200,69,0.08) 0%,transparent 70%);pointer-events:none;}
 .hero-eyebrow{font-size:10px;font-weight:700;color:var(--purple2);letter-spacing:.2em;text-transform:uppercase;margin-bottom:8px;}
 .hero-h1{font-family:var(--fh);font-size:30px;font-weight:800;color:var(--t1);line-height:1.1;margin-bottom:8px;}
@@ -351,7 +350,75 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
 @keyframes spin{to{transform:rotate(360deg);}}
 
 @media print{#lock,.sb,.tb{display:none!important;}.main{margin-left:0;}.content{padding:20px 30px;}}
-@media(max-width:900px){.sb{transform:translateX(-100%);}.main{margin-left:0;}.perf-grid{grid-template-columns:1fr 1fr;}.guide-grid{grid-template-columns:1fr;}.contact-grid{grid-template-columns:1fr;}.deliv-add-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:900px){
+  .sb{transform:translateX(-100%);}
+  .main{margin-left:0;}
+  .perf-grid{grid-template-columns:1fr 1fr;}
+  .guide-grid{grid-template-columns:1fr;}
+  .contact-grid{grid-template-columns:1fr;}
+  .deliv-add-grid{grid-template-columns:1fr 1fr;}
+}
+
+@media(max-width:640px){
+  .hero{padding:20px 16px 20px;}
+  .hero-h1{font-size:22px;}
+  .hero-sub{font-size:12px;}
+  .hero-stats{gap:16px;}
+  .hs-val{font-size:18px;}
+
+  .content{padding:24px 14px 80px;}
+
+  .tb{padding:0 14px;}
+  .bc{font-size:11px;}
+  .tb-btn{display:none;}
+
+  .lock-box{width:90%;padding:28px 20px;}
+
+  .perf-grid{grid-template-columns:1fr 1fr;}
+  .guide-grid{grid-template-columns:1fr;}
+  .contact-grid{grid-template-columns:1fr;}
+
+  .platform-tabs{gap:4px;}
+  .ptab{font-size:11px;padding:6px 10px;}
+
+  .grade-card{flex-direction:column;gap:10px;padding:16px;}
+  .grade-letter{font-size:52px;}
+
+  .approval-tabs{gap:2px;}
+  .atab{font-size:11px;padding:7px 6px;}
+
+  .aitem-header{flex-wrap:wrap;gap:6px;}
+  .aitem-title{width:100%;}
+
+  .deliv-header{grid-template-columns:1fr 70px 36px;gap:6px;}
+  .deliv-header span:nth-child(3),
+  .deliv-header span:nth-child(4),
+  .deliv-row>span:nth-child(3),
+  .deliv-row>span:nth-child(4){display:none;}
+  .deliv-row{grid-template-columns:1fr 70px 36px;gap:6px;}
+  .deliv-add-grid{grid-template-columns:1fr 1fr;gap:6px;}
+  .deliv-add-grid .btn-add{grid-column:1/-1;width:100%;}
+
+  .flow-strip{gap:4px;}
+  .flow-step{padding:8px 10px;min-width:60px;}
+  .flow-num{font-size:16px;}
+  .flow-lbl{font-size:9px;}
+  .flow-arrow{font-size:11px;}
+
+  .guar-box{padding:18px 16px;}
+  .guar-h{font-size:16px;}
+
+  .terr-box{flex-direction:column;align-items:flex-start;gap:10px;padding:14px 16px;}
+  .terr-badge{margin-left:0;}
+
+  .prk{width:110px;font-size:11px;}
+  .prv{font-size:12px;}
+
+  .sec-title{font-size:15px;}
+
+  .view-toggle{width:100%;}
+  .vbtn{flex:1;text-align:center;}
+}
 </style>
 </head>
 <body>
@@ -428,8 +495,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
   </div>
 
   <!-- HERO -->
-<div class="hero">
-    <div class="hero-inner">
+  <div class="hero">
     <div class="hero-eyebrow">FitFluxStudio — Social Media Management</div>
     <div class="hero-h1">Your content is being <em>created.</em></div>
     <div class="hero-sub">Review and approve before it goes live. Track growth across every platform. Your territory is locked — no competitor in your market gets this system.</div>
