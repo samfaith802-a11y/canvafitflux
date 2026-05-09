@@ -106,9 +106,10 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
 
 /* HERO */
 .hero{padding:32px 40px 28px;border-bottom:1px solid var(--bdr);background:linear-gradient(135deg,rgba(126,200,69,0.07) 0%,transparent 55%);position:relative;overflow:hidden;}
+.hero-inner{max-width:920px;margin:0 auto;}
 .hero::before{content:'';position:absolute;top:-80px;right:-80px;width:350px;height:350px;background:radial-gradient(circle,rgba(126,200,69,0.08) 0%,transparent 70%);pointer-events:none;}
 .hero-eyebrow{font-size:10px;font-weight:700;color:var(--purple2);letter-spacing:.2em;text-transform:uppercase;margin-bottom:8px;}
-.hero-h1{font-family:var(--fh);font-size:30px;font-weight:800;color:var(--t1);line-height:1.1;margin-bottom:8px;max-width:620px;}
+.hero-h1{font-family:var(--fh);font-size:30px;font-weight:800;color:var(--t1);line-height:1.1;margin-bottom:8px;}
 .hero-h1 em{color:var(--gold);font-style:normal;}
 .hero-sub{font-size:13px;color:var(--t2);max-width:540px;line-height:1.75;margin-bottom:18px;}
 .hero-stats{display:flex;gap:28px;flex-wrap:wrap;}
@@ -427,7 +428,8 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
   </div>
 
   <!-- HERO -->
-  <div class="hero">
+<div class="hero">
+    <div class="hero-inner">
     <div class="hero-eyebrow">FitFluxStudio — Social Media Management</div>
     <div class="hero-h1">Your content is being <em>created.</em></div>
     <div class="hero-sub">Review and approve before it goes live. Track growth across every platform. Your territory is locked — no competitor in your market gets this system.</div>
