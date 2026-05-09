@@ -524,11 +524,58 @@ async function handleUpload(input){
     uploadedDataUrl = '';
   }
 
-  btn.style.display = 'block';
-  btn.textContent   = '🔍 Scanning receipt...';
+btn.style.display = 'block';
   btn.disabled      = true;
   btn.style.opacity = '0.6';
   btn.style.cursor  = 'not-allowed';
+
+  if(file.type === 'application/pdf'){
+    btn.textContent = '🔍 Scanning PDF receipt...';
+    try {
+      pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+      const arrayBuffer = await file.arrayBuffer();
+      const pdfDoc = await pdfjsLib.getDocument({data: arrayBuffer}).promise;
+      let fullText = '';
+      for(let i = 1; i <= pdfDoc.numPages; i++){
+        const page = await pdfDoc.getPage(i);
+        const content = await page.getTextContent();
+        fullText += content.items.map(item => item.str).join(' ');
+      }
+      const text = fullText.toLowerCase().replace(/\s+/g,' ');
+      const hasAccountNumber = ACCOUNT_NUMBERS.some(num => text.includes(num));
+      const foundKeywords = RECEIPT_KEYWORDS.filter(kw => text.includes(kw));
+      const hasEnoughKeywords = foundKeywords.length >= 2;
+      if(hasAccountNumber || hasEnoughKeywords){
+        btn.textContent   = '✅ Payment Uploaded — Proceed to Contract & Onboarding Portal →';
+        btn.disabled      = false;
+        btn.style.opacity = '1';
+        btn.style.cursor  = 'pointer';
+        btn.onclick       = openReceipt;
+        tgPing('💰 <b>PAYMENT PROOF UPLOADED (PDF)</b>\n\n📦 Package: '+pkg.name+'\n👤 Client: '+clientName+'\n📧 Email: '+clientEmail+'\n📸 Instagram: @'+clientIg+'\n🔒 Territory: '+clientNiche+' · '+clientCity+', '+clientTerritory+'\n📋 Invoice: '+invNum+'\n📎 File: '+file.name+'\n'+(hasAccountNumber?'✅ Account number verified in receipt\n':'')+'🔑 Keywords found: '+foundKeywords.join(', ')+'\n\n➡️ Client proceeding to receipt.');
+      } else {
+        btn.textContent      = '❌ Invalid Receipt — Try Again';
+        btn.disabled         = false;
+        btn.style.opacity    = '1';
+        btn.style.cursor     = 'pointer';
+        btn.style.background = '#cc0000';
+        btn.style.color      = '#ffffff';
+        btn.onclick = () => { document.getElementById('receipt-file').click(); };
+        alert('This doesn\'t look like a payment receipt.\n\nPlease upload your bank transfer confirmation PDF showing the transfer amount, reference, and confirmation.');
+      }
+    } catch(err){
+      btn.textContent      = '❌ Could Not Read PDF — Try Again';
+      btn.disabled         = false;
+      btn.style.opacity    = '1';
+      btn.style.cursor     = 'pointer';
+      btn.style.background = '#cc0000';
+      btn.style.color      = '#ffffff';
+      btn.onclick = () => { document.getElementById('receipt-file').click(); };
+      alert('We couldn\'t read your PDF. Please upload a clear bank transfer confirmation PDF or try a screenshot instead.');
+    }
+    return;
+  }
+
+  btn.textContent = '🔍 Scanning receipt...';
 
   try {
     const result = await Tesseract.recognize(file, 'eng', { logger: () => {} });
