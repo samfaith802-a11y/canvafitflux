@@ -15,7 +15,7 @@ window.FF_VALID_TIERS = ['presence','authority','categoryking','category king/qu
   const tierOk  = VALID_TIERS.includes(tierParam);
   const tokenOk = token.startsWith('FF-') && VALID_TIERS.includes(tokenTier) && tokenTier === tierParam;
   if(!tierOk || !tokenOk){
-    document.documentElement.innerHTML = `<html><head><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#0D1F00;color:#fff;font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:40px}.wrap{max-width:400px}.icon{font-size:48px;margin-bottom:20px}h1{font-size:22px;color:#CCFF00;margin-bottom:12px;font-weight:700}p{font-size:13px;color:rgba(255,255,255,0.5);line-height:1.7;margin-bottom:20px}a{color:#CCFF00;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}</style></head><body><div class="wrap"><div class="icon">🔒</div><h1>Access Denied</h1><p>This link is invalid or expired.<br><br>Please use the link from your receipt, or contact us.</p><a href="mailto:fitfluxstudio@gmail.com">Contact FitfluxStudio →</a></div><\/body><\/html>`;
+    document.documentElement.innerHTML = `<html><head><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#0D1F00;color:#fff;font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:40px}.wrap{max-width:400px}.icon{font-size:48px;margin-bottom:20px}h1{font-size:22px;color:#CCFF00;margin-bottom:12px;font-weight:700}p{font-size:13px;color:rgba(255,255,255,0.5);line-height:1.7;margin-bottom:20px}a{color:#CCFF00;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}</style></head><body><div class="wrap"><div class="icon">&#x1F512;</div><h1>Access Denied</h1><p>This link is invalid or expired.<br><br>Please use the link from your receipt, or contact us.</p><a href="mailto:fitfluxstudio@gmail.com">Contact FitfluxStudio &#x2192;</a></div><\/body><\/html>`;
     return;
   }
   window.FF_TOKEN  = token;
@@ -175,7 +175,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
 .chk:hover{background:rgba(204,255,0,0.05);}
 .chkb{width:16px;height:16px;border-radius:3px;flex-shrink:0;margin-top:2px;border:1.5px solid rgba(204,255,0,0.3);transition:all .15s;display:flex;align-items:center;justify-content:center;}
 .chkb.on{background:var(--purple);border-color:var(--purple);}
-.chkb.on::after{content:'✓';font-size:9px;color:#fff;font-weight:700;}
+.chkb.on::after{content:'checkmark';font-size:9px;color:#fff;font-weight:700;}
 .chkt{font-size:13px;color:var(--t2);line-height:1.5;}
 .chkt.on{text-decoration:line-through;color:var(--t3);}
 
@@ -233,7 +233,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
 .notes-area{width:100%;background:var(--card);border:1px solid var(--bdr);border-radius:10px;padding:14px;color:var(--t2);font-family:var(--fb);font-size:13px;resize:vertical;outline:none;line-height:1.7;min-height:120px;transition:border .15s;}
 .notes-area:focus{border-color:var(--bdr2);}
 
-/* ── PERFORMANCE DASHBOARD ── */
+/* PERFORMANCE DASHBOARD */
 .platform-tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:18px;}
 .ptab{background:rgba(255,255,255,0.04);border:1px solid var(--bdr);border-radius:9px;padding:7px 14px;font-size:12px;font-weight:600;color:var(--t3);cursor:pointer;transition:all .15s;display:flex;align-items:center;gap:6px;}
 .ptab:hover{border-color:var(--bdr2);color:var(--t2);}
@@ -271,7 +271,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
 .bar-fill.green{background:var(--green);}
 .bar-val{font-size:11px;color:var(--t2);width:38px;text-align:right;flex-shrink:0;}
 
-/* ── CONTENT APPROVAL ── */
+/* CONTENT APPROVAL */
 .approval-tabs{display:flex;gap:4px;margin-bottom:20px;background:rgba(255,255,255,0.03);border:1px solid var(--bdr);border-radius:10px;padding:4px;}
 .atab{flex:1;padding:8px;text-align:center;border-radius:7px;font-size:12px;font-weight:600;color:var(--t3);cursor:pointer;transition:all .15s;}
 .atab.active{background:rgba(126,200,69,0.15);color:var(--gold);}
@@ -312,7 +312,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
 .approval-empty{text-align:center;padding:48px 20px;color:var(--t3);}
 .approval-empty-icon{font-size:40px;margin-bottom:12px;opacity:.3;}
 
-/* ── DELIVERABLES ── */
+/* DELIVERABLES */
 .deliv-header{display:grid;grid-template-columns:1fr 90px 130px 100px 36px;gap:8px;padding:10px 16px;background:rgba(0,0,0,0.15);border-bottom:1px solid var(--bdr);font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;}
 .deliv-row{display:grid;grid-template-columns:1fr 90px 130px 100px 36px;gap:8px;padding:11px 16px;border-bottom:1px solid var(--bdr);align-items:center;transition:background .1s;}
 .deliv-row:last-child{border-bottom:none;}
@@ -331,7 +331,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
 .btn-add{background:var(--purple);border:none;color:#0a1a00;font-family:var(--fb);font-size:12px;font-weight:700;padding:9px 18px;border-radius:7px;cursor:pointer;white-space:nowrap;transition:opacity .2s;}
 .btn-add:hover{opacity:.85;}
 
-/* ── PORTAL GUIDE ── */
+/* PORTAL GUIDE */
 .guide-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px;}
 .guide-card{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:20px;transition:border-color .2s;}
 .guide-card:hover{border-color:var(--bdr2);}
@@ -344,14 +344,39 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
 .flow-lbl{font-size:10px;color:var(--t3);font-weight:600;letter-spacing:.06em;text-transform:uppercase;}
 .flow-arrow{color:var(--gold);font-size:14px;opacity:.4;}
 
-/* LOADING SPINNER */
+/* LOADING */
 .loading{display:flex;align-items:center;gap:10px;padding:20px;color:var(--t3);font-size:13px;}
 .spinner{width:18px;height:18px;border:2px solid var(--bdr);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0;}
 @keyframes spin{to{transform:rotate(360deg);}}
 
+/* ── HAMBURGER BUTTON (fixed — was missing from style block) ── */
+.ham-btn{
+  display:none;
+  background:none;
+  border:1px solid var(--bdr);
+  color:var(--t2);
+  font-size:18px;
+  width:36px;
+  height:36px;
+  border-radius:7px;
+  cursor:pointer;
+  flex-shrink:0;
+  align-items:center;
+  justify-content:center;
+  transition:all .15s;
+}
+.ham-btn:hover{background:rgba(126,200,69,0.1);color:var(--t1);}
+
+/* ── SIDEBAR OVERLAY ── */
+.sb-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:99;backdrop-filter:blur(3px);}
+.sb-overlay.show{display:block;}
+
 @media print{#lock,.sb,.tb{display:none!important;}.main{margin-left:0;}.content{padding:20px 30px;}}
+
 @media(max-width:900px){
-  .sb{transform:translateX(-100%);}
+  .ham-btn{display:flex;}
+  .sb{transform:translateX(-100%);transition:transform .25s ease;}
+  .sb.open{transform:translateX(0);}
   .main{margin-left:0;}
   .perf-grid{grid-template-columns:1fr 1fr;}
   .guide-grid{grid-template-columns:1fr;}
@@ -365,31 +390,22 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
   .hero-sub{font-size:12px;}
   .hero-stats{gap:16px;}
   .hs-val{font-size:18px;}
-
   .content{padding:24px 14px 80px;}
-
   .tb{padding:0 14px;}
   .bc{font-size:11px;}
   .tb-btn{display:none;}
-
   .lock-box{width:90%;padding:28px 20px;}
-
   .perf-grid{grid-template-columns:1fr 1fr;}
   .guide-grid{grid-template-columns:1fr;}
   .contact-grid{grid-template-columns:1fr;}
-
   .platform-tabs{gap:4px;}
   .ptab{font-size:11px;padding:6px 10px;}
-
   .grade-card{flex-direction:column;gap:10px;padding:16px;}
   .grade-letter{font-size:52px;}
-
   .approval-tabs{gap:2px;}
   .atab{font-size:11px;padding:7px 6px;}
-
   .aitem-header{flex-wrap:wrap;gap:6px;}
   .aitem-title{width:100%;}
-
   .deliv-header{grid-template-columns:1fr 70px 36px;gap:6px;}
   .deliv-header span:nth-child(3),
   .deliv-header span:nth-child(4),
@@ -398,24 +414,18 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
   .deliv-row{grid-template-columns:1fr 70px 36px;gap:6px;}
   .deliv-add-grid{grid-template-columns:1fr 1fr;gap:6px;}
   .deliv-add-grid .btn-add{grid-column:1/-1;width:100%;}
-
   .flow-strip{gap:4px;}
   .flow-step{padding:8px 10px;min-width:60px;}
   .flow-num{font-size:16px;}
   .flow-lbl{font-size:9px;}
   .flow-arrow{font-size:11px;}
-
   .guar-box{padding:18px 16px;}
   .guar-h{font-size:16px;}
-
   .terr-box{flex-direction:column;align-items:flex-start;gap:10px;padding:14px 16px;}
   .terr-badge{margin-left:0;}
-
   .prk{width:110px;font-size:11px;}
   .prv{font-size:12px;}
-
   .sec-title{font-size:15px;}
-
   .view-toggle{width:100%;}
   .vbtn{flex:1;text-align:center;}
 }
@@ -423,7 +433,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
 </head>
 <body>
 
-<!-- ── LOCK ── -->
+<!-- LOCK -->
 <div id="lock">
   <div class="lock-brand">FitFluxStudio</div>
   <div class="lock-box">
@@ -431,16 +441,19 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     <div class="lock-sub">Enter the last 8 characters of your access token to unlock your portal.</div>
     <input class="lock-input" id="pwInput" type="text" placeholder="A1B2C3D4" maxlength="8" style="text-transform:uppercase;" onkeydown="if(event.key==='Enter')unlock()"/>
     <div class="lock-err" id="lockErr">Incorrect code. Check your receipt and try again.</div>
-    <button class="lock-btn" onclick="unlock()">Enter Portal →</button>
+    <button class="lock-btn" onclick="unlock()">Enter Portal &rarr;</button>
     <div style="margin-top:12px;padding:12px 14px;background:rgba(204,255,0,0.03);border:1px solid rgba(204,255,0,0.1);border-radius:8px;font-size:11px;color:rgba(255,255,255,0.4);line-height:1.7;text-align:left;">
       <strong style="color:rgba(204,255,0,0.65);display:block;margin-bottom:4px;">What is my access code?</strong>
-      The last 8 characters of your token from your receipt — starts with <span style="font-family:monospace;color:rgba(204,255,0,0.6);">FF-</span>.<br><br>
+      The last 8 characters of your token from your receipt &mdash; starts with <span style="font-family:monospace;color:rgba(204,255,0,0.6);">FF-</span>.<br><br>
       <strong style="color:rgba(204,255,0,0.65);">Lost it?</strong> Email <a href="mailto:fitfluxstudio@gmail.com" style="color:#CCFF00;">fitfluxstudio@gmail.com</a>
     </div>
   </div>
 </div>
 
-<!-- ── SIDEBAR ── -->
+<!-- SIDEBAR OVERLAY (tap outside to close on mobile) -->
+<div class="sb-overlay" id="sb-overlay" onclick="toggleSidebar()"></div>
+
+<!-- SIDEBAR -->
 <nav class="sb">
   <div class="sb-head">
     <div class="sb-logo-row"><div class="sb-dot"></div><div class="sb-name">FitFlux</div></div>
@@ -454,36 +467,36 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
   </div>
   <div class="sb-section">
     <div class="sb-lbl">Get Started</div>
-    <a class="nv act" href="javascript:void(0)" data-target="welcome" onclick="nav(this,'Welcome')"><span class="nv-icon">👋</span>Welcome <span class="nv-badge green">NEW</span></a>
-    <a class="nv" href="javascript:void(0)" data-target="guide" onclick="nav(this,'Portal Guide')"><span class="nv-icon">🗺️</span>Portal Guide</a>
-    <a class="nv" href="javascript:void(0)" data-target="overview" onclick="nav(this,'Overview')"><span class="nv-icon">📋</span>Project Overview</a>
-    <a class="nv" href="javascript:void(0)" data-target="roadmap" onclick="nav(this,'Roadmap')"><span class="nv-icon">📍</span>SMM Roadmap</a>
+    <a class="nv act" href="javascript:void(0)" data-target="welcome" onclick="nav(this,'Welcome')"><span class="nv-icon">&#x1F44B;</span>Welcome <span class="nv-badge green">NEW</span></a>
+    <a class="nv" href="javascript:void(0)" data-target="guide" onclick="nav(this,'Portal Guide')"><span class="nv-icon">&#x1F5FA;</span>Portal Guide</a>
+    <a class="nv" href="javascript:void(0)" data-target="overview" onclick="nav(this,'Overview')"><span class="nv-icon">&#x1F4CB;</span>Project Overview</a>
+    <a class="nv" href="javascript:void(0)" data-target="roadmap" onclick="nav(this,'Roadmap')"><span class="nv-icon">&#x1F4CD;</span>SMM Roadmap</a>
   </div>
   <div class="sb-section">
     <div class="sb-lbl">Your Content</div>
-    <a class="nv" href="javascript:void(0)" data-target="approvals" onclick="nav(this,'Content Approval')"><span class="nv-icon">✅</span>Content Approval <span class="nv-badge" id="pending-badge" style="display:none;">0</span></a>
-    <a class="nv" href="javascript:void(0)" data-target="performance" onclick="nav(this,'Performance')"><span class="nv-icon">📊</span>Performance</a>
-    <a class="nv" href="javascript:void(0)" data-target="deliverables" onclick="nav(this,'Deliverables')"><span class="nv-icon">📦</span>Deliverables</a>
+    <a class="nv" href="javascript:void(0)" data-target="approvals" onclick="nav(this,'Content Approval')"><span class="nv-icon">&#x2705;</span>Content Approval <span class="nv-badge" id="pending-badge" style="display:none;">0</span></a>
+    <a class="nv" href="javascript:void(0)" data-target="performance" onclick="nav(this,'Performance')"><span class="nv-icon">&#x1F4CA;</span>Performance</a>
+    <a class="nv" href="javascript:void(0)" data-target="deliverables" onclick="nav(this,'Deliverables')"><span class="nv-icon">&#x1F4E6;</span>Deliverables</a>
   </div>
   <div class="sb-section">
     <div class="sb-lbl">Account</div>
-    <a class="nv" href="javascript:void(0)" data-target="territory" onclick="nav(this,'Territory')"><span class="nv-icon">🔒</span>Territory</a>
-    <a class="nv" href="javascript:void(0)" data-target="guarantee" onclick="nav(this,'Guarantee')"><span class="nv-icon">🛡️</span>Guarantee</a>
-    <a class="nv" href="javascript:void(0)" data-target="documents" onclick="nav(this,'Documents')"><span class="nv-icon">📄</span>Documents</a>
-    <a class="nv" href="javascript:void(0)" data-target="uploads" onclick="nav(this,'Submit Files')"><span class="nv-icon">📤</span>Submit Files</a>
-    <a class="nv" href="javascript:void(0)" data-target="contact" onclick="nav(this,'Contact')"><span class="nv-icon">💬</span>Contact Team</a>
-    <a class="nv" href="javascript:void(0)" data-target="notes" onclick="nav(this,'Notes')"><span class="nv-icon">📝</span>Notes</a>
+    <a class="nv" href="javascript:void(0)" data-target="territory" onclick="nav(this,'Territory')"><span class="nv-icon">&#x1F512;</span>Territory</a>
+    <a class="nv" href="javascript:void(0)" data-target="guarantee" onclick="nav(this,'Guarantee')"><span class="nv-icon">&#x1F6E1;</span>Guarantee</a>
+    <a class="nv" href="javascript:void(0)" data-target="documents" onclick="nav(this,'Documents')"><span class="nv-icon">&#x1F4C4;</span>Documents</a>
+    <a class="nv" href="javascript:void(0)" data-target="uploads" onclick="nav(this,'Submit Files')"><span class="nv-icon">&#x1F4E4;</span>Submit Files</a>
+    <a class="nv" href="javascript:void(0)" data-target="contact" onclick="nav(this,'Contact')"><span class="nv-icon">&#x1F4AC;</span>Contact Team</a>
+    <a class="nv" href="javascript:void(0)" data-target="notes" onclick="nav(this,'Notes')"><span class="nv-icon">&#x1F4DD;</span>Notes</a>
   </div>
   <div class="sb-ft">
     <div class="sb-ft-txt">"Your content. Working for you. Every day."</div>
-    <div class="sb-online">⬤ Content Active</div>
+    <div class="sb-online">&#x2B24; Content Active</div>
   </div>
 </nav>
 
-<!-- ── MAIN ── -->
-<div class="tb">
-    <button class="ham-btn" id="hamBtn" onclick="toggleSidebar()">☰</button>
-    <div class="bc">
+<!-- MAIN -->
+<div class="main">
+  <div class="tb">
+    <button class="ham-btn" id="hamBtn" onclick="toggleSidebar()">&#9776;</button>
     <div class="bc">
       <span>FitFlux</span><span class="bc-sep">/</span>
       <span style="color:var(--gold);font-size:11px;font-weight:600;background:rgba(204,255,0,.1);padding:2px 9px;border-radius:10px;">Social Media Management</span>
@@ -497,14 +510,14 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
 
   <!-- HERO -->
   <div class="hero">
-    <div class="hero-eyebrow">FitFluxStudio — Social Media Management</div>
+    <div class="hero-eyebrow">FitFluxStudio &mdash; Social Media Management</div>
     <div class="hero-h1">Your content is being <em>created.</em></div>
-    <div class="hero-sub">Review and approve before it goes live. Track growth across every platform. Your territory is locked — no competitor in your market gets this system.</div>
+    <div class="hero-sub">Review and approve before it goes live. Track growth across every platform. Your territory is locked &mdash; no competitor in your market gets this system.</div>
     <div class="hero-stats">
-      <div class="hs"><div class="hs-val" id="stat-posts">6–18</div><div class="hs-lbl">Posts / Week</div></div>
+      <div class="hs"><div class="hs-val" id="stat-posts">6&ndash;18</div><div class="hs-lbl">Posts / Week</div></div>
       <div class="hs"><div class="hs-val">3</div><div class="hs-lbl">Tiers Available</div></div>
       <div class="hs"><div class="hs-val">100%</div><div class="hs-lbl">Territory Exclusive</div></div>
-      <div class="hs"><div class="hs-val">🔒</div><div class="hs-lbl">Territory Locked</div></div>
+      <div class="hs"><div class="hs-val">&#x1F512;</div><div class="hs-lbl">Territory Locked</div></div>
     </div>
   </div>
 
@@ -514,9 +527,9 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     <div id="welcome">
       <div class="sec-head"><div class="sec-num">01</div><div class="sec-title">Welcome</div><div class="sec-line"></div></div>
       <div style="background:var(--card);border:1px solid var(--bdr2);border-radius:14px;padding:32px;text-align:center;margin-bottom:16px;">
-        <div style="font-size:48px;margin-bottom:16px;">🎯</div>
+        <div style="font-size:48px;margin-bottom:16px;">&#x1F3AF;</div>
         <div style="font-family:var(--fh);font-size:26px;font-weight:800;color:var(--gold);margin-bottom:10px;" id="welcome-name">Welcome Aboard.</div>
-        <div style="font-size:14px;color:var(--t2);line-height:1.8;max-width:500px;margin:0 auto 20px;">Your <strong style="color:var(--t1);" id="welcome-tier">SMM</strong> plan is now active. Your territory is locked. Your content is being built. This is your command centre — everything you need is in the sidebar.</div>
+        <div style="font-size:14px;color:var(--t2);line-height:1.8;max-width:500px;margin:0 auto 20px;">Your <strong style="color:var(--t1);" id="welcome-tier">SMM</strong> plan is now active. Your territory is locked. Your content is being built. This is your command centre &mdash; everything you need is in the sidebar.</div>
         <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
           <div style="background:rgba(126,200,69,0.1);border:1px solid var(--bdr2);border-radius:9px;padding:12px 20px;text-align:left;min-width:140px;">
             <div style="font-size:10px;color:var(--t3);font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px;">Your Territory</div>
@@ -528,15 +541,15 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
           </div>
           <div style="background:rgba(61,214,140,0.08);border:1px solid rgba(61,214,140,0.2);border-radius:9px;padding:12px 20px;text-align:left;min-width:140px;">
             <div style="font-size:10px;color:var(--t3);font-weight:700;letter-spacing:.1em;text-transform:uppercase;margin-bottom:5px;">Status</div>
-            <div style="font-size:13px;font-weight:700;color:var(--green);">✓ Active</div>
+            <div style="font-size:13px;font-weight:700;color:var(--green);">&#x2713; Active</div>
           </div>
         </div>
       </div>
       <div class="callout gold">
-        <div class="callout-icon">📱</div>
+        <div class="callout-icon">&#x1F4F1;</div>
         <div>
           <div class="callout-title">What Happens Next</div>
-          <div class="callout-text">Your FitFlux team is building your content strategy. Within the first week you'll receive your first batch of posts in the <strong style="color:var(--t1);">Content Approval</strong> section — review, leave comments, or approve. Nothing goes live without your sign-off.</div>
+          <div class="callout-text">Your FitFlux team is building your content strategy. Within the first week you'll receive your first batch of posts in the <strong style="color:var(--t1);">Content Approval</strong> section &mdash; review, leave comments, or approve. Nothing goes live without your sign-off.</div>
         </div>
       </div>
     </div>
@@ -547,22 +560,22 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     <div id="guide">
       <div class="sec-head"><div class="sec-num">02</div><div class="sec-title">How This Portal Works</div><div class="sec-line"></div></div>
       <div class="guide-grid">
-        <div class="guide-card"><div class="guide-icon">✅</div><div class="guide-title">Content Approval</div><div class="guide-desc">Before anything goes live on your social media, you see it here first. Review the caption, image or video. Approve it or leave a comment requesting changes. No DMs needed — everything happens in the portal.</div></div>
-        <div class="guide-card"><div class="guide-icon">📊</div><div class="guide-title">Performance Dashboard</div><div class="guide-desc">See your growth numbers per platform — followers, reach, engagement, enquiries. Toggle between weekly and monthly. Your FitFlux team updates these. You just read the results.</div></div>
-        <div class="guide-card"><div class="guide-icon">📦</div><div class="guide-title">Deliverables Tracker</div><div class="guide-desc">Every video, graphic, strategy doc, and report we produce for you is tracked here. See what's pending, in progress, delivered, and approved. Unlimited entries. No ceiling.</div></div>
-        <div class="guide-card"><div class="guide-icon">🔒</div><div class="guide-title">Territory Status</div><div class="guide-desc">Your niche and city are locked exclusively to you. No other fitness coach in your market gets this system. This is confirmed in writing in your contract and visible here at all times.</div></div>
-        <div class="guide-card"><div class="guide-icon">📄</div><div class="guide-title">Documents & Invoices</div><div class="guide-desc">Your signed contract, invoices, receipts, and reports automatically appear here as you complete each stage of the payment and onboarding route.</div></div>
-        <div class="guide-card"><div class="guide-icon">💬</div><div class="guide-title">Contact Team</div><div class="guide-desc">Your dedicated FitFlux contact is always reachable here. For content feedback, use the Content Approval section — it goes directly to your team with full context.</div></div>
+        <div class="guide-card"><div class="guide-icon">&#x2705;</div><div class="guide-title">Content Approval</div><div class="guide-desc">Before anything goes live on your social media, you see it here first. Review the caption, image or video. Approve it or leave a comment requesting changes. No DMs needed &mdash; everything happens in the portal.</div></div>
+        <div class="guide-card"><div class="guide-icon">&#x1F4CA;</div><div class="guide-title">Performance Dashboard</div><div class="guide-desc">See your growth numbers per platform &mdash; followers, reach, engagement, enquiries. Toggle between weekly and monthly. Your FitFlux team updates these. You just read the results.</div></div>
+        <div class="guide-card"><div class="guide-icon">&#x1F4E6;</div><div class="guide-title">Deliverables Tracker</div><div class="guide-desc">Every video, graphic, strategy doc, and report we produce for you is tracked here. See what's pending, in progress, delivered, and approved. Unlimited entries. No ceiling.</div></div>
+        <div class="guide-card"><div class="guide-icon">&#x1F512;</div><div class="guide-title">Territory Status</div><div class="guide-desc">Your niche and city are locked exclusively to you. No other fitness coach in your market gets this system. This is confirmed in writing in your contract and visible here at all times.</div></div>
+        <div class="guide-card"><div class="guide-icon">&#x1F4C4;</div><div class="guide-title">Documents &amp; Invoices</div><div class="guide-desc">Your signed contract, invoices, receipts, and reports automatically appear here as you complete each stage of the payment and onboarding route.</div></div>
+        <div class="guide-card"><div class="guide-icon">&#x1F4AC;</div><div class="guide-title">Contact Team</div><div class="guide-desc">Your dedicated FitFlux contact is always reachable here. For content feedback, use the Content Approval section &mdash; it goes directly to your team with full context.</div></div>
       </div>
       <div class="flow-strip">
         <div class="flow-step"><div class="flow-num">1</div><div class="flow-lbl">We Create</div></div>
-        <div class="flow-arrow">→</div>
+        <div class="flow-arrow">&rarr;</div>
         <div class="flow-step"><div class="flow-num">2</div><div class="flow-lbl">You Review</div></div>
-        <div class="flow-arrow">→</div>
+        <div class="flow-arrow">&rarr;</div>
         <div class="flow-step"><div class="flow-num">3</div><div class="flow-lbl">You Approve</div></div>
-        <div class="flow-arrow">→</div>
+        <div class="flow-arrow">&rarr;</div>
         <div class="flow-step"><div class="flow-num">4</div><div class="flow-lbl">Goes Live</div></div>
-        <div class="flow-arrow">→</div>
+        <div class="flow-arrow">&rarr;</div>
         <div class="flow-step"><div class="flow-num">5</div><div class="flow-lbl">Track Results</div></div>
       </div>
     </div>
@@ -574,15 +587,15 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
       <div class="sec-head"><div class="sec-num">03</div><div class="sec-title">Project Overview</div><div class="sec-line"></div></div>
       <div id="overview-loading" class="loading"><div class="spinner"></div>Loading your details...</div>
       <div class="props" id="overview-props" style="display:none;">
-        <div class="pr"><div class="prk">👤 Name</div><div class="prv" id="ov-name">—</div></div>
-        <div class="pr"><div class="prk">📧 Email</div><div class="prv" id="ov-email">—</div></div>
-        <div class="pr"><div class="prk">📱 Phone</div><div class="prv" id="ov-phone">—</div></div>
-        <div class="pr"><div class="prk">🎯 Niche</div><div class="prv" id="ov-niche">—</div></div>
-        <div class="pr"><div class="prk">📍 Territory</div><div class="prv" id="ov-territory">—</div></div>
-        <div class="pr"><div class="prk">📦 Tier</div><div class="prv" id="ov-tier">—</div></div>
-        <div class="pr"><div class="prk">📸 Instagram</div><div class="prv" id="ov-ig">—</div></div>
-        <div class="pr"><div class="prk">📅 Start Date</div><div class="prv" id="ov-start">—</div></div>
-        <div class="pr"><div class="prk">● Status</div><div class="prv"><span class="tag tag-g">Active</span></div></div>
+        <div class="pr"><div class="prk">&#x1F464; Name</div><div class="prv" id="ov-name">&mdash;</div></div>
+        <div class="pr"><div class="prk">&#x1F4E7; Email</div><div class="prv" id="ov-email">&mdash;</div></div>
+        <div class="pr"><div class="prk">&#x1F4F1; Phone</div><div class="prv" id="ov-phone">&mdash;</div></div>
+        <div class="pr"><div class="prk">&#x1F3AF; Niche</div><div class="prv" id="ov-niche">&mdash;</div></div>
+        <div class="pr"><div class="prk">&#x1F4CD; Territory</div><div class="prv" id="ov-territory">&mdash;</div></div>
+        <div class="pr"><div class="prk">&#x1F4E6; Tier</div><div class="prv" id="ov-tier">&mdash;</div></div>
+        <div class="pr"><div class="prk">&#x1F4F8; Instagram</div><div class="prv" id="ov-ig">&mdash;</div></div>
+        <div class="pr"><div class="prk">&#x1F4C5; Start Date</div><div class="prv" id="ov-start">&mdash;</div></div>
+        <div class="pr"><div class="prk">&#x25CF; Status</div><div class="prv"><span class="tag tag-g">Active</span></div></div>
       </div>
     </div>
 
@@ -592,7 +605,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     <div id="roadmap">
       <div class="sec-head"><div class="sec-num">04</div><div class="sec-title">Your SMM Roadmap</div><div class="sec-line"></div></div>
       <div class="tog">
-        <div class="tog-h" onclick="tp(this)"><span class="tog-arr op">▶</span><div class="tog-dot dot-gold"></div><span class="tog-title">Phase 1 — Brand Discovery</span><div class="tog-meta"><span class="tog-days">Week 1</span><span class="tag tag-b">Active</span></div></div>
+        <div class="tog-h" onclick="tp(this)"><span class="tog-arr op">&#x25B6;</span><div class="tog-dot dot-gold"></div><span class="tog-title">Phase 1 &mdash; Brand Discovery</span><div class="tog-meta"><span class="tog-days">Week 1</span><span class="tag tag-b">Active</span></div></div>
         <div class="tog-body op">
           <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Brand voice intake completed</div></div>
           <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Niche and ideal client confirmed</div></div>
@@ -600,22 +613,22 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
           <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Profile optimisation completed across platforms</div></div>
           <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Territory lock confirmed in writing</div></div>
           <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Platform strategy agreed</div></div>
-          <div class="tog-note">⚡ Complete brand voice intake and submit brand assets within 5 business days.</div>
+          <div class="tog-note">&#x26A1; Complete brand voice intake and submit brand assets within 5 business days.</div>
         </div>
       </div>
       <div class="tog">
-        <div class="tog-h" onclick="tp(this)"><span class="tog-arr">▶</span><div class="tog-dot dot-dim"></div><span class="tog-title">Phase 2 — First Content Batch & Approval</span><div class="tog-meta"><span class="tog-days">Week 2</span><span class="tag tag-p">Upcoming</span></div></div>
+        <div class="tog-h" onclick="tp(this)"><span class="tog-arr">&#x25B6;</span><div class="tog-dot dot-dim"></div><span class="tog-title">Phase 2 &mdash; First Content Batch &amp; Approval</span><div class="tog-meta"><span class="tog-days">Week 2</span><span class="tag tag-p">Upcoming</span></div></div>
         <div class="tog-body">
           <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">First batch of posts created and uploaded for approval</div></div>
           <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Stories designed and scheduled</div></div>
           <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Captions written in your voice</div></div>
           <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Client reviews and approves (or requests changes) in portal</div></div>
           <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Content scheduled across all active platforms</div></div>
-          <div class="tog-note">📋 You will be notified when content is ready for review in the Content Approval section.</div>
+          <div class="tog-note">&#x1F4CB; You will be notified when content is ready for review in the Content Approval section.</div>
         </div>
       </div>
       <div class="tog">
-        <div class="tog-h" onclick="tp(this)"><span class="tog-arr">▶</span><div class="tog-dot dot-dim"></div><span class="tog-title">Phase 3 — Consistent Posting & Growth</span><div class="tog-meta"><span class="tog-days">Month 1+</span><span class="tag tag-p">Upcoming</span></div></div>
+        <div class="tog-h" onclick="tp(this)"><span class="tog-arr">&#x25B6;</span><div class="tog-dot dot-dim"></div><span class="tog-title">Phase 3 &mdash; Consistent Posting &amp; Growth</span><div class="tog-meta"><span class="tog-days">Month 1+</span><span class="tag tag-p">Upcoming</span></div></div>
         <div class="tog-body">
           <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Weekly content batches approved and scheduled</div></div>
           <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Engagement building on target platforms</div></div>
@@ -625,7 +638,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
         </div>
       </div>
       <div class="tog">
-        <div class="tog-h" onclick="tp(this)"><span class="tog-arr">▶</span><div class="tog-dot dot-dim"></div><span class="tog-title">Phase 4 — Authority & Conversion</span><div class="tog-meta"><span class="tog-days">Month 3+</span><span class="tag tag-p">Upcoming</span></div></div>
+        <div class="tog-h" onclick="tp(this)"><span class="tog-arr">&#x25B6;</span><div class="tog-dot dot-dim"></div><span class="tog-title">Phase 4 &mdash; Authority &amp; Conversion</span><div class="tog-meta"><span class="tog-days">Month 3+</span><span class="tag tag-p">Upcoming</span></div></div>
         <div class="tog-body">
           <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Conversion content firing consistently</div></div>
           <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Warm followers enquiring regularly</div></div>
@@ -641,13 +654,12 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     <div id="approvals">
       <div class="sec-head"><div class="sec-num">05</div><div class="sec-title">Content Approval</div><div class="sec-line"></div></div>
       <div class="callout amber">
-        <div class="callout-icon">📋</div>
+        <div class="callout-icon">&#x1F4CB;</div>
         <div>
           <div class="callout-title">Review Before It Goes Live</div>
           <div class="callout-text">Content is grouped by week. Click Approve to confirm, or leave a comment if you'd like changes. Your FitFlux team gets notified instantly. Nothing goes live without your approval.</div>
         </div>
       </div>
-      <!-- Week Tabs -->
       <div class="approval-tabs">
         <div class="atab active" onclick="switchWeek('this',this)">This Week</div>
         <div class="atab" onclick="switchWeek('last',this)">Last Week</div>
@@ -665,19 +677,19 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     <div id="performance">
       <div class="sec-head"><div class="sec-num">06</div><div class="sec-title">Performance Dashboard</div><div class="sec-line"></div></div>
       <div class="callout">
-        <div class="callout-icon">📊</div>
+        <div class="callout-icon">&#x1F4CA;</div>
         <div>
           <div class="callout-title">Your Growth Intelligence</div>
           <div class="callout-text">Updated weekly by your FitFlux team. Select a platform and toggle between weekly and monthly view.</div>
         </div>
       </div>
       <div class="platform-tabs">
-        <div class="ptab active" onclick="switchPlatform('instagram',this)">📸 Instagram</div>
-        <div class="ptab" onclick="switchPlatform('tiktok',this)">🎵 TikTok</div>
-        <div class="ptab" onclick="switchPlatform('facebook',this)">📘 Facebook</div>
-        <div class="ptab" onclick="switchPlatform('youtube',this)">▶️ YouTube</div>
-        <div class="ptab" onclick="switchPlatform('linkedin',this)">💼 LinkedIn</div>
-        <div class="ptab" onclick="switchPlatform('twitter',this)">✕ Twitter/X</div>
+        <div class="ptab active" onclick="switchPlatform('instagram',this)">&#x1F4F8; Instagram</div>
+        <div class="ptab" onclick="switchPlatform('tiktok',this)">&#x1F3B5; TikTok</div>
+        <div class="ptab" onclick="switchPlatform('facebook',this)">&#x1F4D8; Facebook</div>
+        <div class="ptab" onclick="switchPlatform('youtube',this)">&#x25B6; YouTube</div>
+        <div class="ptab" onclick="switchPlatform('linkedin',this)">&#x1F4BC; LinkedIn</div>
+        <div class="ptab" onclick="switchPlatform('twitter',this)">&#x2715; Twitter/X</div>
       </div>
       <div class="view-toggle">
         <div class="vbtn active" onclick="switchView('weekly',this)">Weekly</div>
@@ -700,7 +712,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     <div id="deliverables">
       <div class="sec-head"><div class="sec-num">07</div><div class="sec-title">Deliverables Tracker</div><div class="sec-line"></div></div>
       <div class="callout">
-        <div class="callout-icon">📦</div>
+        <div class="callout-icon">&#x1F4E6;</div>
         <div>
           <div class="callout-title">Everything We've Made For You</div>
           <div class="callout-text">Every video, graphic, strategy doc, and report is tracked here. Unlimited. No ceiling. Add items as they come in.</div>
@@ -718,10 +730,10 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
               <option>Strategy</option><option>Report</option><option>Asset</option><option>Other</option>
             </select>
             <select class="d-select" id="d-status">
-              <option value="pending">⏳ Pending</option>
-              <option value="progress">🔄 In Progress</option>
-              <option value="delivered">✅ Delivered</option>
-              <option value="approved">🎉 Approved</option>
+              <option value="pending">&#x23F3; Pending</option>
+              <option value="progress">&#x1F504; In Progress</option>
+              <option value="delivered">&#x2705; Delivered</option>
+              <option value="approved">&#x1F389; Approved</option>
             </select>
             <input class="d-input" id="d-link" placeholder="Google Drive link"/>
             <button class="btn-add" onclick="addDeliverable()">+ Add</button>
@@ -736,12 +748,12 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     <div id="territory">
       <div class="sec-head"><div class="sec-num">08</div><div class="sec-title">Territory Status</div><div class="sec-line"></div></div>
       <div class="terr-box">
-        <div style="font-size:28px;">📍</div>
+        <div style="font-size:28px;">&#x1F4CD;</div>
         <div><div class="terr-lbl">Locked Territory</div><div class="terr-name" id="terr-display">Loading...</div></div>
-        <div class="terr-badge">✓ Exclusive</div>
+        <div class="terr-badge">&#x2713; Exclusive</div>
       </div>
       <div class="callout gold">
-        <div class="callout-icon">🔒</div>
+        <div class="callout-icon">&#x1F512;</div>
         <div>
           <div class="callout-title">You Are The Only Coach We Work With In Your Market</div>
           <div class="callout-text">Your niche and city are locked exclusively to you. No other fitness coach in your territory gets this content system from FitFluxStudio. Ever. Confirmed in writing in your contract.</div>
@@ -755,8 +767,8 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     <div id="guarantee">
       <div class="sec-head"><div class="sec-num">09</div><div class="sec-title">The Guarantee</div><div class="sec-line"></div></div>
       <div class="guar-box">
-        <div class="guar-lbl">⚡ Content Guarantee</div>
-        <div class="guar-h">Consistent, Strategic Content — Every Single Week.</div>
+        <div class="guar-lbl">&#x26A1; Content Guarantee</div>
+        <div class="guar-h">Consistent, Strategic Content &mdash; Every Single Week.</div>
         <div class="guar-txt">
           We guarantee your content goes out on schedule, in your voice, every week without fail.<br><br>
           <strong>Presence:</strong> 6 posts + 5 stories per week.<br>
@@ -773,7 +785,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     <div id="documents">
       <div class="sec-head"><div class="sec-num">10</div><div class="sec-title">Documents &amp; Invoices</div><div class="sec-line"></div></div>
       <div class="callout">
-        <div class="callout-icon">📄</div>
+        <div class="callout-icon">&#x1F4C4;</div>
         <div>
           <div class="callout-title">Auto-populated From Your Payment Route</div>
           <div class="callout-text">Your invoice, receipt, and signed contract are automatically stored here as you complete each stage. Download anytime.</div>
@@ -795,15 +807,15 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     <!-- 11 SUBMIT FILES -->
     <div id="uploads">
       <div class="sec-head"><div class="sec-num">11</div><div class="sec-title">Submit Files</div><div class="sec-line"></div></div>
-      <div class="callout"><div class="callout-icon">📤</div><div><div class="callout-title">Upload Brand Assets</div><div class="callout-text">Upload your logos, brand photos, existing content, videos, and any files your FitFlux team has requested. Add as many files as you need — they all queue and upload together.</div></div></div>
+      <div class="callout"><div class="callout-icon">&#x1F4E4;</div><div><div class="callout-title">Upload Brand Assets</div><div class="callout-text">Upload your logos, brand photos, existing content, videos, and any files your FitFlux team has requested. Add as many files as you need &mdash; they all queue and upload together.</div></div></div>
       <div class="upload-zone" id="dropZone" onclick="document.getElementById('fileInput').click()" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="handleDrop(event)">
-        <div class="upload-icon">📁</div>
+        <div class="upload-icon">&#x1F4C1;</div>
         <div class="upload-title">Drop files here or <span>browse</span></div>
-        <div class="upload-sub">Logos · Photos · Videos · Docs — No limit · Highest quality preserved</div>
+        <div class="upload-sub">Logos &middot; Photos &middot; Videos &middot; Docs &mdash; No limit &middot; Highest quality preserved</div>
       </div>
       <input type="file" id="fileInput" multiple onchange="queueFiles(this.files)"/>
       <div class="file-queue" id="fileQueue"></div>
-      <button class="upload-all-btn" id="uploadAllBtn" onclick="uploadAll()">Upload All Files →</button>
+      <button class="upload-all-btn" id="uploadAllBtn" onclick="uploadAll()">Upload All Files &rarr;</button>
       <div id="upload-status" style="margin-top:10px;font-size:12px;color:var(--t3);display:none;"></div>
     </div>
 
@@ -817,16 +829,16 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
           <div class="cc-lbl">Content Lead</div>
           <div class="cc-name">FitFlux Team</div>
           <div class="cc-role">Social Media Strategist &amp; Content Manager</div>
-          <a class="cc-link" href="mailto:fitfluxstudio@gmail.com">📧 fitfluxstudio@gmail.com</a>
+          <a class="cc-link" href="mailto:fitfluxstudio@gmail.com">&#x1F4E7; fitfluxstudio@gmail.com</a>
         </div>
         <div class="contact-card">
           <div class="cc-lbl">Support</div>
           <div class="cc-name">Client Support</div>
           <div class="cc-role">Questions, approvals &amp; urgent requests</div>
-          <a class="cc-link" href="mailto:fitfluxstudio@gmail.com">💬 fitfluxstudio@gmail.com</a>
+          <a class="cc-link" href="mailto:fitfluxstudio@gmail.com">&#x1F4AC; fitfluxstudio@gmail.com</a>
         </div>
       </div>
-      <div class="callout gold"><div class="callout-icon">⚡</div><div><div class="callout-title">Response Time</div><div class="callout-text">We respond within 24 hours on business days. For content feedback, use the Content Approval section — it goes directly to your team with full context attached.</div></div></div>
+      <div class="callout gold"><div class="callout-icon">&#x26A1;</div><div><div class="callout-title">Response Time</div><div class="callout-text">We respond within 24 hours on business days. For content feedback, use the Content Approval section &mdash; it goes directly to your team with full context attached.</div></div></div>
     </div>
 
     <div class="dvd"></div>
@@ -834,30 +846,24 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     <!-- 13 NOTES -->
     <div id="notes">
       <div class="sec-head"><div class="sec-num">13</div><div class="sec-title">Notes</div><div class="sec-line"></div></div>
-      <textarea class="notes-area" id="notes-area" placeholder="Add your notes, questions, or reminders here…" oninput="saveNotes()"></textarea>
+      <textarea class="notes-area" id="notes-area" placeholder="Add your notes, questions, or reminders here&hellip;" oninput="saveNotes()"></textarea>
     </div>
 
     <div class="dvd"></div>
   </div>
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script>
 <script>
-// ══════════════════════════════════════════════════════════════════
-// CONFIG — replace SCRIPT_URL with your deployed Apps Script URL
-// ══════════════════════════════════════════════════════════════════
 const SCRIPT_URL = 'YOUR_APPS_SCRIPT_URL_HERE';
 const TG_BOT     = '8728238222:AAG_ssXL9LPn7moTHh7HTx0XCyHLkP8q4TQ';
 const TG_CHAT    = '-1003939399057';
 const TG_ASSETS  = '-1003888423178';
 
-// ── TOKEN & CLIENT DATA ──────────────────────────────────────────
 const urlToken  = new URLSearchParams(window.location.search).get('token') || '';
 const PW        = urlToken ? urlToken.slice(-8).toUpperCase() : 'FF2024';
 const CLIENT    = window.FF_CLIENT || {};
 const TIER      = window.FF_TIER   || '';
 
-// State
 let currentPlatform = 'instagram';
 let currentView     = 'weekly';
 let currentWeek     = 'this';
@@ -865,7 +871,15 @@ let deliverables    = [];
 let contentData     = [];
 let fileQueue       = [];
 
-// ── LOGIN ─────────────────────────────────────────────────────────
+/* ── HAMBURGER ── */
+function toggleSidebar(){
+  const sb = document.querySelector('.sb');
+  const overlay = document.getElementById('sb-overlay');
+  sb.classList.toggle('open');
+  overlay.classList.toggle('show');
+}
+
+/* ── LOGIN ── */
 function unlock(){
   const raw = (document.getElementById('pwInput').value||'').trim().toUpperCase();
   const err = document.getElementById('lockErr');
@@ -884,71 +898,50 @@ function unlock(){
   }
 }
 
-// ── INIT PORTAL ───────────────────────────────────────────────────
+/* ── INIT ── */
 async function initPortal(){
   fillClientData();
-  // Register client in Sheet (creates row if new)
   await apiPost('registerClient', {
     token: urlToken, name: CLIENT.name, email: CLIENT.email,
     phone: CLIENT.phone, city: CLIENT.city, territory: CLIENT.territory,
     niche: CLIENT.niche, ig: CLIENT.ig, tier: TIER
   });
-  // Load all data in parallel
-  await Promise.all([
-    loadContent(),
-    loadDeliverables(),
-    loadDocuments(),
-    loadPerformance()
-  ]);
-  // Restore notes
+  await Promise.all([loadContent(), loadDeliverables(), loadDocuments(), loadPerformance()]);
   const saved = await apiGet('getNotes', urlToken);
-  if(saved && saved.notes){
-    document.getElementById('notes-area').value = saved.notes;
-  }
+  if(saved && saved.notes) document.getElementById('notes-area').value = saved.notes;
 }
 
-// ── FILL CLIENT DATA ──────────────────────────────────────────────
+/* ── FILL DATA ── */
 function fillClientData(){
-  const name  = CLIENT.name || '—';
-  const terr  = CLIENT.territory || '—';
-  const niche = CLIENT.niche || '—';
-  const ig    = CLIENT.ig || '—';
-  const tier  = TIER ? (TIER.charAt(0).toUpperCase()+TIER.slice(1)+' Plan') : '—';
-
-  // Sidebar
+  const name  = CLIENT.name || '\u2014';
+  const terr  = CLIENT.territory || '\u2014';
+  const niche = CLIENT.niche || '\u2014';
+  const ig    = CLIENT.ig || '\u2014';
+  const tier  = TIER ? (TIER.charAt(0).toUpperCase()+TIER.slice(1)+' Plan') : '\u2014';
   document.getElementById('sb-name').textContent = name;
   document.getElementById('sb-tier').textContent = tier;
-  document.getElementById('sb-terr').textContent = niche + (niche!=='—'&&terr!=='—'?' · ':'') + terr;
-
-  // Welcome
+  document.getElementById('sb-terr').textContent = niche + (niche!=='\u2014'&&terr!=='\u2014'?' \u00B7 ':'') + terr;
   document.getElementById('welcome-name').textContent = 'Welcome, ' + name.split(' ')[0] + '.';
   document.getElementById('welcome-tier').textContent = tier;
   document.getElementById('welcome-terr').textContent = terr;
   document.getElementById('welcome-niche').textContent = niche;
-
-  // Overview
   document.getElementById('ov-name').textContent      = name;
-  document.getElementById('ov-email').textContent     = CLIENT.email || '—';
-  document.getElementById('ov-phone').textContent     = CLIENT.phone || '—';
+  document.getElementById('ov-email').textContent     = CLIENT.email || '\u2014';
+  document.getElementById('ov-phone').textContent     = CLIENT.phone || '\u2014';
   document.getElementById('ov-niche').textContent     = niche;
   document.getElementById('ov-territory').textContent = terr;
   document.getElementById('ov-tier').textContent      = tier;
-  document.getElementById('ov-ig').textContent        = ig !== '—' ? '@'+ig : '—';
+  document.getElementById('ov-ig').textContent        = ig !== '\u2014' ? '@'+ig : '\u2014';
   document.getElementById('ov-start').textContent     = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
   document.getElementById('overview-loading').style.display = 'none';
   document.getElementById('overview-props').style.display   = '';
-
-  // Territory
-  const terrFull = niche + (niche!=='—'&&terr!=='—'?' · ':'') + terr + ' — Locked & Protected';
-  document.getElementById('terr-display').textContent = terrFull;
-
-  // Hero stat by tier
+  document.getElementById('terr-display').textContent = niche + (niche!=='\u2014'&&terr!=='\u2014'?' \u00B7 ':'') + terr + ' \u2014 Locked & Protected';
   const postsMap = {presence:'6',authority:'12',categoryking:'18'};
   const el = document.getElementById('stat-posts');
   if(el && postsMap[TIER]) el.textContent = postsMap[TIER];
 }
 
-// ── WELCOME MODAL ─────────────────────────────────────────────────
+/* ── WELCOME MODAL ── */
 function showWelcomeModal(){
   if(sessionStorage.getItem('ff_welcomed')) return;
   sessionStorage.setItem('ff_welcomed','1');
@@ -956,17 +949,11 @@ function showWelcomeModal(){
   const tier = TIER.charAt(0).toUpperCase()+TIER.slice(1);
   const m = document.createElement('div');
   m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(6px);';
-  m.innerHTML = `<div style="background:#0d1f0a;border:1.5px solid rgba(204,255,0,.28);border-radius:18px;padding:44px 36px;max-width:460px;width:100%;text-align:center;">
-    <div style="font-size:44px;margin-bottom:18px;">🎉</div>
-    <div style="font-family:'Syne',sans-serif;font-size:30px;font-weight:800;color:#CCFF00;margin-bottom:10px;">Welcome, ${name}!</div>
-    <div style="font-size:13px;color:rgba(255,255,255,.6);line-height:1.85;margin-bottom:10px;">Your <strong style="color:#fff;">${tier}</strong> plan is now active.</div>
-    <div style="font-size:12px;color:rgba(255,255,255,.38);line-height:1.7;margin-bottom:28px;">Your territory is locked. Your content is being built. Check back here to approve your posts before they go live — this is your command centre.</div>
-    <button onclick="this.closest('[style]').remove()" style="background:#CCFF00;color:#0D1F00;border:none;border-radius:9px;padding:15px 36px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.06em;text-transform:uppercase;">Let's Go →</button>
-  </div>`;
+  m.innerHTML = '<div style="background:#0d1f0a;border:1.5px solid rgba(204,255,0,.28);border-radius:18px;padding:44px 36px;max-width:460px;width:100%;text-align:center;"><div style="font-size:44px;margin-bottom:18px;">&#x1F389;</div><div style="font-family:\'Syne\',sans-serif;font-size:30px;font-weight:800;color:#CCFF00;margin-bottom:10px;">Welcome, '+name+'!</div><div style="font-size:13px;color:rgba(255,255,255,.6);line-height:1.85;margin-bottom:10px;">Your <strong style="color:#fff;">'+tier+'</strong> plan is now active.</div><div style="font-size:12px;color:rgba(255,255,255,.38);line-height:1.7;margin-bottom:28px;">Your territory is locked. Your content is being built. Check back here to approve your posts before they go live.</div><button onclick="this.closest(\'[style]\').remove()" style="background:#CCFF00;color:#0D1F00;border:none;border-radius:9px;padding:15px 36px;font-family:\'DM Sans\',sans-serif;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.06em;text-transform:uppercase;">Let\'s Go &#x2192;</button></div>';
   document.body.appendChild(m);
 }
 
-// ── NAVIGATION ────────────────────────────────────────────────────
+/* ── NAVIGATION ── */
 function nav(el, page){
   document.querySelectorAll('.nv').forEach(n=>n.classList.remove('act'));
   el.classList.add('act');
@@ -976,13 +963,18 @@ function nav(el, page){
     const top = target.getBoundingClientRect().top + window.scrollY - 64;
     window.scrollTo({top, behavior:'smooth'});
   }
+  // Auto-close sidebar on mobile after nav
+  if(window.innerWidth <= 900){
+    document.querySelector('.sb').classList.remove('open');
+    document.getElementById('sb-overlay').classList.remove('show');
+  }
 }
 
-// ── TOGGLES ───────────────────────────────────────────────────────
+/* ── TOGGLES ── */
 function tp(h){ h.querySelector('.tog-arr').classList.toggle('op'); h.nextElementSibling.classList.toggle('op'); }
 function tc(el){ el.querySelector('.chkb').classList.toggle('on'); el.querySelector('.chkt').classList.toggle('on'); }
 
-// ── PLATFORM / VIEW SWITCH ────────────────────────────────────────
+/* ── PLATFORM / VIEW / WEEK ── */
 function switchPlatform(p, el){
   currentPlatform = p;
   document.querySelectorAll('.ptab').forEach(t=>t.classList.remove('active'));
@@ -997,8 +989,6 @@ function switchView(v, el){
   el.classList.add('active');
   renderPerformancePanel(currentPlatform);
 }
-
-// ── WEEK SWITCH ───────────────────────────────────────────────────
 function switchWeek(w, el){
   currentWeek = w;
   document.querySelectorAll('.atab').forEach(t=>t.classList.remove('active'));
@@ -1007,63 +997,36 @@ function switchWeek(w, el){
   document.getElementById('week-'+w).classList.add('active');
 }
 
-// ══════════════════════════════════════════════════════════════════
-// API CALLS
-// ══════════════════════════════════════════════════════════════════
+/* ── API ── */
 async function apiGet(action, token){
   try {
-    const url = SCRIPT_URL + '?action=' + action + '&token=' + encodeURIComponent(token);
-    const res = await fetch(url);
+    const res = await fetch(SCRIPT_URL + '?action=' + action + '&token=' + encodeURIComponent(token));
     return await res.json();
   } catch(e){ console.error('API GET error:', e); return null; }
 }
-
 async function apiPost(action, body){
   try {
     body.action = action;
-    const res = await fetch(SCRIPT_URL, {
-      method:'POST',
-      headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(body)
-    });
+    const res = await fetch(SCRIPT_URL, {method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
     return await res.json();
   } catch(e){ console.error('API POST error:', e); return null; }
 }
 
-// ══════════════════════════════════════════════════════════════════
-// CONTENT APPROVAL
-// ══════════════════════════════════════════════════════════════════
+/* ── CONTENT APPROVAL ── */
 async function loadContent(){
   document.getElementById('week-loading').style.display = 'flex';
   const data = await apiGet('getContent', urlToken);
   document.getElementById('week-loading').style.display = 'none';
   if(!data || !data.content){ showEmptyApproval(); return; }
   contentData = data.content;
-  // Sort into weeks
   const now = new Date();
   const thisWeekStart = new Date(now); thisWeekStart.setDate(now.getDate() - now.getDay());
   const thisWeekEnd   = new Date(thisWeekStart); thisWeekEnd.setDate(thisWeekStart.getDate() + 7);
   const lastWeekStart = new Date(thisWeekStart); lastWeekStart.setDate(thisWeekStart.getDate() - 7);
-
-  const thisWeek = contentData.filter(c => {
-    const d = new Date(c.ScheduledDate || c.CreatedAt);
-    return d >= thisWeekStart && d < thisWeekEnd;
-  });
-  const lastWeek = contentData.filter(c => {
-    const d = new Date(c.ScheduledDate || c.CreatedAt);
-    return d >= lastWeekStart && d < thisWeekStart;
-  });
-  const upcoming = contentData.filter(c => {
-    const d = new Date(c.ScheduledDate || c.CreatedAt);
-    return d >= thisWeekEnd;
-  });
-
-  renderWeek('this', thisWeek);
-  renderWeek('last', lastWeek);
-  renderWeek('upcoming', upcoming);
-
-  // Update pending badge
-  const pending = contentData.filter(c => c.Status === 'Pending').length;
+  renderWeek('this',  contentData.filter(c=>{ const d=new Date(c.ScheduledDate||c.CreatedAt); return d>=thisWeekStart && d<thisWeekEnd; }));
+  renderWeek('last',  contentData.filter(c=>{ const d=new Date(c.ScheduledDate||c.CreatedAt); return d>=lastWeekStart && d<thisWeekStart; }));
+  renderWeek('upcoming', contentData.filter(c=>{ const d=new Date(c.ScheduledDate||c.CreatedAt); return d>=thisWeekEnd; }));
+  const pending = contentData.filter(c=>c.Status==='Pending').length;
   const badge = document.getElementById('pending-badge');
   if(pending > 0){ badge.textContent = pending; badge.style.display = ''; }
 }
@@ -1071,327 +1034,166 @@ async function loadContent(){
 function renderWeek(week, items){
   const el = document.getElementById('week-'+week);
   if(!items.length){
-    el.innerHTML = `<div class="approval-empty"><div class="approval-empty-icon">${week==='this'?'📭':'📅'}</div><div style="font-size:14px;font-weight:600;color:var(--t2);margin-bottom:6px;">${week==='this'?'No content pending this week':week==='last'?'No content from last week':'No upcoming content scheduled'}</div><div style="font-size:12px;color:var(--t3);">Your FitFlux team will upload content here for your review.</div></div>`;
+    el.innerHTML = '<div class="approval-empty"><div class="approval-empty-icon">'+(week==='this'?'&#x1F4ED;':'&#x1F4C5;')+'</div><div style="font-size:14px;font-weight:600;color:var(--t2);margin-bottom:6px;">'+(week==='this'?'No content pending this week':week==='last'?'No content from last week':'No upcoming content scheduled')+'</div><div style="font-size:12px;color:var(--t3);">Your FitFlux team will upload content here for your review.</div></div>';
     return;
   }
-  el.innerHTML = items.map((c,i) => buildApprovalCard(c, i)).join('');
+  el.innerHTML = items.map((c,i)=>buildApprovalCard(c,i)).join('');
 }
 
 function buildApprovalCard(c, i){
-  const statusClass = c.Status==='Approved'?'status-approved':c.Status==='Revision'?'status-revision':'status-pending';
-  const statusTag   = c.Status==='Approved'?'<span class="tag tag-g">✅ Approved</span>':c.Status==='Revision'?'<span class="tag tag-r">✏️ Revision</span>':'<span class="tag tag-a">⏳ Awaiting Approval</span>';
-  const mediaHTML = c.MediaURL ? `
-    <div class="aitem-media">
-      ${c.MediaType==='video'
-        ? `<div class="aitem-thumb"><video src="${c.MediaURL}" controls style="width:100%;height:100%;object-fit:cover;border-radius:10px;"></video></div>`
-        : `<div class="aitem-thumb"><img src="${c.MediaURL}" alt="content" style="width:100%;height:100%;object-fit:cover;border-radius:10px;" onclick="openMedia('${c.MediaURL}')"/></div>`}
-    </div>` : '';
-  const actionHTML = c.Status==='Pending' ? `
-    <div class="aitem-actions">
-      <button class="btn-approve" onclick="approveContent('${c.Title}','${c.Platform}')">✅ Approve</button>
-      <button class="btn-revision" onclick="toggleComment('comment-${i}','send-${i}')">✏️ Request Changes</button>
-    </div>
-    <div class="comment-box" id="comment-${i}" style="display:none;">
-      <textarea class="comment-input" id="comment-input-${i}" placeholder="Describe what you'd like changed..."></textarea>
-      <div class="comment-footer">
-        <span class="comment-hint">Be specific — your team will make the changes promptly.</span>
-        <button class="btn-send" onclick="sendRevision('${c.Title}','${c.Platform}',${i})">Send →</button>
-      </div>
-    </div>` : `<div style="font-size:12px;color:var(--t3);margin-top:8px;">${c.RevisionNote||''}</div>`;
-  return `<div class="aitem ${statusClass}">
-    <div class="aitem-header">
-      <span class="aitem-platform">${c.Platform||'Post'}</span>
-      <span class="aitem-title">${c.Title||'Content'}</span>
-      <span class="aitem-date">${c.ScheduledDate||''}</span>
-      ${statusTag}
-    </div>
-    <div class="aitem-body">
-      ${mediaHTML}
-      <div class="aitem-caption">${(c.Caption||'').replace(/</g,'&lt;')}</div>
-      ${actionHTML}
-    </div>
-  </div>`;
+  const sc = c.Status==='Approved'?'status-approved':c.Status==='Revision'?'status-revision':'status-pending';
+  const st = c.Status==='Approved'?'<span class="tag tag-g">&#x2705; Approved</span>':c.Status==='Revision'?'<span class="tag tag-r">&#x270F; Revision</span>':'<span class="tag tag-a">&#x23F3; Awaiting Approval</span>';
+  const mh = c.MediaURL ? '<div class="aitem-media">'+(c.MediaType==='video'?'<div class="aitem-thumb"><video src="'+c.MediaURL+'" controls style="width:100%;height:100%;object-fit:cover;border-radius:10px;"></video></div>':'<div class="aitem-thumb"><img src="'+c.MediaURL+'" alt="content" style="width:100%;height:100%;object-fit:cover;border-radius:10px;" onclick="openMedia(\''+c.MediaURL+'\')" /></div>')+'</div>' : '';
+  const ah = c.Status==='Pending' ? '<div class="aitem-actions"><button class="btn-approve" onclick="approveContent(\''+c.Title+'\',\''+c.Platform+'\')">&#x2705; Approve</button><button class="btn-revision" onclick="toggleComment(\'comment-'+i+'\')">&#x270F; Request Changes</button></div><div class="comment-box" id="comment-'+i+'" style="display:none;"><textarea class="comment-input" id="comment-input-'+i+'" placeholder="Describe what you\'d like changed..."></textarea><div class="comment-footer"><span class="comment-hint">Be specific &mdash; your team will make changes promptly.</span><button class="btn-send" onclick="sendRevision(\''+c.Title+'\',\''+c.Platform+'\','+i+')">Send &rarr;</button></div></div>' : '<div style="font-size:12px;color:var(--t3);margin-top:8px;">'+(c.RevisionNote||'')+'</div>';
+  return '<div class="aitem '+sc+'"><div class="aitem-header"><span class="aitem-platform">'+(c.Platform||'Post')+'</span><span class="aitem-title">'+(c.Title||'Content')+'</span><span class="aitem-date">'+(c.ScheduledDate||'')+'</span>'+st+'</div><div class="aitem-body">'+mh+'<div class="aitem-caption">'+((c.Caption||'').replace(/</g,'&lt;'))+'</div>'+ah+'</div></div>';
 }
 
 function showEmptyApproval(){
-  ['this','last','upcoming'].forEach(w=>{
-    document.getElementById('week-'+w).innerHTML = `<div class="approval-empty"><div class="approval-empty-icon">📭</div><div style="font-size:14px;font-weight:600;color:var(--t2);margin-bottom:6px;">No content yet</div><div style="font-size:12px;color:var(--t3);">Your FitFlux team will upload content here for your review.</div></div>`;
-  });
+  ['this','last','upcoming'].forEach(w=>{ document.getElementById('week-'+w).innerHTML='<div class="approval-empty"><div class="approval-empty-icon">&#x1F4ED;</div><div style="font-size:14px;font-weight:600;color:var(--t2);margin-bottom:6px;">No content yet</div><div style="font-size:12px;color:var(--t3);">Your FitFlux team will upload content here for your review.</div></div>'; });
 }
 
-function toggleComment(boxId, sendId){
+function toggleComment(boxId){
   const box = document.getElementById(boxId);
   if(box) box.style.display = box.style.display==='none'?'block':'none';
 }
 
 async function approveContent(title, platform){
-  await apiPost('approveContent', {token: urlToken, contentTitle: title, platform});
-  await sendTelegram('✅ CONTENT APPROVED\n\nClient: '+(CLIENT.name||'—')+'\nContent: '+title+'\nPlatform: '+platform);
+  await apiPost('approveContent', {token:urlToken, contentTitle:title, platform});
+  await sendTelegram('&#x2705; CONTENT APPROVED\n\nClient: '+(CLIENT.name||'\u2014')+'\nContent: '+title+'\nPlatform: '+platform);
   await loadContent();
 }
-
 async function sendRevision(title, platform, i){
   const input = document.getElementById('comment-input-'+i);
   const note  = input ? input.value.trim() : '';
   if(!note){ if(input) input.focus(); return; }
-  await apiPost('requestRevision', {token: urlToken, contentTitle: title, platform, note});
-  await sendTelegram('✏️ REVISION REQUESTED\n\nClient: '+(CLIENT.name||'—')+'\nContent: '+title+'\nPlatform: '+platform+'\nNote: '+note);
+  await apiPost('requestRevision', {token:urlToken, contentTitle:title, platform, note});
+  await sendTelegram('&#x270F; REVISION REQUESTED\n\nClient: '+(CLIENT.name||'\u2014')+'\nContent: '+title+'\nNote: '+note);
   await loadContent();
 }
 
 function openMedia(url){
   const m = document.createElement('div');
   m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:99999;display:flex;align-items:center;justify-content:center;cursor:pointer;';
-  m.innerHTML = `<img src="${url}" style="max-width:90%;max-height:90%;border-radius:12px;box-shadow:0 0 60px rgba(0,0,0,.8);" onclick="event.stopPropagation()"/><button onclick="this.closest('[style]').remove()" style="position:absolute;top:20px;right:24px;background:rgba(255,255,255,.1);border:none;color:#fff;font-size:24px;width:44px;height:44px;border-radius:50%;cursor:pointer;">×</button>`;
+  m.innerHTML = '<img src="'+url+'" style="max-width:90%;max-height:90%;border-radius:12px;" onclick="event.stopPropagation()"/><button onclick="this.closest(\'[style]\').remove()" style="position:absolute;top:20px;right:24px;background:rgba(255,255,255,.1);border:none;color:#fff;font-size:24px;width:44px;height:44px;border-radius:50%;cursor:pointer;">&times;</button>';
   m.onclick = ()=>m.remove();
   document.body.appendChild(m);
 }
 
-// ══════════════════════════════════════════════════════════════════
-// PERFORMANCE
-// ══════════════════════════════════════════════════════════════════
+/* ── PERFORMANCE ── */
 let perfData = {};
-
 async function loadPerformance(){
   document.getElementById('perf-loading').style.display = 'flex';
   const data = await apiGet('getPerformance', urlToken);
   document.getElementById('perf-loading').style.display = 'none';
   document.getElementById('perf-content').style.display = '';
-
   if(data && data.performance){
-    data.performance.forEach(row => {
-      const key = row.Platform + '_' + row.PeriodType;
-      if(!perfData[key]) perfData[key] = {};
+    data.performance.forEach(row=>{
+      const key = row.Platform+'_'+row.PeriodType;
+      if(!perfData[key]) perfData[key]={};
       perfData[key][row.Period] = row;
     });
   }
-
-  ['instagram','tiktok','facebook','youtube','linkedin','twitter'].forEach(p => renderPerformancePanel(p));
+  ['instagram','tiktok','facebook','youtube','linkedin','twitter'].forEach(p=>renderPerformancePanel(p));
 }
 
 function renderPerformancePanel(platform){
   const el = document.getElementById('panel-'+platform);
   if(!el) return;
-  const key  = platform + '_' + currentView;
-  const rows = perfData[key] || {};
-  const latest = Object.values(rows).sort((a,b) => new Date(b.UpdatedAt) - new Date(a.UpdatedAt))[0];
-
-  const platformLabels = {
-    instagram:{icon:'📸',followers:'Followers',metric2:'Reach',metric3:'Engagement Rate',metric4:'Posts Published',metric5:'Profile Visits',metric6:'Enquiries'},
-    tiktok:{icon:'🎵',followers:'Followers',metric2:'Total Views',metric3:'Likes',metric4:'Videos Posted',metric5:'Profile Visits',metric6:'Enquiries'},
-    facebook:{icon:'📘',followers:'Page Likes',metric2:'Reach',metric3:'Engagement',metric4:'Posts Published',metric5:'Link Clicks',metric6:'Enquiries'},
-    youtube:{icon:'▶️',followers:'Subscribers',metric2:'Views',metric3:'Watch Time',metric4:'Videos Published',metric5:'CTR',metric6:'Enquiries'},
-    linkedin:{icon:'💼',followers:'Connections',metric2:'Impressions',metric3:'Engagement Rate',metric4:'Posts Published',metric5:'Profile Views',metric6:'Enquiries'},
-    twitter:{icon:'✕',followers:'Followers',metric2:'Impressions',metric3:'Engagements',metric4:'Tweets Published',metric5:'Link Clicks',metric6:'Enquiries'}
-  };
-  const labels = platformLabels[platform] || platformLabels.instagram;
+  const rows = perfData[platform+'_'+currentView] || {};
+  const latest = Object.values(rows).sort((a,b)=>new Date(b.UpdatedAt)-new Date(a.UpdatedAt))[0];
+  const labels = {
+    instagram:{icon:'&#x1F4F8;',followers:'Followers',metric2:'Reach',metric3:'Engagement Rate',metric4:'Posts Published',metric5:'Profile Visits',metric6:'Enquiries'},
+    tiktok:{icon:'&#x1F3B5;',followers:'Followers',metric2:'Total Views',metric3:'Likes',metric4:'Videos Posted',metric5:'Profile Visits',metric6:'Enquiries'},
+    facebook:{icon:'&#x1F4D8;',followers:'Page Likes',metric2:'Reach',metric3:'Engagement',metric4:'Posts Published',metric5:'Link Clicks',metric6:'Enquiries'},
+    youtube:{icon:'&#x25B6;',followers:'Subscribers',metric2:'Views',metric3:'Watch Time',metric4:'Videos Published',metric5:'CTR',metric6:'Enquiries'},
+    linkedin:{icon:'&#x1F4BC;',followers:'Connections',metric2:'Impressions',metric3:'Engagement Rate',metric4:'Posts Published',metric5:'Profile Views',metric6:'Enquiries'},
+    twitter:{icon:'&#x2715;',followers:'Followers',metric2:'Impressions',metric3:'Engagements',metric4:'Tweets Published',metric5:'Link Clicks',metric6:'Enquiries'}
+  }[platform] || {};
   const d = latest || {};
-  const grade = d.Grade || '—';
-  const note  = d.Note  || 'No data yet. Your FitFlux team will update this when ' + platform + ' is active.';
-
-  el.innerHTML = `
-    <div class="grade-card">
-      <div class="grade-letter">${grade}</div>
-      <div class="grade-info">
-        <div class="grade-title">${labels.icon} ${platform.charAt(0).toUpperCase()+platform.slice(1)} Performance</div>
-        <div class="grade-note" id="note-${platform}">${note}</div>
-      </div>
-    </div>
-    <div class="perf-grid">
-      <div class="pcard"><div class="pcard-lbl">${labels.followers}</div><div class="pcard-val">${d.Followers||0}</div><div class="pcard-trend">↑ This ${currentView==='weekly'?'week':'month'}</div></div>
-      <div class="pcard"><div class="pcard-lbl">${labels.metric2}</div><div class="pcard-val">${d.Reach||0}</div><div class="pcard-trend">accounts reached</div></div>
-      <div class="pcard"><div class="pcard-lbl">${labels.metric3}</div><div class="pcard-val">${d.Engagement||0}</div><div class="pcard-trend">engagement</div></div>
-      <div class="pcard"><div class="pcard-lbl">${labels.metric4}</div><div class="pcard-val">${d.Posts||0}</div><div class="pcard-trend">this period</div></div>
-      <div class="pcard"><div class="pcard-lbl">${labels.metric5}</div><div class="pcard-val">${d.ProfileVisits||0}</div><div class="pcard-trend">profile activity</div></div>
-      <div class="pcard"><div class="pcard-lbl">${labels.metric6}</div><div class="pcard-val">${d.Enquiries||0}</div><div class="pcard-trend up">from content</div></div>
-    </div>
-    <div class="bar-section">
-      <div class="bar-section-title">Content Performance Breakdown</div>
-      <div class="bar-row"><div class="bar-lbl">Videos / Reels</div><div class="bar-track"><div class="bar-fill" style="width:${d.VideoPercent||0}%"></div></div><div class="bar-val">${d.VideoPercent||0}%</div></div>
-      <div class="bar-row"><div class="bar-lbl">Graphics / Carousels</div><div class="bar-track"><div class="bar-fill blue" style="width:${d.GraphicPercent||0}%"></div></div><div class="bar-val">${d.GraphicPercent||0}%</div></div>
-      <div class="bar-row"><div class="bar-lbl">Stories</div><div class="bar-track"><div class="bar-fill amber" style="width:${d.StoryPercent||0}%"></div></div><div class="bar-val">${d.StoryPercent||0}%</div></div>
-    </div>`;
+  el.innerHTML = '<div class="grade-card"><div class="grade-letter">'+(d.Grade||'\u2014')+'</div><div class="grade-info"><div class="grade-title">'+labels.icon+' '+platform.charAt(0).toUpperCase()+platform.slice(1)+' Performance</div><div class="grade-note">'+(d.Note||'No data yet. Your FitFlux team will update this when '+platform+' is active.')+'</div></div></div><div class="perf-grid"><div class="pcard"><div class="pcard-lbl">'+labels.followers+'</div><div class="pcard-val">'+(d.Followers||0)+'</div><div class="pcard-trend">&uarr; This '+(currentView==='weekly'?'week':'month')+'</div></div><div class="pcard"><div class="pcard-lbl">'+labels.metric2+'</div><div class="pcard-val">'+(d.Reach||0)+'</div><div class="pcard-trend">accounts reached</div></div><div class="pcard"><div class="pcard-lbl">'+labels.metric3+'</div><div class="pcard-val">'+(d.Engagement||0)+'</div><div class="pcard-trend">engagement</div></div><div class="pcard"><div class="pcard-lbl">'+labels.metric4+'</div><div class="pcard-val">'+(d.Posts||0)+'</div><div class="pcard-trend">this period</div></div><div class="pcard"><div class="pcard-lbl">'+labels.metric5+'</div><div class="pcard-val">'+(d.ProfileVisits||0)+'</div><div class="pcard-trend">profile activity</div></div><div class="pcard"><div class="pcard-lbl">'+labels.metric6+'</div><div class="pcard-val">'+(d.Enquiries||0)+'</div><div class="pcard-trend up">from content</div></div></div><div class="bar-section"><div class="bar-section-title">Content Performance Breakdown</div><div class="bar-row"><div class="bar-lbl">Videos / Reels</div><div class="bar-track"><div class="bar-fill" style="width:'+(d.VideoPercent||0)+'%"></div></div><div class="bar-val">'+(d.VideoPercent||0)+'%</div></div><div class="bar-row"><div class="bar-lbl">Graphics / Carousels</div><div class="bar-track"><div class="bar-fill blue" style="width:'+(d.GraphicPercent||0)+'%"></div></div><div class="bar-val">'+(d.GraphicPercent||0)+'%</div></div><div class="bar-row"><div class="bar-lbl">Stories</div><div class="bar-track"><div class="bar-fill amber" style="width:'+(d.StoryPercent||0)+'%"></div></div><div class="bar-val">'+(d.StoryPercent||0)+'%</div></div></div>';
 }
 
-// ══════════════════════════════════════════════════════════════════
-// DELIVERABLES
-// ══════════════════════════════════════════════════════════════════
+/* ── DELIVERABLES ── */
 async function loadDeliverables(){
   const data = await apiGet('getDeliverables', urlToken);
   deliverables = (data && data.deliverables) ? data.deliverables : [];
   renderDeliverables();
 }
-
 function renderDeliverables(){
   const el = document.getElementById('deliv-list');
-  if(!deliverables.length){
-    el.innerHTML = '<div style="padding:24px;text-align:center;color:var(--t3);font-size:13px;">No deliverables yet. Add your first one below.</div>';
-    return;
-  }
-  const statusMap = {
-    pending:'<span class="tag tag-a">⏳ Pending</span>',
-    progress:'<span class="tag tag-b">🔄 In Progress</span>',
-    delivered:'<span class="tag tag-g">✅ Delivered</span>',
-    approved:'<span class="tag tag-g">🎉 Approved</span>'
-  };
-  el.innerHTML = deliverables.map((d,i) => `
-    <div class="deliv-row">
-      <span class="deliv-name">${d.Name||d.name||'—'}</span>
-      <span class="deliv-type">${d.Type||d.type||'—'}</span>
-      <span>${statusMap[d.Status||d.status]||d.Status||d.status||'—'}</span>
-      <span style="font-size:11px;color:var(--t3);">${d.Date||d.date||'—'}</span>
-      <button class="deliv-rm" onclick="removeDeliverable('${d.ID||d.id||i}')">×</button>
-    </div>`).join('');
+  if(!deliverables.length){ el.innerHTML='<div style="padding:24px;text-align:center;color:var(--t3);font-size:13px;">No deliverables yet. Add your first one below.</div>'; return; }
+  const sm = {pending:'<span class="tag tag-a">&#x23F3; Pending</span>',progress:'<span class="tag tag-b">&#x1F504; In Progress</span>',delivered:'<span class="tag tag-g">&#x2705; Delivered</span>',approved:'<span class="tag tag-g">&#x1F389; Approved</span>'};
+  el.innerHTML = deliverables.map((d,i)=>'<div class="deliv-row"><span class="deliv-name">'+(d.Name||d.name||'\u2014')+'</span><span class="deliv-type">'+(d.Type||d.type||'\u2014')+'</span><span>'+(sm[d.Status||d.status]||d.Status||d.status||'\u2014')+'</span><span style="font-size:11px;color:var(--t3);">'+(d.Date||d.date||'\u2014')+'</span><button class="deliv-rm" onclick="removeDeliverable(\''+(d.ID||d.id||i)+'\')">&times;</button></div>').join('');
 }
-
 async function addDeliverable(){
-  const name   = document.getElementById('d-name').value.trim();
+  const name = document.getElementById('d-name').value.trim();
   if(!name){ document.getElementById('d-name').focus(); return; }
-  const type   = document.getElementById('d-type').value;
-  const status = document.getElementById('d-status').value;
-  const link   = document.getElementById('d-link').value.trim();
-  const date   = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
-  await apiPost('addDeliverable', {token: urlToken, name, type, status, link, date});
-  document.getElementById('d-name').value = '';
-  document.getElementById('d-link').value = '';
+  const type=document.getElementById('d-type').value, status=document.getElementById('d-status').value, link=document.getElementById('d-link').value.trim();
+  const date = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  await apiPost('addDeliverable', {token:urlToken, name, type, status, link, date});
+  document.getElementById('d-name').value=''; document.getElementById('d-link').value='';
   await loadDeliverables();
 }
-
 async function removeDeliverable(id){
   if(!confirm('Remove this deliverable?')) return;
-  await apiPost('removeDeliverable', {token: urlToken, id});
+  await apiPost('removeDeliverable', {token:urlToken, id});
   await loadDeliverables();
 }
 
-// ══════════════════════════════════════════════════════════════════
-// DOCUMENTS
-// ══════════════════════════════════════════════════════════════════
+/* ── DOCUMENTS ── */
 async function loadDocuments(){
-  document.getElementById('docs-loading').style.display = 'flex';
+  document.getElementById('docs-loading').style.display='flex';
   const data = await apiGet('getDocuments', urlToken);
-  document.getElementById('docs-loading').style.display = 'none';
-  document.getElementById('docs-content').style.display = '';
-
+  document.getElementById('docs-loading').style.display='none';
+  document.getElementById('docs-content').style.display='';
   const docs = (data && data.documents) ? data.documents : [];
   const tbody = document.getElementById('docs-list');
-
-  if(!docs.length){
-    tbody.innerHTML = '<tr><td colspan="5" style="text-align:center;color:var(--t3);padding:20px;">Documents will appear here automatically as you complete each stage.</td></tr>';
-    return;
-  }
-
-  const statusMap = {Active:'<span class="tag tag-g">✓ Active</span>',Signed:'<span class="tag tag-g">✓ Signed</span>',Paid:'<span class="tag tag-g">✓ Paid</span>',Pending:'<span class="tag tag-y">⏳ Pending</span>'};
-  tbody.innerHTML = docs.map(d => `
-    <tr>
-      <td>${d.Name||'—'}</td>
-      <td><span class="tag tag-p">${d.DocType||'—'}</span></td>
-      <td>${statusMap[d.Status]||d.Status||'—'}</td>
-      <td style="color:var(--t3);font-size:12px;">${d.Date||'—'}</td>
-      <td>${d.Link?`<a href="${d.Link}" target="_blank" style="color:var(--blue);font-size:12px;">Download →</a>`:'—'}</td>
-    </tr>`).join('');
+  if(!docs.length){ tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--t3);padding:20px;">Documents will appear here automatically as you complete each stage.</td></tr>'; return; }
+  const sm={Active:'<span class="tag tag-g">&#x2713; Active</span>',Signed:'<span class="tag tag-g">&#x2713; Signed</span>',Paid:'<span class="tag tag-g">&#x2713; Paid</span>',Pending:'<span class="tag tag-y">&#x23F3; Pending</span>'};
+  tbody.innerHTML=docs.map(d=>'<tr><td>'+(d.Name||'\u2014')+'</td><td><span class="tag tag-p">'+(d.DocType||'\u2014')+'</span></td><td>'+(sm[d.Status]||d.Status||'\u2014')+'</td><td style="color:var(--t3);font-size:12px;">'+(d.Date||'\u2014')+'</td><td>'+(d.Link?'<a href="'+d.Link+'" target="_blank" style="color:var(--blue);font-size:12px;">Download &rarr;</a>':'\u2014')+'</td></tr>').join('');
 }
 
-// ══════════════════════════════════════════════════════════════════
-// FILE UPLOAD
-// ══════════════════════════════════════════════════════════════════
-function queueFiles(files){
-  Array.from(files).forEach(f => fileQueue.push(f));
-  renderQueue();
-}
-
+/* ── FILE UPLOAD ── */
+function queueFiles(files){ Array.from(files).forEach(f=>fileQueue.push(f)); renderQueue(); }
 function renderQueue(){
-  const el = document.getElementById('fileQueue');
-  const btn = document.getElementById('uploadAllBtn');
+  const el=document.getElementById('fileQueue'), btn=document.getElementById('uploadAllBtn');
   if(!fileQueue.length){ el.innerHTML=''; btn.style.display='none'; return; }
-  btn.style.display = 'block';
-  el.innerHTML = fileQueue.map((f,i) => {
-    const size = f.size>1048576?(f.size/1048576).toFixed(1)+'MB':(f.size/1024).toFixed(0)+'KB';
-    return `<div class="file-item" id="fq-${i}">
-      <span style="font-size:18px;">${f.type.startsWith('video')?'🎥':f.type.startsWith('image')?'🖼️':'📄'}</span>
-      <span class="file-item-name">${f.name}</span>
-      <span class="file-item-size">${size}</span>
-      <button class="file-item-rm" onclick="removeFromQueue(${i})">×</button>
-    </div>`;
-  }).join('');
+  btn.style.display='block';
+  el.innerHTML=fileQueue.map((f,i)=>{ const s=f.size>1048576?(f.size/1048576).toFixed(1)+'MB':(f.size/1024).toFixed(0)+'KB'; return '<div class="file-item" id="fq-'+i+'"><span style="font-size:18px;">'+(f.type.startsWith('video')?'&#x1F3A5;':f.type.startsWith('image')?'&#x1F5BC;':'&#x1F4C4;')+'</span><span class="file-item-name">'+f.name+'</span><span class="file-item-size">'+s+'</span><button class="file-item-rm" onclick="removeFromQueue('+i+')">&times;</button></div>'; }).join('');
 }
-
-function removeFromQueue(i){
-  fileQueue.splice(i,1);
-  renderQueue();
-}
-
-function handleDrop(e){
-  e.preventDefault();
-  document.getElementById('dropZone').classList.remove('drag');
-  queueFiles(e.dataTransfer.files);
-}
-
+function removeFromQueue(i){ fileQueue.splice(i,1); renderQueue(); }
+function handleDrop(e){ e.preventDefault(); document.getElementById('dropZone').classList.remove('drag'); queueFiles(e.dataTransfer.files); }
 async function uploadAll(){
   if(!fileQueue.length) return;
-  const btn    = document.getElementById('uploadAllBtn');
-  const status = document.getElementById('upload-status');
-  btn.textContent = 'Uploading...';
-  btn.disabled = true;
-  status.style.display = 'block';
-  status.textContent = 'Uploading ' + fileQueue.length + ' file(s)...';
-
-  let success = 0;
+  const btn=document.getElementById('uploadAllBtn'), status=document.getElementById('upload-status');
+  btn.textContent='Uploading...'; btn.disabled=true; status.style.display='block'; status.textContent='Uploading '+fileQueue.length+' file(s)...';
+  let success=0;
   for(const f of fileQueue){
-    const fd = new FormData();
-    fd.append('chat_id', TG_ASSETS);
-    fd.append('document', f, f.name);
-    fd.append('caption', '📁 Brand Asset\nClient: '+(CLIENT.name||'—')+'\nFile: '+f.name+'\nToken: '+urlToken.slice(-8));
-    try {
-      const res = await fetch('https://api.telegram.org/bot'+TG_BOT+'/sendDocument',{method:'POST',body:fd});
-      if(res.ok) success++;
-    } catch(e){}
+    const fd=new FormData(); fd.append('chat_id',TG_ASSETS); fd.append('document',f,f.name);
+    fd.append('caption','&#x1F4C1; Brand Asset\nClient: '+(CLIENT.name||'\u2014')+'\nFile: '+f.name+'\nToken: '+urlToken.slice(-8));
+    try{ const r=await fetch('https://api.telegram.org/bot'+TG_BOT+'/sendDocument',{method:'POST',body:fd}); if(r.ok) success++; }catch(e){}
   }
-
-  // Log to Sheet
-  await apiPost('submitFiles', {token: urlToken, files: fileQueue.map(f=>f.name)});
-
-  status.textContent = success + ' of ' + fileQueue.length + ' file(s) uploaded successfully.';
-  status.style.color = success === fileQueue.length ? 'var(--green)' : 'var(--amber)';
-  fileQueue = [];
-  renderQueue();
-  btn.textContent = 'Upload All Files →';
-  btn.disabled = false;
+  await apiPost('submitFiles',{token:urlToken, files:fileQueue.map(f=>f.name)});
+  status.textContent=success+' of '+fileQueue.length+' file(s) uploaded successfully.';
+  status.style.color=success===fileQueue.length?'var(--green)':'var(--amber)';
+  fileQueue=[]; renderQueue(); btn.textContent='Upload All Files \u2192'; btn.disabled=false;
 }
 
-// ══════════════════════════════════════════════════════════════════
-// NOTES (save to Sheet)
-// ══════════════════════════════════════════════════════════════════
-let notesTimer = null;
+/* ── NOTES ── */
+let notesTimer=null;
 function saveNotes(){
   clearTimeout(notesTimer);
-  notesTimer = setTimeout(async ()=>{
-    const notes = document.getElementById('notes-area').value;
-    await apiPost('saveNotes', {token: urlToken, notes});
-  }, 1500);
+  notesTimer=setTimeout(async()=>{ await apiPost('saveNotes',{token:urlToken, notes:document.getElementById('notes-area').value}); },1500);
 }
 
-// ══════════════════════════════════════════════════════════════════
-// TELEGRAM DIRECT NOTIFICATION
-// ══════════════════════════════════════════════════════════════════
+/* ── TELEGRAM ── */
 async function sendTelegram(msg){
-  try {
-    await fetch('https://api.telegram.org/bot'+TG_BOT+'/sendMessage',{
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify({chat_id: TG_CHAT, text: msg})
-    });
-  } catch(e){}
+  try{ await fetch('https://api.telegram.org/bot'+TG_BOT+'/sendMessage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:TG_CHAT,text:msg})}); }catch(e){}
 }
 
-// ══════════════════════════════════════════════════════════════════
-// INIT ON DOM READY
-// ══════════════════════════════════════════════════════════════════
-document.addEventListener('DOMContentLoaded', ()=>{
-  const firstNav = document.querySelector('.nv');
-  if(firstNav) firstNav.classList.add('act');
-  // If already logged in from token auto-check
-  if(window.FF_CLIENT && window.FF_CLIENT.name && urlToken){
-    // Portal will init after unlock() is called
-  }
+document.addEventListener('DOMContentLoaded',()=>{
+  const first=document.querySelector('.nv');
+  if(first) first.classList.add('act');
 });
 </script>
 </body>
