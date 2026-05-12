@@ -730,11 +730,12 @@ tgPing(
 <script>
 const paymentSection = document.querySelector('.inv-payment');
 const scrollIndicator = document.getElementById('scroll-indicator');
+const threshold = window.innerWidth <= 600 ? 0.8 : 0.1;
 const observer = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
     scrollIndicator.style.display = entry.isIntersecting ? 'none' : 'flex';
   });
-}, { threshold: 0.1 });
+}, { threshold: threshold });
 observer.observe(paymentSection);
 </script>
 </body>
