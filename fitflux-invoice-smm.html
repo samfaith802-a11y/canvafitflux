@@ -589,16 +589,25 @@ btn.style.display = 'block';
         btn.style.cursor  = 'pointer';
         btn.onclick       = openReceipt;
         tgPing('💰 <b>PAYMENT PROOF UPLOADED (PDF)</b>\n\n📦 Package: '+pkg.name+'\n👤 Client: '+clientName+'\n📧 Email: '+clientEmail+'\n📸 Instagram: @'+clientIg+'\n🔒 Territory: '+clientNiche+' · '+clientCity+', '+clientTerritory+'\n📋 Invoice: '+invNum+'\n📎 File: '+file.name+'\n'+(hasAccountNumber?'✅ Account number verified in receipt\n':'')+'🔑 Keywords found: '+foundKeywords.join(', ')+'\n\n➡️ Client proceeding to receipt.');
-      } else {
-        btn.textContent      = '❌ Invalid Receipt — Try Again';
-        btn.disabled         = false;
-        btn.style.opacity    = '1';
-        btn.style.cursor     = 'pointer';
-        btn.style.background = '#cc0000';
-        btn.style.color      = '#ffffff';
-        btn.onclick = () => { document.getElementById('receipt-file').click(); };
-        alert('This doesn\'t look like a payment receipt.\n\nPlease upload your bank transfer confirmation PDF showing the transfer amount, reference, and confirmation.');
-      }
+    } else if(hasEnoughKeywords && !hasCorrectAmount) {
+  btn.textContent      = '❌ Wrong Amount — Try Again';
+  btn.disabled         = false;
+  btn.style.opacity    = '1';
+  btn.style.cursor     = 'pointer';
+  btn.style.background = '#cc0000';
+  btn.style.color      = '#ffffff';
+  btn.onclick = () => { document.getElementById('receipt-file').click(); };
+  alert('This receipt does not match your invoice amount.\n\nPlease upload the receipt for your exact payment of ' + '$' + pkg.price.toLocaleString() + '.');
+} else {
+  btn.textContent      = '❌ Invalid Receipt — Try Again';
+  btn.disabled         = false;
+  btn.style.opacity    = '1';
+  btn.style.cursor     = 'pointer';
+  btn.style.background = '#cc0000';
+  btn.style.color      = '#ffffff';
+  btn.onclick = () => { document.getElementById('receipt-file').click(); };
+  alert('This doesn\'t look like a payment receipt.\n\nPlease upload your bank transfer confirmation screenshot showing the transfer amount, reference, and confirmation.');
+}
     } catch(err){
       btn.textContent      = '❌ Could Not Read PDF — Try Again';
       btn.disabled         = false;
@@ -645,17 +654,25 @@ const hasAccountNumber = ACCOUNT_NUMBERS.some(num => text.includes(num));
         '🔑 Keywords found: ' + foundKeywords.join(', ') + '\n\n' +
         '➡️ Client proceeding to receipt.'
       );
-
-    } else {
-      btn.textContent      = '❌ Invalid Receipt — Try Again';
-      btn.disabled         = false;
-      btn.style.opacity    = '1';
-      btn.style.cursor     = 'pointer';
-      btn.style.background = '#cc0000';
-      btn.style.color      = '#ffffff';
-      btn.onclick = () => { document.getElementById('receipt-file').click(); };
-      alert('This doesn\'t look like a payment receipt.\n\nPlease upload your bank transfer confirmation screenshot showing the transfer amount, reference, and confirmation.');
-    }
+} else if(hasEnoughKeywords && !hasCorrectAmount) {
+  btn.textContent      = '❌ Wrong Amount — Try Again';
+  btn.disabled         = false;
+  btn.style.opacity    = '1';
+  btn.style.cursor     = 'pointer';
+  btn.style.background = '#cc0000';
+  btn.style.color      = '#ffffff';
+  btn.onclick = () => { document.getElementById('receipt-file').click(); };
+  alert('This receipt does not match your invoice amount.\n\nPlease upload the receipt for your exact payment of ' + '$' + pkg.price.toLocaleString() + '.');
+} else {
+  btn.textContent      = '❌ Invalid Receipt — Try Again';
+  btn.disabled         = false;
+  btn.style.opacity    = '1';
+  btn.style.cursor     = 'pointer';
+  btn.style.background = '#cc0000';
+  btn.style.color      = '#ffffff';
+  btn.onclick = () => { document.getElementById('receipt-file').click(); };
+  alert('This doesn\'t look like a payment receipt.\n\nPlease upload your bank transfer confirmation screenshot showing the transfer amount, reference, and confirmation.');
+}
 
   } catch(err) {
     btn.textContent      = '❌ Could Not Read Receipt — Try Again';
