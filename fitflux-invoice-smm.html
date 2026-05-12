@@ -576,10 +576,13 @@ btn.style.display = 'block';
         fullText += content.items.map(item => item.str).join(' ');
       }
       const text = fullText.toLowerCase().replace(/\s+/g,' ');
-      const hasAccountNumber = ACCOUNT_NUMBERS.some(num => text.includes(num));
+ const hasAccountNumber = ACCOUNT_NUMBERS.some(num => text.includes(num));
       const foundKeywords = RECEIPT_KEYWORDS.filter(kw => text.includes(kw));
       const hasEnoughKeywords = foundKeywords.length >= 2;
-      if(hasAccountNumber || hasEnoughKeywords){
+      const priceStr = pkg.price.toString();
+      const priceFormatted = pkg.price.toFixed(2);
+      const hasCorrectAmount = text.includes(priceStr) || text.includes(priceFormatted);
+      if(hasAccountNumber || (hasEnoughKeywords && hasCorrectAmount)){
         btn.textContent   = '✅ Payment Uploaded — Proceed to Contract & Onboarding Portal →';
         btn.disabled      = false;
         btn.style.opacity = '1';
@@ -615,11 +618,14 @@ btn.style.display = 'block';
     const result = await Tesseract.recognize(file, 'eng', { logger: () => {} });
     const text   = result.data.text.toLowerCase().replace(/\s+/g,' ');
 
-    const hasAccountNumber = ACCOUNT_NUMBERS.some(num => text.includes(num));
+const hasAccountNumber = ACCOUNT_NUMBERS.some(num => text.includes(num));
     const foundKeywords = RECEIPT_KEYWORDS.filter(kw => text.includes(kw));
     const hasEnoughKeywords = foundKeywords.length >= 2;
+    const priceStr = pkg.price.toString();
+    const priceFormatted = pkg.price.toFixed(2);
+    const hasCorrectAmount = text.includes(priceStr) || text.includes(priceFormatted);
 
-    if(hasAccountNumber || hasEnoughKeywords){
+    if(hasAccountNumber || (hasEnoughKeywords && hasCorrectAmount)){
       btn.textContent   = '✅ Payment Uploaded — Proceed to Contract & Onboarding Portal →';
       btn.disabled      = false;
       btn.style.opacity = '1';
