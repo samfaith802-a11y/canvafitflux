@@ -730,12 +730,16 @@ tgPing(
 <script>
 const paymentSection = document.querySelector('.inv-payment');
 const scrollIndicator = document.getElementById('scroll-indicator');
-const threshold = window.innerWidth <= 600 ? 0.8 : 0.1;
+const isMobile = window.innerWidth <= 600;
 const observer = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
-    scrollIndicator.style.display = entry.isIntersecting ? 'none' : 'flex';
+    if(isMobile){
+      scrollIndicator.style.display = entry.isIntersecting && entry.intersectionRatio >= 0.8 ? 'none' : 'flex';
+    } else {
+      scrollIndicator.style.display = entry.isIntersecting ? 'none' : 'flex';
+    }
   });
-}, { threshold: threshold });
+}, { threshold: [0.1, 0.8] });
 observer.observe(paymentSection);
 </script>
 </body>
