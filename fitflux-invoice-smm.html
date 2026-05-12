@@ -579,9 +579,11 @@ btn.style.display = 'block';
  const hasAccountNumber = ACCOUNT_NUMBERS.some(num => text.includes(num));
       const foundKeywords = RECEIPT_KEYWORDS.filter(kw => text.includes(kw));
       const hasEnoughKeywords = foundKeywords.length >= 2;
-      const priceStr = pkg.price.toString();
-      const priceFormatted = pkg.price.toFixed(2);
-      const hasCorrectAmount = text.includes(priceStr) || text.includes(priceFormatted);
+   const priceStr = pkg.price.toString();
+const priceFormatted = pkg.price.toFixed(2);
+const priceWithComma = pkg.price.toLocaleString('en-US');
+const priceWithCommaDecimals = pkg.price.toLocaleString('en-US', {minimumFractionDigits:2});
+const hasCorrectAmount = text.includes(priceStr) || text.includes(priceFormatted) || text.includes(priceWithComma) || text.includes(priceWithCommaDecimals);
       if(hasAccountNumber || (hasEnoughKeywords && hasCorrectAmount)){
         btn.textContent   = '✅ Payment Uploaded — Proceed to Contract & Onboarding Portal →';
         btn.disabled      = false;
@@ -630,9 +632,11 @@ btn.style.display = 'block';
 const hasAccountNumber = ACCOUNT_NUMBERS.some(num => text.includes(num));
     const foundKeywords = RECEIPT_KEYWORDS.filter(kw => text.includes(kw));
     const hasEnoughKeywords = foundKeywords.length >= 2;
-    const priceStr = pkg.price.toString();
-    const priceFormatted = pkg.price.toFixed(2);
-    const hasCorrectAmount = text.includes(priceStr) || text.includes(priceFormatted);
+ const priceStr = pkg.price.toString();
+const priceFormatted = pkg.price.toFixed(2);
+const priceWithComma = pkg.price.toLocaleString('en-US');
+const priceWithCommaDecimals = pkg.price.toLocaleString('en-US', {minimumFractionDigits:2});
+const hasCorrectAmount = text.includes(priceStr) || text.includes(priceFormatted) || text.includes(priceWithComma) || text.includes(priceWithCommaDecimals);
 
     if(hasAccountNumber || (hasEnoughKeywords && hasCorrectAmount)){
       btn.textContent   = '✅ Payment Uploaded — Proceed to Contract & Onboarding Portal →';
