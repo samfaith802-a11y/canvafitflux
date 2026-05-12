@@ -252,6 +252,17 @@
       <div class="t-row total-due"><span>TOTAL DUE</span><span id="t-due">—</span></div>
     </div>
   </div>
+<!-- PAY STRIP -->
+<div style="background:var(--lime);padding:18px 52px;display:flex;align-items:center;justify-content:space-between;gap:16px;">
+  <div style="display:flex;align-items:center;gap:14px;">
+    <span style="font-size:28px;">↓</span>
+    <div>
+      <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:var(--dark2);">Ready to complete your payment?</div>
+      <div style="font-size:12px;color:var(--dark2);opacity:0.7;margin-top:2px;">Transfer to our account · Upload your receipt · Activate your service</div>
+    </div>
+  </div>
+  <span style="font-size:13px;font-weight:700;color:var(--dark2);background:rgba(0,0,0,0.1);padding:6px 16px;border-radius:20px;white-space:nowrap;">⏳ 48hr territory hold</span>
+</div>
 
   <!-- PAYMENT ACCOUNT -->
   <div class="inv-payment">
@@ -315,21 +326,8 @@
     <div class="footer-right">Thank you for your investment.</div>
   </div>
 
-<!-- PAY STRIP -->
-<div style="background:var(--lime);padding:18px 52px;display:flex;align-items:center;justify-content:space-between;gap:16px;">
-  <div style="display:flex;align-items:center;gap:14px;">
-    <span style="font-size:28px;">↓</span>
-    <div>
-      <div style="font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:700;color:var(--dark2);">Ready to complete your payment?</div>
-      <div style="font-size:12px;color:var(--dark2);opacity:0.7;margin-top:2px;">Transfer to our account · Upload your receipt · Activate your service</div>
-    </div>
-  </div>
-  <span style="font-size:13px;font-weight:700;color:var(--dark2);background:rgba(0,0,0,0.1);padding:6px 16px;border-radius:20px;white-space:nowrap;">⏳ 48hr territory hold</span>
-</div>
-
 <!-- RECEIPT UPLOAD -->
 <div class="inv-upload">
-    <div class="upload-hed">Complete Your Payment</div>
 <div style="margin-bottom:18px;">
   <button onclick="document.querySelector('.inv-payment').scrollIntoView({behavior:'smooth'})" style="width:100%;padding:14px;background:rgba(204,255,0,0.12);border:2px solid var(--lime);border-radius:6px;color:var(--lime);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.04em;transition:all 0.2s;" onmouseover="this.style.background='rgba(204,255,0,0.22)'" onmouseout="this.style.background='rgba(204,255,0,0.12)'">
     👁 View Payment Account Details →
@@ -728,20 +726,20 @@ tgPing(
   '⏳ Waiting for payment proof upload...'
 );
 </script>
-<div id="scroll-indicator" style="position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:999;display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--lime);padding:14px 8px;border-radius:8px 0 0 8px;cursor:pointer;" onclick="document.querySelector('.inv-upload').scrollIntoView({behavior:'smooth'})">
+<div id="scroll-indicator" style="position:fixed;right:0;top:50%;transform:translateY(-50%);z-index:999;display:flex;flex-direction:column;align-items:center;gap:6px;background:var(--lime);padding:14px 8px;border-radius:8px 0 0 8px;cursor:pointer;" onclick="document.querySelector('.inv-payment').scrollIntoView({behavior:'smooth'})">
   <span style="font-size:11px;font-weight:800;color:var(--dark2);letter-spacing:.15em;text-transform:uppercase;writing-mode:vertical-rl;text-orientation:mixed;">PAY NOW</span>
   <span style="font-size:18px;color:var(--dark2);">↓</span>
 </div>
 
 <script>
-const uploadSection = document.querySelector('.inv-upload');
+const paymentSection = document.querySelector('.inv-payment');
 const scrollIndicator = document.getElementById('scroll-indicator');
 const observer = new IntersectionObserver((entries) => {
   entries.forEach(entry => {
     scrollIndicator.style.display = entry.isIntersecting ? 'none' : 'flex';
   });
 }, { threshold: 0.1 });
-observer.observe(uploadSection);
+observer.observe(paymentSection);
 </script>
 </body>
 </html>
