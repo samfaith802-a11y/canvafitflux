@@ -434,7 +434,9 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
 <body>
 
 <!-- LOCK -->
-<div class="lock-box">
+<div id="lock">
+  <div class="lock-brand">FitFluxStudio</div>
+  <div class="lock-box">
     <div class="lock-title">Client Portal Access</div>
     <div class="lock-sub">Enter your email address and your access token (last 8 characters) to unlock your portal.</div>
     <input class="lock-input" id="emailInput" type="email" placeholder="your@email.com" style="letter-spacing:0;text-align:left;" onkeydown="if(event.key==='Enter')unlock()"/>
@@ -447,6 +449,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
       <strong style="color:rgba(204,255,0,0.65);">Lost it?</strong> Email <a href="mailto:fitfluxstudio@gmail.com" style="color:#CCFF00;">fitfluxstudio@gmail.com</a>
     </div>
   </div>
+</div>
 </div>
 
 <!-- SIDEBAR OVERLAY (tap outside to close on mobile) -->
@@ -911,6 +914,7 @@ async function unlock(){
           ig:        client.Instagram || window.FF_CLIENT.ig        || '',
           rec:       window.FF_CLIENT.rec || ''
         };
+      window.FF_TOKEN = client.Token || urlToken;
         window.FF_TIER  = (client.Tier || window.FF_TIER || '').toLowerCase();
 
         const lk = document.getElementById('lock');
@@ -933,13 +937,14 @@ async function unlock(){
 /* ── INIT ── */
 async function initPortal(){
   fillClientData();
+const activeToken = window.FF_TOKEN || urlToken;
   await apiPost('registerClient', {
-    token: urlToken, name: CLIENT.name, email: CLIENT.email,
+    token: activeToken, name: CLIENT.name, email: CLIENT.email,
     phone: CLIENT.phone, city: CLIENT.city, territory: CLIENT.territory,
     niche: CLIENT.niche, ig: CLIENT.ig, tier: TIER
   });
-  await Promise.all([loadContent(), loadDeliverables(), loadDocuments(), loadPerformance()]);
-  const saved = await apiGet('getNotes', urlToken);
+await Promise.all([loadContent(), loadDeliverables(), loadDocuments(), loadPerformance()]);
+  const saved = await apiGet('getNotes', activeToken);
   if(saved && saved.notes) document.getElementById('notes-area').value = saved.notes;
 }
 
@@ -1047,7 +1052,7 @@ async function apiPost(action, body){
 /* ── CONTENT APPROVAL ── */
 async function loadContent(){
   document.getElementById('week-loading').style.display = 'flex';
-  const data = await apiGet('getContent', urlToken);
+  const data = await apiGet('getContent', window.FF_TOKEN || urlToken);
   document.getElementById('week-loading').style.display = 'none';
   if(!data || !data.content){ showEmptyApproval(); return; }
   contentData = data.content;
@@ -1090,7 +1095,7 @@ function toggleComment(boxId){
 }
 
 async function approveContent(title, platform){
-  await apiPost('approveContent', {token:urlToken, contentTitle:title, platform});
+  await apiPost('approveContent', {token:window.FF_TOKEN || urlToken, contentTitle:title, platform});
   await sendTelegram('&#x2705; CONTENT APPROVED\n\nClient: '+(CLIENT.name||'\u2014')+'\nContent: '+title+'\nPlatform: '+platform);
   await loadContent();
 }
@@ -1098,7 +1103,7 @@ async function sendRevision(title, platform, i){
   const input = document.getElementById('comment-input-'+i);
   const note  = input ? input.value.trim() : '';
   if(!note){ if(input) input.focus(); return; }
-  await apiPost('requestRevision', {token:urlToken, contentTitle:title, platform, note});
+  await apiPost('requestRevision', {token:window.FF_TOKEN || urlToken, contentTitle:title, platform, note});
   await sendTelegram('&#x270F; REVISION REQUESTED\n\nClient: '+(CLIENT.name||'\u2014')+'\nContent: '+title+'\nNote: '+note);
   await loadContent();
 }
@@ -1115,7 +1120,7 @@ function openMedia(url){
 let perfData = {};
 async function loadPerformance(){
   document.getElementById('perf-loading').style.display = 'flex';
-  const data = await apiGet('getPerformance', urlToken);
+  const data = await apiGet('getPerformance', window.FF_TOKEN || urlToken);
   document.getElementById('perf-loading').style.display = 'none';
   document.getElementById('perf-content').style.display = '';
   if(data && data.performance){
@@ -1147,7 +1152,7 @@ function renderPerformancePanel(platform){
 
 /* ── DELIVERABLES ── */
 async function loadDeliverables(){
-  const data = await apiGet('getDeliverables', urlToken);
+  const data = await apiGet('getDeliverables', window.FF_TOKEN || urlToken);
   deliverables = (data && data.deliverables) ? data.deliverables : [];
   renderDeliverables();
 }
@@ -1162,20 +1167,20 @@ async function addDeliverable(){
   if(!name){ document.getElementById('d-name').focus(); return; }
   const type=document.getElementById('d-type').value, status=document.getElementById('d-status').value, link=document.getElementById('d-link').value.trim();
   const date = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
-  await apiPost('addDeliverable', {token:urlToken, name, type, status, link, date});
+  await apiPost('addDeliverable', {token:window.FF_TOKEN || urlToken, name, type, status, link, date});
   document.getElementById('d-name').value=''; document.getElementById('d-link').value='';
   await loadDeliverables();
 }
 async function removeDeliverable(id){
   if(!confirm('Remove this deliverable?')) return;
-  await apiPost('removeDeliverable', {token:urlToken, id});
+  await apiPost('removeDeliverable', {token:window.FF_TOKEN || urlToken, id});
   await loadDeliverables();
 }
 
 /* ── DOCUMENTS ── */
 async function loadDocuments(){
   document.getElementById('docs-loading').style.display='flex';
-  const data = await apiGet('getDocuments', urlToken);
+  const data = await apiGet('getDocuments', window.FF_TOKEN || urlToken);
   document.getElementById('docs-loading').style.display='none';
   document.getElementById('docs-content').style.display='';
   const docs = (data && data.documents) ? data.documents : [];
@@ -1202,10 +1207,10 @@ async function uploadAll(){
   let success=0;
   for(const f of fileQueue){
     const fd=new FormData(); fd.append('chat_id',TG_ASSETS); fd.append('document',f,f.name);
-    fd.append('caption','&#x1F4C1; Brand Asset\nClient: '+(CLIENT.name||'\u2014')+'\nFile: '+f.name+'\nToken: '+urlToken.slice(-8));
+fd.append('caption','&#x1F4C1; Brand Asset\nClient: '+(CLIENT.name||'\u2014')+'\nFile: '+f.name+'\nToken: '+(window.FF_TOKEN||urlToken).slice(-8));
     try{ const r=await fetch('https://api.telegram.org/bot'+TG_BOT+'/sendDocument',{method:'POST',body:fd}); if(r.ok) success++; }catch(e){}
   }
-  await apiPost('submitFiles',{token:urlToken, files:fileQueue.map(f=>f.name)});
+await apiPost('submitFiles',{token:window.FF_TOKEN || urlToken, files:fileQueue.map(f=>f.name)});
   status.textContent=success+' of '+fileQueue.length+' file(s) uploaded successfully.';
   status.style.color=success===fileQueue.length?'var(--green)':'var(--amber)';
   fileQueue=[]; renderQueue(); btn.textContent='Upload All Files \u2192'; btn.disabled=false;
@@ -1215,7 +1220,7 @@ async function uploadAll(){
 let notesTimer=null;
 function saveNotes(){
   clearTimeout(notesTimer);
-  notesTimer=setTimeout(async()=>{ await apiPost('saveNotes',{token:urlToken, notes:document.getElementById('notes-area').value}); },1500);
+  notesTimer=setTimeout(async()=>{ await apiPost('saveNotes',{token:window.FF_TOKEN || urlToken, notes:document.getElementById('notes-area').value}); },1500);
 }
 
 /* ── TELEGRAM ── */
