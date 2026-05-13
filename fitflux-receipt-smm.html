@@ -418,7 +418,6 @@ if(SMM_TIERS.includes(tierKey)) contractFile = 'contract_smm.html';
 else if(MKT_TIERS.includes(tierKey)) contractFile = 'contract_smm_marketing.html';
 
 const contractParams = new URLSearchParams({
-  token: TOKEN,
   tier: tierKey,
   name: rName,
   email: rEmail,
