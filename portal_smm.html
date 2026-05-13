@@ -434,17 +434,16 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
 <body>
 
 <!-- LOCK -->
-<div id="lock">
-  <div class="lock-brand">FitFluxStudio</div>
-  <div class="lock-box">
+<div class="lock-box">
     <div class="lock-title">Client Portal Access</div>
-    <div class="lock-sub">Enter the last 8 characters of your access token to unlock your portal.</div>
-    <input class="lock-input" id="pwInput" type="text" placeholder="A1B2C3D4" maxlength="8" style="text-transform:uppercase;" onkeydown="if(event.key==='Enter')unlock()"/>
-    <div class="lock-err" id="lockErr">Incorrect code. Check your receipt and try again.</div>
+    <div class="lock-sub">Enter your email address and your access token (last 8 characters) to unlock your portal.</div>
+    <input class="lock-input" id="emailInput" type="email" placeholder="your@email.com" style="letter-spacing:0;text-align:left;" onkeydown="if(event.key==='Enter')unlock()"/>
+    <input class="lock-input" id="pwInput" type="text" placeholder="Access Token (last 8 chars)" maxlength="8" style="text-transform:uppercase;" onkeydown="if(event.key==='Enter')unlock()"/>
+    <div class="lock-err" id="lockErr">Incorrect email or token. Check your receipt and try again.</div>
     <button class="lock-btn" onclick="unlock()">Enter Portal &rarr;</button>
     <div style="margin-top:12px;padding:12px 14px;background:rgba(204,255,0,0.03);border:1px solid rgba(204,255,0,0.1);border-radius:8px;font-size:11px;color:rgba(255,255,255,0.4);line-height:1.7;text-align:left;">
-      <strong style="color:rgba(204,255,0,0.65);display:block;margin-bottom:4px;">What is my access code?</strong>
-      The last 8 characters of your token from your receipt &mdash; starts with <span style="font-family:monospace;color:rgba(204,255,0,0.6);">FF-</span>.<br><br>
+      <strong style="color:rgba(204,255,0,0.65);display:block;margin-bottom:4px;">How to log in</strong>
+      Enter the email you used when signing up, and the last 8 characters of your token from your receipt.<br><br>
       <strong style="color:rgba(204,255,0,0.65);">Lost it?</strong> Email <a href="mailto:fitfluxstudio@gmail.com" style="color:#CCFF00;">fitfluxstudio@gmail.com</a>
     </div>
   </div>
@@ -880,22 +879,55 @@ function toggleSidebar(){
 }
 
 /* ── LOGIN ── */
-function unlock(){
-  const raw = (document.getElementById('pwInput').value||'').trim().toUpperCase();
+async function unlock(){
+  const emailRaw = (document.getElementById('emailInput').value||'').trim().toLowerCase();
+  const tokenRaw = (document.getElementById('pwInput').value||'').trim().toUpperCase();
   const err = document.getElementById('lockErr');
-  const full = urlToken.toUpperCase();
-  const valid = raw === PW || raw === full || (raw.length > 0 && full.endsWith(raw));
-  if(valid){
-    const lk = document.getElementById('lock');
-    lk.style.opacity = '0';
-    lk.style.transition = 'opacity .4s';
-    setTimeout(()=>{ lk.style.display='none'; }, 450);
-    setTimeout(()=>{ initPortal(); showWelcomeModal(); }, 500);
-  } else {
-    err.classList.add('show');
-    document.getElementById('pwInput').value = '';
-    setTimeout(()=>err.classList.remove('show'), 3000);
-  }
+  const btn = document.querySelector('.lock-btn');
+
+  if(!emailRaw || !tokenRaw){ err.classList.add('show'); setTimeout(()=>err.classList.remove('show'),3000); return; }
+
+  btn.textContent = 'Verifying...';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch(SCRIPT_URL + '?action=getClient&email=' + encodeURIComponent(emailRaw));
+    const data = await res.json();
+
+    if(data && data.client){
+      const client = data.client;
+      const clientToken = (client.Token||'').toUpperCase();
+      const tokenOk = clientToken.endsWith(tokenRaw) || clientToken === tokenRaw;
+
+      if(tokenOk){
+        // Merge sheet data into FF_CLIENT
+        window.FF_CLIENT = {
+          name:      client.Name      || window.FF_CLIENT.name      || '',
+          email:     client.Email     || window.FF_CLIENT.email     || '',
+          phone:     client.Phone     || window.FF_CLIENT.phone     || '',
+          city:      client.City      || window.FF_CLIENT.city      || '',
+          territory: client.Territory || window.FF_CLIENT.territory || '',
+          niche:     client.Niche     || window.FF_CLIENT.niche     || '',
+          ig:        client.Instagram || window.FF_CLIENT.ig        || '',
+          rec:       window.FF_CLIENT.rec || ''
+        };
+        window.FF_TIER  = (client.Tier || window.FF_TIER || '').toLowerCase();
+
+        const lk = document.getElementById('lock');
+        lk.style.opacity = '0';
+        lk.style.transition = 'opacity .4s';
+        setTimeout(()=>{ lk.style.display='none'; }, 450);
+        setTimeout(()=>{ initPortal(); showWelcomeModal(); }, 500);
+        return;
+      }
+    }
+  } catch(e){ console.error('Login error:', e); }
+
+  btn.textContent = 'Enter Portal →';
+  btn.disabled = false;
+  err.classList.add('show');
+  document.getElementById('pwInput').value = '';
+  setTimeout(()=>err.classList.remove('show'), 3000);
 }
 
 /* ── INIT ── */
