@@ -180,7 +180,6 @@
             <option>Other Fitness Brand</option>
           </select>
         </div>
-        <div class="field"><label>Instagram Handle</label><input type="text" id="f-ig" placeholder="@yourhandle"/></div>
         <button class="btn-check" onclick="submitForm()">Check Territory Availability →</button>
         <div class="lock-note">
           <span>🔒</span>
@@ -259,11 +258,10 @@ function submitForm() {
   const city = document.getElementById('f-city').value.trim();
   const territory = document.getElementById('f-territory').value.trim();
   const niche = document.getElementById('f-niche').value;
-  const ig = document.getElementById('f-ig').value.trim();
-  if (!name || !email || !city || !territory || !niche || !ig) {
+if (!name || !email || !city || !territory || !niche) {
     alert('Please fill in all fields to check territory availability.'); return;
   }
-  fd = { name, email, phone, city, territory, niche, ig };
+fd = { name, email, phone, city, territory, niche };
   document.getElementById('s-form').classList.remove('active');
   document.getElementById('s-loader').classList.add('active');
   document.getElementById('loader-city').textContent = niche + ' · ' + city + ', ' + territory;
@@ -272,7 +270,6 @@ function submitForm() {
     '👤 Name: ' + name + '\n' +
     '📧 Email: ' + email + '\n' +
     '📱 Phone: ' + (phone||'—') + '\n' +
-    '📸 Instagram: ' + ig + '\n' +
     '📦 Tier: ' + tierKey + '\n' +
     '🏙 Niche: ' + niche + '\n' +
     '📍 Location: ' + city + ', ' + territory + '\n\n' +
