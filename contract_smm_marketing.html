@@ -20,9 +20,9 @@ window.FF_VALID_TIERS = ['launchpad','growth','pro'];
   const tokenTier = tokenParts.length >= 2 ? tokenParts[1] : '';
 
   const tierOk  = VALID_TIERS.includes(tierParam);
-  const tokenOk = token.startsWith('FF-') && VALID_TIERS.includes(tokenTier) && tokenTier === tierParam;
-
-  if (!tierOk || !tokenOk) {
+const recOk = params.get('rec') !== null && params.get('rec') !== '';
+const tokenOk = (token.startsWith('FF-') && VALID_TIERS.includes(tokenTier) && tokenTier === tierParam) || recOk;
+if(!tierOk || !tokenOk){
     document.documentElement.innerHTML = `
       <html><head><meta charset="UTF-8">
       <style>
