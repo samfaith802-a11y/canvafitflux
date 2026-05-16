@@ -14,8 +14,7 @@ window.FF_VALID_TIERS = ['presence','authority','categoryking','categorykingquee
   const tokenTier = tokenParts.length >= 2 ? tokenParts[1] : '';
 const normalize = s => (s||'').toLowerCase().replace(/[\s\/]/g,'');
 const tierOk  = VALID_TIERS.includes(normalize(tierParam));
-const tokenOk = token.startsWith('FF-') && VALID_TIERS.includes(normalize(tokenTier)) && normalize(tokenTier) === normalize(tierParam);
-if(!tierOk || !tokenOk){
+if(!tierOk){
     document.documentElement.innerHTML = `<html><head><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#0D1F00;color:#fff;font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:40px}.wrap{max-width:400px}.icon{font-size:48px;margin-bottom:20px}h1{font-size:22px;color:#CCFF00;margin-bottom:12px;font-weight:700}p{font-size:13px;color:rgba(255,255,255,0.5);line-height:1.7;margin-bottom:20px}a{color:#CCFF00;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}</style></head><body><div class="wrap"><div class="icon">&#x1F512;</div><h1>Access Denied</h1><p>This link is invalid or expired.<br><br>Please use the link from your receipt, or contact us.</p><a href="mailto:fitfluxstudio@gmail.com">Contact FitfluxStudio &#x2192;</a></div><\/body><\/html>`;
     return;
   }
