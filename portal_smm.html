@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <script>
-window.FF_VALID_TIERS = ['presence','authority','categoryking','category king/queen'];
+window.FF_VALID_TIERS = ['presence','authority','categorykingqueen'];
 </script>
 <script>
 (function(){
@@ -12,9 +12,10 @@ window.FF_VALID_TIERS = ['presence','authority','categoryking','category king/qu
   const VALID_TIERS = window.FF_VALID_TIERS || ['presence','authority','categoryking'];
   const tokenParts = token.split('-');
   const tokenTier = tokenParts.length >= 2 ? tokenParts[1] : '';
-  const tierOk  = VALID_TIERS.includes(tierParam);
-  const tokenOk = token.startsWith('FF-') && VALID_TIERS.includes(tokenTier) && tokenTier === tierParam;
-  if(!tierOk || !tokenOk){
+const normalize = s => (s||'').toLowerCase().replace(/[\s\/]/g,'');
+const tierOk  = VALID_TIERS.includes(normalize(tierParam));
+const tokenOk = token.startsWith('FF-') && VALID_TIERS.includes(normalize(tokenTier)) && normalize(tokenTier) === normalize(tierParam);
+if(!tierOk || !tokenOk){
     document.documentElement.innerHTML = `<html><head><meta charset="UTF-8"><style>*{margin:0;padding:0;box-sizing:border-box}body{background:#0D1F00;color:#fff;font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;align-items:center;justify-content:center;text-align:center;padding:40px}.wrap{max-width:400px}.icon{font-size:48px;margin-bottom:20px}h1{font-size:22px;color:#CCFF00;margin-bottom:12px;font-weight:700}p{font-size:13px;color:rgba(255,255,255,0.5);line-height:1.7;margin-bottom:20px}a{color:#CCFF00;font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase}</style></head><body><div class="wrap"><div class="icon">&#x1F512;</div><h1>Access Denied</h1><p>This link is invalid or expired.<br><br>Please use the link from your receipt, or contact us.</p><a href="mailto:fitfluxstudio@gmail.com">Contact FitfluxStudio &#x2192;</a></div><\/body><\/html>`;
     return;
   }
@@ -478,7 +479,6 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     <div class="sb-lbl">Your Content</div>
     <a class="nv" href="javascript:void(0)" data-target="approvals" onclick="nav(this,'Content Approval')"><span class="nv-icon">&#x2705;</span>Content Approval <span class="nv-badge" id="pending-badge" style="display:none;">0</span></a>
     <a class="nv" href="javascript:void(0)" data-target="performance" onclick="nav(this,'Performance')"><span class="nv-icon">&#x1F4CA;</span>Performance</a>
-    <a class="nv" href="javascript:void(0)" data-target="deliverables" onclick="nav(this,'Deliverables')"><span class="nv-icon">&#x1F4E6;</span>Deliverables</a>
   </div>
   <div class="sb-section">
     <div class="sb-lbl">Account</div>
@@ -671,6 +671,38 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
       <div id="week-this" class="approval-week active"></div>
       <div id="week-last" class="approval-week"></div>
       <div id="week-upcoming" class="approval-week"></div>
+      <div class="dvd"></div>
+<div class="callout">
+  <div class="callout-icon">&#x1F4E6;</div>
+  <div>
+    <div class="callout-title">Everything We've Made For You</div>
+    <div class="callout-text">Every video, graphic, strategy doc, and report is tracked here. Unlimited. No ceiling. Add items as they come in.</div>
+  </div>
+</div>
+<div style="background:var(--card);border:1px solid var(--bdr);border-radius:14px;overflow:hidden;margin-bottom:16px;">
+  <div class="deliv-header"><span>Deliverable</span><span>Type</span><span>Status</span><span>Date</span><span></span></div>
+  <div id="deliv-list"><div class="loading"><div class="spinner"></div>Loading deliverables...</div></div>
+  <div class="deliv-add">
+    <div class="deliv-add-title">Add Deliverable</div>
+    <div class="deliv-add-grid">
+      <input class="d-input" id="d-name" placeholder="e.g. Week 3 Instagram Posts"/>
+      <select class="d-select" id="d-type">
+        <option>Video</option><option>Graphic</option><option>Caption</option>
+        <option>Strategy</option><option>Report</option><option>Asset</option><option>Other</option>
+      </select>
+      <select class="d-select" id="d-status">
+        <option value="pending">⏳ Pending</option>
+        <option value="progress">🔄 In Progress</option>
+        <option value="waiting">👁 Waiting for Client Approval</option>
+        <option value="approved">✅ Approved by Client</option>
+        <option value="declined">❌ Declined</option>
+        <option value="published">🚀 Published</option>
+      </select>
+      <input class="d-input" id="d-link" placeholder="Google Drive link"/>
+      <button class="btn-add" onclick="addDeliverable()">+ Add</button>
+    </div>
+  </div>
+</div>
     </div>
 
     <div class="dvd"></div>
@@ -707,44 +739,6 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
         <div id="panel-twitter" class="platform-panel"></div>
       </div>
     </div>
-
-    <div class="dvd"></div>
-
-    <!-- 07 DELIVERABLES -->
-    <div id="deliverables">
-      <div class="sec-head"><div class="sec-num">07</div><div class="sec-title">Deliverables Tracker</div><div class="sec-line"></div></div>
-      <div class="callout">
-        <div class="callout-icon">&#x1F4E6;</div>
-        <div>
-          <div class="callout-title">Everything We've Made For You</div>
-          <div class="callout-text">Every video, graphic, strategy doc, and report is tracked here. Unlimited. No ceiling. Add items as they come in.</div>
-        </div>
-      </div>
-      <div style="background:var(--card);border:1px solid var(--bdr);border-radius:14px;overflow:hidden;margin-bottom:16px;">
-        <div class="deliv-header"><span>Deliverable</span><span>Type</span><span>Status</span><span>Date</span><span></span></div>
-        <div id="deliv-list"><div class="loading"><div class="spinner"></div>Loading deliverables...</div></div>
-        <div class="deliv-add">
-          <div class="deliv-add-title">Add Deliverable</div>
-          <div class="deliv-add-grid">
-            <input class="d-input" id="d-name" placeholder="e.g. Week 3 Instagram Posts"/>
-            <select class="d-select" id="d-type">
-              <option>Video</option><option>Graphic</option><option>Caption</option>
-              <option>Strategy</option><option>Report</option><option>Asset</option><option>Other</option>
-            </select>
-            <select class="d-select" id="d-status">
-              <option value="pending">&#x23F3; Pending</option>
-              <option value="progress">&#x1F504; In Progress</option>
-              <option value="delivered">&#x2705; Delivered</option>
-              <option value="approved">&#x1F389; Approved</option>
-            </select>
-            <input class="d-input" id="d-link" placeholder="Google Drive link"/>
-            <button class="btn-add" onclick="addDeliverable()">+ Add</button>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="dvd"></div>
 
     <!-- 08 TERRITORY -->
     <div id="territory">
@@ -1158,9 +1152,61 @@ async function loadDeliverables(){
 }
 function renderDeliverables(){
   const el = document.getElementById('deliv-list');
-  if(!deliverables.length){ el.innerHTML='<div style="padding:24px;text-align:center;color:var(--t3);font-size:13px;">No deliverables yet. Add your first one below.</div>'; return; }
-  const sm = {pending:'<span class="tag tag-a">&#x23F3; Pending</span>',progress:'<span class="tag tag-b">&#x1F504; In Progress</span>',delivered:'<span class="tag tag-g">&#x2705; Delivered</span>',approved:'<span class="tag tag-g">&#x1F389; Approved</span>'};
-  el.innerHTML = deliverables.map((d,i)=>'<div class="deliv-row"><span class="deliv-name">'+(d.Name||d.name||'\u2014')+'</span><span class="deliv-type">'+(d.Type||d.type||'\u2014')+'</span><span>'+(sm[d.Status||d.status]||d.Status||d.status||'\u2014')+'</span><span style="font-size:11px;color:var(--t3);">'+(d.Date||d.date||'\u2014')+'</span><button class="deliv-rm" onclick="removeDeliverable(\''+(d.ID||d.id||i)+'\')">&times;</button></div>').join('');
+  if(!deliverables.length){
+    el.innerHTML='<div style="padding:24px;text-align:center;color:var(--t3);font-size:13px;">No deliverables yet.</div>';
+    return;
+  }
+  el.innerHTML = deliverables.map((d,i)=>{
+    const sid = d.Status||d.status||'pending';
+    const sm = {
+      pending:'<span class="tag tag-a">⏳ Pending</span>',
+      progress:'<span class="tag tag-b">🔄 In Progress</span>',
+      waiting:'<span class="tag tag-y">👁 Waiting for Approval</span>',
+      approved:'<span class="tag tag-g">✅ Approved</span>',
+      declined:'<span class="tag tag-r">❌ Declined</span>',
+      published:'<span class="tag tag-p">🚀 Published</span>'
+    };
+    const id = d.ID||d.id||i;
+    const waitingNote = sid==='waiting' ? `<div style="margin:10px 0;padding:10px 14px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;font-size:12px;color:var(--amber);">👁 This content is waiting for your approval — please review and use the buttons below.</div>` : '';
+    const actionBtns = (sid==='waiting') ? `
+      <div style="display:flex;gap:8px;margin:10px 0;">
+        <button class="btn-approve" onclick="updateDelivStatus('${id}','approved','${d.Name||d.name||''}')">✅ Approve</button>
+        <button class="btn-revision" onclick="updateDelivStatus('${id}','declined','${d.Name||d.name||''}')">❌ Decline</button>
+      </div>` : '';
+    const pdfLinks = d.PDFs ? d.PDFs.split(',').map((p,pi)=>`<a href="${p.trim()}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--blue);background:rgba(77,157,255,0.08);border:1px solid rgba(77,157,255,0.2);border-radius:6px;padding:5px 12px;margin-right:6px;margin-bottom:6px;">📄 File ${pi+1}</a>`).join('') : '';
+    const chatMsgs = (d.ChatMessages||[]).map(m=>`
+      <div class="comment-msg">
+        <div class="comment-author">${m.author||'Client'}</div>
+        <div class="comment-text">${m.text||''}</div>
+        <div class="comment-time">${m.time||''}</div>
+      </div>`).join('');
+    return `
+    <div style="background:var(--card);border:1px solid var(--bdr);border-radius:14px;overflow:hidden;margin-bottom:16px;border-left:3px solid ${sid==='approved'?'var(--green)':sid==='declined'?'var(--red)':sid==='published'?'var(--purple)':sid==='waiting'?'var(--amber)':'var(--bdr)'};">
+      <div style="display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--bdr);">
+        <span style="font-size:13px;font-weight:600;color:var(--t1);flex:1;">${d.Name||d.name||'—'}</span>
+        <span class="tag tag-p" style="font-size:10px;">${d.Type||d.type||'—'}</span>
+        ${sm[sid]||sid}
+        <button class="deliv-rm" onclick="removeDeliverable('${id}')" style="margin-left:4px;">&times;</button>
+      </div>
+      <div style="padding:14px 18px;">
+        ${d.Date||d.date?`<div style="font-size:11px;color:var(--t3);margin-bottom:10px;">📅 ${d.Date||d.date}</div>`:''}
+        ${pdfLinks?`<div style="margin-bottom:10px;">${pdfLinks}</div>`:''}
+        ${waitingNote}
+        ${actionBtns}
+        <div style="margin-top:12px;">
+          <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">💬 Chat</div>
+          <div id="chat-${id}" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;max-height:200px;overflow-y:auto;">${chatMsgs}</div>
+          <div class="comment-box">
+            <textarea class="comment-input" id="chat-input-${id}" placeholder="Type your feedback or question..."></textarea>
+            <div class="comment-footer">
+              <span class="comment-hint">Feedback goes directly to your FitFlux team.</span>
+              <button class="btn-send" onclick="sendDelivChat('${id}','${d.Name||d.name||''}')">Send →</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
 }
 async function addDeliverable(){
   const name = document.getElementById('d-name').value.trim();
@@ -1232,6 +1278,23 @@ document.addEventListener('DOMContentLoaded',()=>{
   const first=document.querySelector('.nv');
   if(first) first.classList.add('act');
 });
+async function updateDelivStatus(id, newStatus, name){
+  await apiPost('updateDeliverableStatus', {token: window.FF_TOKEN || urlToken, id, status: newStatus});
+  const action = newStatus === 'approved' ? '✅ DELIVERABLE APPROVED' : '❌ DELIVERABLE DECLINED';
+  await sendTelegram(action+'\n\nClient: '+(CLIENT.name||'—')+'\nDeliverable: '+name);
+  await loadDeliverables();
+}
+
+async function sendDelivChat(id, name){
+  const input = document.getElementById('chat-input-'+id);
+  const text = input ? input.value.trim() : '';
+  if(!text){ if(input) input.focus(); return; }
+  const time = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  await apiPost('addDelivChat', {token: window.FF_TOKEN || urlToken, id, text, author: CLIENT.name||'Client', time});
+  await sendTelegram('💬 CHAT MESSAGE ON DELIVERABLE\n\nClient: '+(CLIENT.name||'—')+'\nDeliverable: '+name+'\nMessage: '+text);
+  if(input) input.value = '';
+  await loadDeliverables();
+}
 </script>
 </body>
 </html>
