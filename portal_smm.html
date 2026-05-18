@@ -887,7 +887,7 @@ async function unlock(){
   btn.disabled = true;
 
   try {
-    const res = await fetch(SCRIPT_URL + '?action=getClient&email=' + encodeURIComponent(emailRaw));
+  const res = await fetch(SCRIPT_URL + '?action=getClient&email=' + encodeURIComponent(emailRaw) + '&last8=' + encodeURIComponent(tokenRaw));
     const data = await res.json();
 
     if(data && data.client){
