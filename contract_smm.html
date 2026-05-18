@@ -23,7 +23,8 @@ window.FF_VALID_TIERS = ['presence','authority','categoryking','category king/qu
   const tierOk  = VALID_TIERS.includes(tierParam);
 const recOk = params.get('rec') !== null && params.get('rec') !== '';
 const tokenOk = (token.startsWith('FF-') && VALID_TIERS.includes(tokenTier) && tokenTier === tierParam) || recOk;
-if(!tierOk || !tokenOk){
+const emailOk = params.get('email') !== null && params.get('email') !== '';
+if(!tierOk || (!tokenOk && !emailOk)){
     document.documentElement.innerHTML = `
       <html><head><meta charset="UTF-8">
       <style>
@@ -811,8 +812,7 @@ function goToPortal() {
   else if(MKT_TIERS.includes(tier)) portalFile = 'portal_smm_marketing.html';
   else portalFile = 'portal_smm.html'; // default fallback
 
-  const p = new URLSearchParams({
-    token:     window.FF_TOKEN || '',
+const p = new URLSearchParams({
     tier:      window.FF_TIER  || '',
     name:      c.name      || document.getElementById('f-name')?.value      || '',
     email:     c.email     || document.getElementById('f-email')?.value     || '',
