@@ -931,7 +931,7 @@ async function unlock(){
 async function initPortal(){
   fillClientData();
 const activeToken = window.FF_TOKEN || urlToken;
-  await apiPost('registerClient', {
+apiPost('registerClient', {
     token: activeToken, name: CLIENT.name, email: CLIENT.email,
     phone: CLIENT.phone, city: CLIENT.city, territory: CLIENT.territory,
     niche: CLIENT.niche, ig: CLIENT.ig, tier: TIER
