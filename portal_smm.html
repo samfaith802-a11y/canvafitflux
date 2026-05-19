@@ -1088,15 +1088,91 @@ function renderWeek(week, items){
     el.innerHTML = '<div class="approval-empty"><div class="approval-empty-icon">'+(week==='this'?'&#x1F4ED;':'&#x1F4C5;')+'</div><div style="font-size:14px;font-weight:600;color:var(--t2);margin-bottom:6px;">'+(week==='this'?'No content pending this week':week==='last'?'No content from last week':'No upcoming content scheduled')+'</div><div style="font-size:12px;color:var(--t3);">Your FitFlux team will upload content here for your review.</div></div>';
     return;
   }
-  el.innerHTML = items.map((c,i)=>buildApprovalCard(c,i)).join('');
+
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  const grouped = {};
+  items.forEach(c => {
+    const d = new Date(c.ScheduledDate||c.CreatedAt);
+    const dayName = days[d.getDay()];
+    if(!grouped[dayName]) grouped[dayName] = [];
+    grouped[dayName].push(c);
+  });
+
+  let html = '';
+  days.forEach(day => {
+    if(!grouped[day]) return;
+    html += `<div style="margin-bottom:24px;">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(204,255,0,0.5);padding:8px 0;border-bottom:1px solid var(--bdr);margin-bottom:12px;">${day}</div>
+      ${grouped[day].map((c,i)=>buildApprovalCard(c,i)).join('')}
+    </div>`;
+  });
+  el.innerHTML = html;
 }
 
 function buildApprovalCard(c, i){
-  const sc = c.Status==='Approved'?'status-approved':c.Status==='Revision'?'status-revision':'status-pending';
-  const st = c.Status==='Approved'?'<span class="tag tag-g">&#x2705; Approved</span>':c.Status==='Revision'?'<span class="tag tag-r">&#x270F; Revision</span>':'<span class="tag tag-a">&#x23F3; Awaiting Approval</span>';
+  const sc = c.Status==='Approved'?'status-approved':c.Status==='Revision'||c.Status==='declined'?'status-revision':'status-pending';
+  const statusMap = {
+    'Pending':'<span class="tag tag-a">⏳ Pending</span>',
+    'progress':'<span class="tag tag-b">🔄 In Progress</span>',
+    'waiting':'<span class="tag tag-y">👁 Waiting for Approval</span>',
+    'Approved':'<span class="tag tag-g">✅ Approved</span>',
+    'declined':'<span class="tag tag-r">❌ Content Declined</span>',
+    'published':'<span class="tag tag-p">🚀 Published</span>',
+    'Revision':'<span class="tag tag-r">✏️ Revision</span>'
+  };
+  const st = statusMap[c.Status] || '<span class="tag tag-a">⏳ Pending</span>';
   const mh = c.MediaURL ? '<div class="aitem-media">'+(c.MediaType==='video'?'<div class="aitem-thumb"><video src="'+c.MediaURL+'" controls style="width:100%;height:100%;object-fit:cover;border-radius:10px;"></video></div>':'<div class="aitem-thumb"><img src="'+c.MediaURL+'" alt="content" style="width:100%;height:100%;object-fit:cover;border-radius:10px;" onclick="openMedia(\''+c.MediaURL+'\')" /></div>')+'</div>' : '';
-  const ah = c.Status==='Pending' ? '<div class="aitem-actions"><button class="btn-approve" onclick="approveContent(\''+c.Title+'\',\''+c.Platform+'\')">&#x2705; Approve</button><button class="btn-revision" onclick="toggleComment(\'comment-'+i+'\')">&#x270F; Request Changes</button></div><div class="comment-box" id="comment-'+i+'" style="display:none;"><textarea class="comment-input" id="comment-input-'+i+'" placeholder="Describe what you\'d like changed..."></textarea><div class="comment-footer"><span class="comment-hint">Be specific &mdash; your team will make changes promptly.</span><button class="btn-send" onclick="sendRevision(\''+c.Title+'\',\''+c.Platform+'\','+i+')">Send &rarr;</button></div></div>' : '<div style="font-size:12px;color:var(--t3);margin-top:8px;">'+(c.RevisionNote||'')+'</div>';
-  return '<div class="aitem '+sc+'"><div class="aitem-header"><span class="aitem-platform">'+(c.Platform||'Post')+'</span><span class="aitem-title">'+(c.Title||'Content')+'</span><span class="aitem-date">'+(c.ScheduledDate||'')+'</span>'+st+'</div><div class="aitem-body">'+mh+'<div class="aitem-caption">'+((c.Caption||'').replace(/</g,'&lt;'))+'</div>'+ah+'</div></div>';
+
+  const cardId = 'card-'+(c.ID||i);
+  const chatId = 'chat-'+cardId;
+  const inputId = 'input-'+cardId;
+
+  const waitingNudge = c.Status==='waiting' ? `
+    <div style="margin:10px 0;padding:10px 14px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;font-size:12px;color:var(--amber);">
+      👁 Please review this content and drop your feedback in the chat below before it goes live.
+    </div>` : '';
+
+  const actionBtns = c.Status==='waiting' ? `
+    <div style="display:flex;gap:8px;margin:12px 0;" id="action-${cardId}">
+      <button class="btn-approve" onclick="approveContent('${c.Title}','${c.Platform}','${cardId}')">✅ Approve</button>
+      <button class="btn-revision" onclick="initDecline('${c.Title}','${c.Platform}','${cardId}','${inputId}')">❌ Decline</button>
+    </div>` : '';
+
+  const chatMsgs = (c.ChatMessages||[]).map(m=>`
+    <div class="comment-msg" style="background:${m.author==='FitFlux'?'rgba(204,255,0,0.06)':'rgba(255,255,255,0.04)'};">
+      <div class="comment-author" style="color:${m.author==='FitFlux'?'var(--gold)':'var(--blue)'};">${m.author||'Client'}</div>
+      <div class="comment-text">${m.text||''}</div>
+      <div class="comment-time">${m.time||''}</div>
+    </div>`).join('');
+
+  const newReplyBadge = c.HasNewReply ? `<div style="display:inline-flex;align-items:center;gap:5px;background:rgba(255,85,85,0.15);border:1px solid rgba(255,85,85,0.3);border-radius:20px;padding:3px 10px;font-size:11px;color:var(--red);font-weight:700;margin-bottom:8px;">💬 New reply from FitFlux</div>` : '';
+
+  return `<div class="aitem ${sc}" id="${cardId}">
+    <div class="aitem-header">
+      <span class="aitem-platform">${c.Platform||'Post'}</span>
+      <span class="aitem-title">${c.Title||'Content'}</span>
+      <span class="aitem-date">${c.ScheduledDate||''}</span>
+      ${st}
+    </div>
+    <div class="aitem-body">
+      ${mh}
+      <div class="aitem-caption">${(c.Caption||'').replace(/</g,'&lt;')}</div>
+      ${waitingNudge}
+      ${actionBtns}
+      <div style="margin-top:14px;">
+        <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">💬 Chat</div>
+        ${newReplyBadge}
+        <div id="${chatId}" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;max-height:200px;overflow-y:auto;">${chatMsgs}</div>
+        <div class="comment-box">
+          <textarea class="comment-input" id="${inputId}" placeholder="Type your feedback or question..."></textarea>
+          <div class="comment-footer">
+            <span class="comment-hint">Your message goes directly to your FitFlux team.</span>
+            <button class="btn-send" onclick="sendContentChat('${c.Title}','${c.Platform}','${cardId}','${inputId}')">Send →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>`;
 }
 
 function showEmptyApproval(){
@@ -1108,17 +1184,50 @@ function toggleComment(boxId){
   if(box) box.style.display = box.style.display==='none'?'block':'none';
 }
 
-async function approveContent(title, platform){
+async function approveContent(title, platform, cardId){
   await apiPost('approveContent', {token:window.FF_TOKEN || urlToken, contentTitle:title, platform});
-  await sendTelegram('&#x2705; CONTENT APPROVED\n\nClient: '+(CLIENT.name||'\u2014')+'\nContent: '+title+'\nPlatform: '+platform);
+  await sendTelegram('✅ CONTENT APPROVED\n\nClient: '+(window.FF_CLIENT.name||'—')+'\nContent: '+title+'\nPlatform: '+platform);
   await loadContent();
 }
-async function sendRevision(title, platform, i){
-  const input = document.getElementById('comment-input-'+i);
-  const note  = input ? input.value.trim() : '';
-  if(!note){ if(input) input.focus(); return; }
-  await apiPost('requestRevision', {token:window.FF_TOKEN || urlToken, contentTitle:title, platform, note});
-  await sendTelegram('&#x270F; REVISION REQUESTED\n\nClient: '+(CLIENT.name||'\u2014')+'\nContent: '+title+'\nNote: '+note);
+
+function initDecline(title, platform, cardId, inputId){
+  const input = document.getElementById(inputId);
+  if(!input){ return; }
+  input.placeholder = '⚠️ You must explain why you are declining before we can process it...';
+  input.focus();
+  input.style.border = '1px solid var(--red)';
+
+  // Override send button to decline mode
+  const btn = input.closest('.comment-box').querySelector('.btn-send');
+  btn.textContent = 'Submit Decline →';
+  btn.style.background = 'var(--red)';
+  btn.onclick = async function(){
+    const reason = input.value.trim();
+    if(!reason){
+      input.style.border = '1px solid var(--red)';
+      input.focus();
+      return;
+    }
+    await apiPost('requestRevision', {token:window.FF_TOKEN || urlToken, contentTitle:title, platform, note:reason});
+    await apiPost('updateContentStatus', {token:window.FF_TOKEN || urlToken, contentTitle:title, platform, status:'declined'});
+    await sendTelegram('❌ CONTENT DECLINED\n\nClient: '+(window.FF_CLIENT.name||'—')+'\nContent: '+title+'\nPlatform: '+platform+'\nReason: '+reason);
+    input.value = '';
+    input.style.border = '';
+    btn.textContent = 'Send →';
+    btn.style.background = '';
+    btn.onclick = ()=>sendContentChat(title, platform, cardId, inputId);
+    await loadContent();
+  };
+}
+
+async function sendContentChat(title, platform, cardId, inputId){
+  const input = document.getElementById(inputId);
+  const text = input ? input.value.trim() : '';
+  if(!text){ if(input) input.focus(); return; }
+  const time = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  await apiPost('addContentChat', {token:window.FF_TOKEN || urlToken, contentTitle:title, platform, text, author:window.FF_CLIENT.name||'Client', time});
+  await sendTelegram('💬 CLIENT FEEDBACK ON CONTENT\n\nClient: '+(window.FF_CLIENT.name||'—')+'\nContent: '+title+'\nPlatform: '+platform+'\nMessage: '+text);
+  if(input) input.value = '';
   await loadContent();
 }
 
