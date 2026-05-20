@@ -20,16 +20,17 @@ if(!tierOk){
   }
   window.FF_TOKEN  = token;
   window.FF_TIER   = tierParam;
-  window.FF_CLIENT = {
-    name:      params.get('name')      || '',
-    email:     params.get('email')     || '',
-    phone:     params.get('phone')     || '',
-    city:      params.get('city')      || '',
-    territory: params.get('territory') || '',
-    niche:     params.get('niche')     || '',
-    ig:        params.get('ig')        || '',
-    rec:       params.get('rec')       || ''
-  };
+ window.FF_CLIENT = {
+  name:      client.Name      || window.FF_CLIENT.name      || '',
+  email:     client.Email     || window.FF_CLIENT.email     || '',
+  phone:     client.Phone     || window.FF_CLIENT.phone     || '',
+  city:      client.City      || window.FF_CLIENT.city      || '',
+  territory: client.Territory || window.FF_CLIENT.territory || '',
+  niche:     client.Niche     || window.FF_CLIENT.niche     || '',
+  ig:        client.Instagram || window.FF_CLIENT.ig        || '',
+  rec:       window.FF_CLIENT.rec || '',
+  createdAt: client.CreatedAt || ''
+};
 })();
 </script>
 <meta charset="UTF-8"/>
@@ -175,7 +176,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
 .chk:hover{background:rgba(204,255,0,0.05);}
 .chkb{width:16px;height:16px;border-radius:3px;flex-shrink:0;margin-top:2px;border:1.5px solid rgba(204,255,0,0.3);transition:all .15s;display:flex;align-items:center;justify-content:center;}
 .chkb.on{background:var(--purple);border-color:var(--purple);}
-.chkb.on::after{content:'checkmark';font-size:9px;color:#fff;font-weight:700;}
+.chkb.on::after{content:'✓';font-size:10px;color:#fff;font-weight:700;}
 .chkt{font-size:13px;color:var(--t2);line-height:1.5;}
 .chkt.on{text-decoration:line-through;color:var(--t3);}
 
@@ -472,7 +473,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     <a class="nv act" href="javascript:void(0)" data-target="welcome" onclick="nav(this,'Welcome')"><span class="nv-icon">&#x1F44B;</span>Welcome <span class="nv-badge green">NEW</span></a>
     <a class="nv" href="javascript:void(0)" data-target="guide" onclick="nav(this,'Portal Guide')"><span class="nv-icon">&#x1F5FA;</span>Portal Guide</a>
     <a class="nv" href="javascript:void(0)" data-target="overview" onclick="nav(this,'Overview')"><span class="nv-icon">&#x1F4CB;</span>Project Overview</a>
-    <a class="nv" href="javascript:void(0)" data-target="roadmap" onclick="nav(this,'Roadmap')"><span class="nv-icon">&#x1F4CD;</span>SMM Roadmap</a>
+    <a class="nv" href="javascript:void(0)" data-target="roadmap" onclick="nav(this,'Your SMM Growth Journey')"><span class="nv-icon">&#x1F4CD;</span>Your SMM Growth Journey</a>
   </div>
   <div class="sb-section">
     <div class="sb-lbl">Your Content</div>
@@ -516,7 +517,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     <div class="hero-sub">Review and approve before it goes live. Track growth across every platform. Your territory is locked &mdash; no competitor in your market gets this system.</div>
     <div class="hero-stats">
       <div class="hs"><div class="hs-val" id="stat-posts">6&ndash;18</div><div class="hs-lbl">Posts / Week</div></div>
-      <div class="hs"><div class="hs-val">3</div><div class="hs-lbl">Tiers Available</div></div>
+      <div class="hs"><div class="hs-val" id="stat-tier">—</div><div class="hs-lbl">Your Plan</div></div>
       <div class="hs"><div class="hs-val">100%</div><div class="hs-lbl">Territory Exclusive</div></div>
       <div class="hs"><div class="hs-val">&#x1F512;</div><div class="hs-lbl">Territory Locked</div></div>
     </div>
@@ -561,11 +562,11 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     <div id="guide">
       <div class="sec-head"><div class="sec-num">02</div><div class="sec-title">How This Portal Works</div><div class="sec-line"></div></div>
       <div class="guide-grid">
-        <div class="guide-card"><div class="guide-icon">&#x2705;</div><div class="guide-title">Content Approval</div><div class="guide-desc">Before anything goes live on your social media, you see it here first. Review the caption, image or video. Approve it or leave a comment requesting changes. No DMs needed &mdash; everything happens in the portal.</div></div>
+        <div class="guide-card"><div class="guide-icon">&#x2705;</div><div class="guide-title">Content Approval</div><div class="guide-desc">Before anything goes live on your social media, you see it here first. Review the caption, graphic or video. Approve it or leave a comment requesting changes. No DMs needed &mdash; everything happens in the portal.</div></div>
         <div class="guide-card"><div class="guide-icon">&#x1F4CA;</div><div class="guide-title">Performance Dashboard</div><div class="guide-desc">See your growth numbers per platform &mdash; followers, reach, engagement, enquiries. Toggle between weekly and monthly. Your FitFlux team updates these. You just read the results.</div></div>
         <div class="guide-card"><div class="guide-icon">&#x1F4E6;</div><div class="guide-title">Deliverables Tracker</div><div class="guide-desc">Every video, graphic, strategy doc, and report we produce for you is tracked here. See what's pending, in progress, delivered, and approved. Unlimited entries. No ceiling.</div></div>
         <div class="guide-card"><div class="guide-icon">&#x1F512;</div><div class="guide-title">Territory Status</div><div class="guide-desc">Your niche and city are locked exclusively to you. No other fitness coach in your market gets this system. This is confirmed in writing in your contract and visible here at all times.</div></div>
-        <div class="guide-card"><div class="guide-icon">&#x1F4C4;</div><div class="guide-title">Documents &amp; Invoices</div><div class="guide-desc">Your signed contract, invoices, receipts, and reports automatically appear here as you complete each stage of the payment and onboarding route.</div></div>
+        <div class="guide-card"><div class="guide-icon">&#x1F4C4;</div><div class="guide-title">Documents &amp; Reports</div><div class="guide-desc">Your signed contract, invoices, receipts, and reports automatically appear here as you complete each stage of the payment and onboarding route.</div></div>
         <div class="guide-card"><div class="guide-icon">&#x1F4AC;</div><div class="guide-title">Contact Team</div><div class="guide-desc">Your dedicated FitFlux contact is always reachable here. For content feedback, use the Content Approval section &mdash; it goes directly to your team with full context.</div></div>
       </div>
       <div class="flow-strip">
@@ -594,60 +595,137 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
         <div class="pr"><div class="prk">&#x1F3AF; Niche</div><div class="prv" id="ov-niche">&mdash;</div></div>
         <div class="pr"><div class="prk">&#x1F4CD; Territory</div><div class="prv" id="ov-territory">&mdash;</div></div>
         <div class="pr"><div class="prk">&#x1F4E6; Tier</div><div class="prv" id="ov-tier">&mdash;</div></div>
-        <div class="pr"><div class="prk">&#x1F4F8; Instagram</div><div class="prv" id="ov-ig">&mdash;</div></div>
         <div class="pr"><div class="prk">&#x1F4C5; Start Date</div><div class="prv" id="ov-start">&mdash;</div></div>
+        <div class="pr"><div class="prk">&#x1F4C6; Plan Duration</div><div class="prv" id="ov-duration">&mdash;</div></div>
         <div class="pr"><div class="prk">&#x25CF; Status</div><div class="prv"><span class="tag tag-g">Active</span></div></div>
       </div>
     </div>
 
     <div class="dvd"></div>
 
-    <!-- 04 SMM ROADMAP -->
-    <div id="roadmap">
-      <div class="sec-head"><div class="sec-num">04</div><div class="sec-title">Your SMM Roadmap</div><div class="sec-line"></div></div>
-      <div class="tog">
-        <div class="tog-h" onclick="tp(this)"><span class="tog-arr op">&#x25B6;</span><div class="tog-dot dot-gold"></div><span class="tog-title">Phase 1 &mdash; Brand Discovery</span><div class="tog-meta"><span class="tog-days">Week 1</span><span class="tag tag-b">Active</span></div></div>
-        <div class="tog-body op">
-          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Brand voice intake completed</div></div>
-          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Niche and ideal client confirmed</div></div>
-          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">5 content pillars defined</div></div>
-          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Profile optimisation completed across platforms</div></div>
-          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Territory lock confirmed in writing</div></div>
-          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Platform strategy agreed</div></div>
-          <div class="tog-note">&#x26A1; Complete brand voice intake and submit brand assets within 5 business days.</div>
-        </div>
-      </div>
-      <div class="tog">
-        <div class="tog-h" onclick="tp(this)"><span class="tog-arr">&#x25B6;</span><div class="tog-dot dot-dim"></div><span class="tog-title">Phase 2 &mdash; First Content Batch &amp; Approval</span><div class="tog-meta"><span class="tog-days">Week 2</span><span class="tag tag-p">Upcoming</span></div></div>
-        <div class="tog-body">
-          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">First batch of posts created and uploaded for approval</div></div>
-          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Stories designed and scheduled</div></div>
-          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Captions written in your voice</div></div>
-          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Client reviews and approves (or requests changes) in portal</div></div>
-          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Content scheduled across all active platforms</div></div>
-          <div class="tog-note">&#x1F4CB; You will be notified when content is ready for review in the Content Approval section.</div>
-        </div>
-      </div>
-      <div class="tog">
-        <div class="tog-h" onclick="tp(this)"><span class="tog-arr">&#x25B6;</span><div class="tog-dot dot-dim"></div><span class="tog-title">Phase 3 &mdash; Consistent Posting &amp; Growth</span><div class="tog-meta"><span class="tog-days">Month 1+</span><span class="tag tag-p">Upcoming</span></div></div>
-        <div class="tog-body">
-          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Weekly content batches approved and scheduled</div></div>
-          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Engagement building on target platforms</div></div>
-          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Monthly performance report delivered</div></div>
-          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Strategy refined based on what's working</div></div>
-          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Enquiries beginning from warm audience</div></div>
-        </div>
-      </div>
-      <div class="tog">
-        <div class="tog-h" onclick="tp(this)"><span class="tog-arr">&#x25B6;</span><div class="tog-dot dot-dim"></div><span class="tog-title">Phase 4 &mdash; Authority &amp; Conversion</span><div class="tog-meta"><span class="tog-days">Month 3+</span><span class="tag tag-p">Upcoming</span></div></div>
-        <div class="tog-body">
-          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Conversion content firing consistently</div></div>
-          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Warm followers enquiring regularly</div></div>
-          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Authority established in your niche + city</div></div>
-          <div class="chk" onclick="tc(this)"><div class="chkb"></div><div class="chkt">Content system compounding month on month</div></div>
-        </div>
-      </div>
+   <!-- 04 YOUR SMM GROWTH JOURNEY -->
+<div id="roadmap">
+  <div class="sec-head"><div class="sec-num">04</div><div class="sec-title">Your SMM Growth Journey</div><div class="sec-line"></div></div>
+
+  <!-- MONTH 1 — always open, pure checkboxes -->
+  <div class="tog" id="phase-1">
+    <div class="tog-h" onclick="tp(this)">
+      <span class="tog-arr op">&#x25B6;</span>
+      <div class="tog-dot dot-gold"></div>
+      <span class="tog-title">Month 1 — Brand Discovery</span>
+      <div class="tog-meta"><span class="tog-days">Week 1–4</span><span class="tag tag-b">Active</span></div>
     </div>
+    <div class="tog-body op">
+      <div class="chk" onclick="tcj(this,'phase1','brandvoice')"><div class="chkb" id="chk-brandvoice"></div><div class="chkt">Brand voice intake completed</div></div>
+      <div class="chk" onclick="tcj(this,'phase1','niche')"><div class="chkb" id="chk-niche"></div><div class="chkt">Niche and ideal client confirmed</div></div>
+      <div class="chk" onclick="tcj(this,'phase1','pillars')"><div class="chkb" id="chk-pillars"></div><div class="chkt">5 content pillars defined</div></div>
+      <div class="chk" onclick="tcj(this,'phase1','profile')"><div class="chkb" id="chk-profile"></div><div class="chkt">Profile optimisation completed across platforms</div></div>
+      <div class="chk" onclick="tcj(this,'phase1','territory')"><div class="chkb" id="chk-territory"></div><div class="chkt">Territory lock confirmed in writing</div></div>
+      <div class="chk" onclick="tcj(this,'phase1','strategy')"><div class="chkb" id="chk-strategy"></div><div class="chkt">Platform strategy agreed</div></div>
+      <div class="tog-note">&#x26A1; Complete brand voice intake and submit brand assets within 5 business days.</div>
+    </div>
+  </div>
+
+  <!-- MONTH 2 — unlocks after 30 days -->
+  <div class="tog" id="phase-2" style="opacity:0.4;pointer-events:none;">
+    <div class="tog-h" onclick="tp(this)">
+      <span class="tog-arr">&#x25B6;</span>
+      <div class="tog-dot dot-dim" id="dot-phase2"></div>
+      <span class="tog-title">Month 2 — Momentum</span>
+      <div class="tog-meta"><span class="tog-days" id="days-phase2">Unlocks in — days</span><span class="tag tag-p" id="tag-phase2">Locked</span></div>
+    </div>
+    <div class="tog-body">
+      <div class="chk" onclick="tcj(this,'phase2','followers')">
+        <div class="chkb" id="chk-p2-followers"></div>
+        <div class="chkt">Follower Growth Target <span id="val-p2-followers" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
+      </div>
+      <div class="chk" onclick="tcj(this,'phase2','posts')">
+        <div class="chkb" id="chk-p2-posts"></div>
+        <div class="chkt">Content Published On Schedule <span id="val-p2-posts" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
+      </div>
+      <div class="chk" onclick="tcj(this,'phase2','engagement')">
+        <div class="chkb" id="chk-p2-engagement"></div>
+        <div class="chkt">Engagement Rate Target <span id="val-p2-engagement" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
+      </div>
+      <div class="chk" onclick="tcj(this,'phase2','reach')">
+        <div class="chkb" id="chk-p2-reach"></div>
+        <div class="chkt">Reach Growth Target <span id="val-p2-reach" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
+      </div>
+      <div class="chk" onclick="tcj(this,'phase2','enquiries')">
+        <div class="chkb" id="chk-p2-enquiries"></div>
+        <div class="chkt">Enquiries from Content <span id="val-p2-enquiries" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
+      </div>
+      <div class="tog-note">&#x1F4CA; Numbers pull live from your Performance Dashboard.</div>
+    </div>
+  </div>
+
+  <!-- MONTH 3 — unlocks after 60 days -->
+  <div class="tog" id="phase-3" style="opacity:0.4;pointer-events:none;">
+    <div class="tog-h" onclick="tp(this)">
+      <span class="tog-arr">&#x25B6;</span>
+      <div class="tog-dot dot-dim" id="dot-phase3"></div>
+      <span class="tog-title">Month 3 — Authority</span>
+      <div class="tog-meta"><span class="tog-days" id="days-phase3">Unlocks in — days</span><span class="tag tag-p" id="tag-phase3">Locked</span></div>
+    </div>
+    <div class="tog-body">
+      <div class="chk" onclick="tcj(this,'phase3','followers')">
+        <div class="chkb" id="chk-p3-followers"></div>
+        <div class="chkt">Follower Growth Target <span id="val-p3-followers" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
+      </div>
+      <div class="chk" onclick="tcj(this,'phase3','posts')">
+        <div class="chkb" id="chk-p3-posts"></div>
+        <div class="chkt">Content Published On Schedule <span id="val-p3-posts" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
+      </div>
+      <div class="chk" onclick="tcj(this,'phase3','engagement')">
+        <div class="chkb" id="chk-p3-engagement"></div>
+        <div class="chkt">Engagement Rate Target <span id="val-p3-engagement" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
+      </div>
+      <div class="chk" onclick="tcj(this,'phase3','reach')">
+        <div class="chkb" id="chk-p3-reach"></div>
+        <div class="chkt">Reach Growth Target <span id="val-p3-reach" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
+      </div>
+      <div class="chk" onclick="tcj(this,'phase3','enquiries')">
+        <div class="chkb" id="chk-p3-enquiries"></div>
+        <div class="chkt">Enquiries from Content <span id="val-p3-enquiries" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
+      </div>
+      <div class="tog-note">&#x1F525; At this stage your content is compounding and your authority in your territory is building.</div>
+    </div>
+  </div>
+
+  <!-- MONTH 4+ — unlocks after 90 days -->
+  <div class="tog" id="phase-4" style="opacity:0.4;pointer-events:none;">
+    <div class="tog-h" onclick="tp(this)">
+      <span class="tog-arr">&#x25B6;</span>
+      <div class="tog-dot dot-dim" id="dot-phase4"></div>
+      <span class="tog-title">Month 4+ — Category Dominance</span>
+      <div class="tog-meta"><span class="tog-days" id="days-phase4">Unlocks in — days</span><span class="tag tag-p" id="tag-phase4">Locked</span></div>
+    </div>
+    <div class="tog-body">
+      <div class="chk" onclick="tcj(this,'phase4','followers')">
+        <div class="chkb" id="chk-p4-followers"></div>
+        <div class="chkt">Follower Growth Target <span id="val-p4-followers" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
+      </div>
+      <div class="chk" onclick="tcj(this,'phase4','posts')">
+        <div class="chkb" id="chk-p4-posts"></div>
+        <div class="chkt">Content Published On Schedule <span id="val-p4-posts" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
+      </div>
+      <div class="chk" onclick="tcj(this,'phase4','engagement')">
+        <div class="chkb" id="chk-p4-engagement"></div>
+        <div class="chkt">Engagement Rate Target <span id="val-p4-engagement" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
+      </div>
+      <div class="chk" onclick="tcj(this,'phase4','reach')">
+        <div class="chkb" id="chk-p4-reach"></div>
+        <div class="chkt">Reach Growth Target <span id="val-p4-reach" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
+      </div>
+      <div class="chk" onclick="tcj(this,'phase4','enquiries')">
+        <div class="chkb" id="chk-p4-enquiries"></div>
+        <div class="chkt">Enquiries from Content <span id="val-p4-enquiries" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
+      </div>
+      <div class="tog-note">&#x1F3C6; You are now the dominant brand in your territory. Content is converting consistently.</div>
+    </div>
+  </div>
+
+</div>
 
     <div class="dvd"></div>
 
@@ -667,7 +745,9 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     <div class="atab" onclick="switchWeek('upcoming',this)">Upcoming</div>
   </div>
   <div id="week-loading" class="loading"><div class="spinner"></div>Loading content...</div>
-  <div id="week-this" class="approval-week active"></div>
+  <div id="week-this" class="approval-week">
+    <div id="deliverables-inline"></div>
+  </div>
   <div id="week-last" class="approval-week"></div>
   <div id="week-upcoming" class="approval-week"></div>
 
@@ -714,7 +794,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
           <option value="declined">❌ Content Declined</option>
           <option value="published">🚀 Published</option>
         </select>
-        <input class="d-input" id="d-link" placeholder="Google Drive link"/>
+      <input class="d-input" id="d-link" placeholder="File link (video, image or PDF)"/>
         <button class="btn-add" onclick="addDeliverable()">+ Add</button>
       </div>
     </div>
@@ -856,10 +936,27 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     <!-- 13 NOTES -->
     <div id="notes">
       <div class="sec-head"><div class="sec-num">13</div><div class="sec-title">Notes</div><div class="sec-line"></div></div>
-      <textarea class="notes-area" id="notes-area" placeholder="Add your notes, questions, or reminders here&hellip;" oninput="saveNotes()"></textarea>
+<div style="margin-bottom:14px;">
+  <div style="font-size:12px;color:var(--t3);margin-bottom:10px;">Use this to send a direct message to your FitFlux team. It will notify us by email and Telegram instantly.</div>
+  <textarea class="notes-area" id="notes-area" placeholder="Type your message, question, or request here…" style="min-height:100px;"></textarea>
+  <button onclick="sendDirectMessage()" style="margin-top:10px;background:var(--purple);border:none;color:#0a1a00;font-family:var(--fb);font-size:13px;font-weight:700;padding:12px 28px;border-radius:8px;cursor:pointer;transition:opacity .2s;width:100%;">📨 Send Message to FitFlux Team</button>
+  <div id="msg-status" style="display:none;margin-top:8px;font-size:12px;text-align:center;"></div>
+</div>
     </div>
 
     <div class="dvd"></div>
+    <!-- TERMINATION -->
+<div id="termination" style="margin-top:40px;">
+  <div class="sec-head"><div class="sec-num">14</div><div class="sec-title">Service Termination</div><div class="sec-line"></div></div>
+  <div class="callout red">
+    <div class="callout-icon">⚠️</div>
+    <div>
+      <div class="callout-title">Terminate Your Contract</div>
+      <div class="callout-text">If you wish to end your FitFlux SMM service, use the button below. You will be asked to confirm. Your account will be revoked 24 hours after your request is received.</div>
+    </div>
+  </div>
+  <button onclick="initiateTermination()" style="background:rgba(255,85,85,0.1);border:1.5px solid rgba(255,85,85,0.3);color:var(--red);font-family:var(--fb);font-size:13px;font-weight:700;padding:13px 28px;border-radius:10px;cursor:pointer;width:100%;transition:all .2s;">🚫 Request Service Termination</button>
+</div>
   </div>
 </div>
 
@@ -952,6 +1049,7 @@ apiPost('registerClient', {
     niche: CLIENT.niche, ig: CLIENT.ig, tier: TIER
   });
 await Promise.all([loadContent(), loadDeliverables(), loadDocuments(), loadPerformance()]);
+  initGrowthJourney();
   const saved = await apiGet('getNotes', activeToken);
   if(saved && saved.notes) document.getElementById('notes-area').value = saved.notes;
 }
@@ -976,14 +1074,18 @@ function fillClientData(){
   document.getElementById('ov-niche').textContent     = niche;
   document.getElementById('ov-territory').textContent = terr;
   document.getElementById('ov-tier').textContent      = tier;
-  document.getElementById('ov-ig').textContent        = ig !== '\u2014' ? '@'+ig : '\u2014';
-  document.getElementById('ov-start').textContent     = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+ const startDate = (window.FF_CLIENT.createdAt) ? new Date(window.FF_CLIENT.createdAt) : new Date();
+document.getElementById('ov-start').textContent = startDate.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  const durationMap = {presence:'Monthly (Rolling)',authority:'Monthly (Rolling)',categoryking:'3 Months',categorykingqueen:'3 Months'}; document.getElementById('ov-duration').textContent = durationMap[TIER] || 'Monthly';
   document.getElementById('overview-loading').style.display = 'none';
   document.getElementById('overview-props').style.display   = '';
   document.getElementById('terr-display').textContent = niche + (niche!=='\u2014'&&terr!=='\u2014'?' \u00B7 ':'') + terr + ' \u2014 Locked & Protected';
   const postsMap = {presence:'6',authority:'12',categoryking:'18'};
   const el = document.getElementById('stat-posts');
   if(el && postsMap[TIER]) el.textContent = postsMap[TIER];
+  const tierNames = {presence:'Presence',authority:'Authority',categoryking:'Category King',categorykingqueen:'Category King/Queen'};
+  const tierEl = document.getElementById('stat-tier');
+  if(tierEl && tierNames[TIER]) tierEl.textContent = tierNames[TIER];
 }
 
 /* ── WELCOME MODAL ── */
@@ -1024,6 +1126,147 @@ function nav(el, page){
 /* ── TOGGLES ── */
 function tp(h){ h.querySelector('.tog-arr').classList.toggle('op'); h.nextElementSibling.classList.toggle('op'); }
 function tc(el){ el.querySelector('.chkb').classList.toggle('on'); el.querySelector('.chkt').classList.toggle('on'); }
+
+async function tcj(el, phase, key){
+  const chkb = el.querySelector('.chkb');
+  const chkt = el.querySelector('.chkt');
+  const wasOn = chkb.classList.contains('on');
+  chkb.classList.toggle('on');
+  chkt.classList.toggle('on');
+  if(!wasOn){
+    chkb.style.background='var(--amber)';
+    chkb.style.borderColor='var(--amber)';
+  } else {
+    chkb.style.background='';
+    chkb.style.borderColor='';
+  }
+  await apiPost('saveJourneyCheck', {
+    token: window.FF_TOKEN || urlToken,
+    phase: phase,
+    key: key,
+    checked: !wasOn,
+    type: 'manual'
+  });
+}
+
+async function initGrowthJourney(){
+  // Use actual client start date from sheet
+  let startTs;
+  const createdAt = window.FF_CLIENT && window.FF_CLIENT.createdAt;
+  if(createdAt){
+    startTs = new Date(createdAt).getTime();
+  } else {
+    // Fallback — use today if no date found (shouldn't happen)
+    startTs = Date.now();
+  }
+
+  const elapsed = Math.floor((Date.now() - startTs) / 86400000);
+
+  const unlockAt = { 2:30, 3:60, 4:90 };
+
+  [2,3,4].forEach(ph=>{
+    const el = document.getElementById('phase-'+ph);
+    const daysEl = document.getElementById('days-phase'+ph);
+    const tagEl = document.getElementById('tag-phase'+ph);
+    const dotEl = document.getElementById('dot-phase'+ph);
+    const threshold = unlockAt[ph];
+    const remaining = threshold - elapsed;
+
+    if(elapsed >= threshold){
+      el.style.opacity = '1';
+      el.style.pointerEvents = '';
+      if(daysEl) daysEl.textContent = 'Month '+ph;
+      if(tagEl){ tagEl.textContent='Active'; tagEl.className='tag tag-b'; }
+      if(dotEl){ dotEl.className='tog-dot dot-gold'; }
+    } else {
+      if(daysEl) daysEl.textContent = 'Unlocks in '+remaining+' day'+(remaining===1?'':'s');
+      if(tagEl){ tagEl.textContent='Locked'; tagEl.className='tag tag-p'; }
+    }
+  });
+
+  const data = await apiGet('getJourneyChecks', window.FF_TOKEN || urlToken);
+  if(data && data.checks){
+    data.checks.forEach(c=>{
+      if(!c.Checked || c.Checked === 'FALSE' || c.Checked === false) return;
+      let chkbId;
+      if(c.Phase === 'phase1'){
+        chkbId = 'chk-'+c.Key;
+      } else {
+        const num = c.Phase.replace('phase','');
+        chkbId = 'chk-p'+num+'-'+c.Key;
+      }
+      const chkb = document.getElementById(chkbId);
+      if(!chkb) return;
+      chkb.classList.add('on');
+      if(c.Type === 'auto'){
+        chkb.style.background='var(--green)';
+        chkb.style.borderColor='var(--green)';
+      } else {
+        chkb.style.background='var(--amber)';
+        chkb.style.borderColor='var(--amber)';
+      }
+      const chkt = chkb.closest('.chk')?.querySelector('.chkt');
+      if(chkt) chkt.classList.add('on');
+    });
+  }
+
+  updateJourneyValues();
+}
+
+function updateJourneyValues(){
+  const targets = {
+    presence:{
+      2:{followers:'8% growth target',posts:'24 posts',engagement:'10% eng. rate',reach:'12% reach growth',enquiries:'5+ enquiries'},
+      3:{followers:'18% growth target',posts:'48 posts',engagement:'22% eng. rate',reach:'25% reach growth',enquiries:'15+ enquiries'},
+      4:{followers:'30% growth target',posts:'72 posts',engagement:'35% eng. rate',reach:'40% reach growth',enquiries:'25+ enquiries'}
+    },
+    authority:{
+      2:{followers:'15% growth target',posts:'48 posts',engagement:'18% eng. rate',reach:'20% reach growth',enquiries:'10+ enquiries'},
+      3:{followers:'32% growth target',posts:'96 posts',engagement:'35% eng. rate',reach:'42% reach growth',enquiries:'25+ enquiries'},
+      4:{followers:'52% growth target',posts:'144 posts',engagement:'55% eng. rate',reach:'65% reach growth',enquiries:'42+ enquiries'}
+    },
+    categoryking:{
+      2:{followers:'22% growth target',posts:'72 posts',engagement:'25% eng. rate',reach:'28% reach growth',enquiries:'15+ enquiries'},
+      3:{followers:'48% growth target',posts:'144 posts',engagement:'50% eng. rate',reach:'58% reach growth',enquiries:'35+ enquiries'},
+      4:{followers:'75% growth target',posts:'216 posts',engagement:'78% eng. rate',reach:'85% reach growth',enquiries:'60+ enquiries'}
+    },
+    categorykingqueen:{
+      2:{followers:'22% growth target',posts:'72 posts',engagement:'25% eng. rate',reach:'28% reach growth',enquiries:'15+ enquiries'},
+      3:{followers:'48% growth target',posts:'144 posts',engagement:'50% eng. rate',reach:'58% reach growth',enquiries:'35+ enquiries'},
+      4:{followers:'75% growth target',posts:'216 posts',engagement:'78% eng. rate',reach:'85% reach growth',enquiries:'60+ enquiries'}
+    }
+  };
+
+  const tier = (window.FF_TIER||TIER||'presence').toLowerCase();
+  const tierTargets = targets[tier] || targets['presence'];
+
+  const latest = Object.values(perfData['instagram_weekly']||{}).sort((a,b)=>new Date(b.UpdatedAt)-new Date(a.UpdatedAt))[0] || {};
+
+  [2,3,4].forEach(ph=>{
+    const t = tierTargets[ph];
+    if(!t) return;
+    const setVal = (id, val) => { const el=document.getElementById(id); if(el) el.textContent='→ '+val; };
+    setVal('val-p'+ph+'-followers', latest.Followers ? latest.Followers+' followers · '+t.followers : t.followers);
+    setVal('val-p'+ph+'-posts', latest.Posts ? latest.Posts+' published · '+t.posts : t.posts);
+    setVal('val-p'+ph+'-engagement', latest.Engagement ? latest.Engagement+' current · '+t.engagement : t.engagement);
+    setVal('val-p'+ph+'-reach', latest.Reach ? latest.Reach+' reach · '+t.reach : t.reach);
+    setVal('val-p'+ph+'-enquiries', latest.Enquiries ? latest.Enquiries+' so far · '+t.enquiries : t.enquiries);
+
+    if(latest.Posts){
+      const postTarget = parseInt(t.posts);
+      if(latest.Posts >= postTarget){
+        const chkb = document.getElementById('chk-p'+ph+'-posts');
+        if(chkb && !chkb.classList.contains('on')){
+          chkb.classList.add('on');
+          chkb.style.background='var(--green)';
+          chkb.style.borderColor='var(--green)';
+          const chkt = chkb.closest('.chk')?.querySelector('.chkt');
+          if(chkt) chkt.classList.add('on');
+        }
+      }
+    }
+  });
+}
 
 /* ── PLATFORM / VIEW / WEEK ── */
 function switchPlatform(p, el){
@@ -1274,6 +1517,22 @@ function renderPerformancePanel(platform){
 }
 
 /* ── DELIVERABLES ── */
+  function buildMediaPlayer(url, type){
+  if(type==='video') return `<div style="margin:12px 0;border-radius:12px;overflow:hidden;background:#000;border:1px solid var(--bdr);"><video controls style="width:100%;max-height:400px;display:block;" preload="metadata"><source src="${url}">Your browser does not support video.</video><div style="padding:8px 12px;background:rgba(0,0,0,0.3);display:flex;justify-content:space-between;"><span style="font-size:11px;color:var(--t3);">🎬 Full quality preview</span><a href="${url}" download style="font-size:11px;color:var(--blue);">⬇ Download</a></div></div>`;
+  if(type==='image') return `<div style="margin:12px 0;border-radius:12px;overflow:hidden;border:1px solid var(--bdr);"><img src="${url}" style="width:100%;max-height:500px;object-fit:contain;display:block;background:#000;" onclick="openMedia('${url}')"/><div style="padding:8px 12px;background:var(--card);display:flex;justify-content:space-between;"><span style="font-size:11px;color:var(--t3);">🖼 Click to enlarge</span><a href="${url}" download style="font-size:11px;color:var(--blue);">⬇ Download</a></div></div>`;
+  if(type==='pdf') return `<div style="margin:12px 0;border-radius:12px;overflow:hidden;border:1px solid var(--bdr);"><iframe src="${url}" style="width:100%;height:500px;border:none;"></iframe><div style="padding:8px 12px;background:var(--card);display:flex;justify-content:space-between;"><span style="font-size:11px;color:var(--t3);">📄 Document preview</span><a href="${url}" target="_blank" style="font-size:11px;color:var(--blue);">↗ Open full</a></div></div>`;
+  return '';
+}
+
+function getMediaPlayer(url){
+  if(!url) return `<div style="margin:12px 0;padding:14px 16px;background:rgba(204,255,0,0.04);border:1px dashed rgba(204,255,0,0.2);border-radius:10px;text-align:center;"><div style="font-size:20px;margin-bottom:6px;">⏳</div><div style="font-size:13px;font-weight:600;color:var(--t2);margin-bottom:4px;">Content Coming Soon</div><div style="font-size:11px;color:var(--t3);line-height:1.6;">Your FitFlux team is preparing this file.<br>It will appear here for preview once ready.</div></div>`;
+  const lower = url.toLowerCase();
+  if(lower.includes('drive.google')||lower.includes('docs.google')||lower.includes('googleapis')) return `<div style="margin:12px 0;padding:14px 16px;background:rgba(204,255,0,0.04);border:1px dashed rgba(204,255,0,0.2);border-radius:10px;text-align:center;"><div style="font-size:20px;margin-bottom:6px;">⏳</div><div style="font-size:13px;font-weight:600;color:var(--t2);margin-bottom:4px;">Content Coming Soon</div><div style="font-size:11px;color:var(--t3);line-height:1.6;">Your FitFlux team is preparing this file.<br>It will appear here for preview once ready.</div></div>`;
+  if(lower.includes('.mp4')||lower.includes('.mov')||lower.includes('.webm')) return buildMediaPlayer(url,'video');
+  if(lower.includes('.jpg')||lower.includes('.jpeg')||lower.includes('.png')||lower.includes('.gif')||lower.includes('.webp')) return buildMediaPlayer(url,'image');
+  if(lower.includes('.pdf')) return buildMediaPlayer(url,'pdf');
+  return `<div style="margin:12px 0;padding:14px 16px;background:rgba(204,255,0,0.04);border:1px dashed rgba(204,255,0,0.2);border-radius:10px;text-align:center;"><div style="font-size:20px;margin-bottom:6px;">⏳</div><div style="font-size:13px;font-weight:600;color:var(--t2);margin-bottom:4px;">Content Coming Soon</div><div style="font-size:11px;color:var(--t3);">Your FitFlux team is preparing this file.</div></div>`;
+}
 async function loadDeliverables(){
   const data = await apiGet('getDeliverables', window.FF_TOKEN || urlToken);
   deliverables = (data && data.deliverables) ? data.deliverables : [];
@@ -1281,10 +1540,12 @@ async function loadDeliverables(){
 }
 function renderDeliverables(){
   const el = document.getElementById('deliv-list');
+const inline = document.getElementById('deliverables-inline');
   if(!deliverables.length){
-    el.innerHTML='<div style="padding:24px;text-align:center;color:var(--t3);font-size:13px;">No deliverables yet.</div>';
-    return;
-  }
+  el.innerHTML='<div style="padding:24px;text-align:center;color:var(--t3);font-size:13px;">No deliverables yet.</div>';
+if(inline) inline.innerHTML = '<div style="margin-top:24px;"><div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(204,255,0,0.5);padding:8px 0;border-bottom:1px solid var(--bdr);margin-bottom:12px;">📦 Deliverables This Period</div>' + el.innerHTML + '</div>';
+return;
+}
   el.innerHTML = deliverables.map((d,i)=>{
     const sid = d.Status||d.status||'pending';
     const sm = {
@@ -1302,7 +1563,8 @@ function renderDeliverables(){
         <button class="btn-approve" onclick="updateDelivStatus('${id}','approved','${d.Name||d.name||''}')">✅ Approve</button>
         <button class="btn-revision" onclick="updateDelivStatus('${id}','declined','${d.Name||d.name||''}')">❌ Decline</button>
       </div>` : '';
-    const pdfLinks = d.PDFs ? d.PDFs.split(',').map((p,pi)=>`<a href="${p.trim()}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--blue);background:rgba(77,157,255,0.08);border:1px solid rgba(77,157,255,0.2);border-radius:6px;padding:5px 12px;margin-right:6px;margin-bottom:6px;">📄 File ${pi+1}</a>`).join('') : '';
+    const mediaURL = d.Link || d.link || '';
+const pdfLinks = mediaURL ? getMediaPlayer(mediaURL) : '';
     const chatMsgs = (d.ChatMessages||[]).map(m=>`
       <div class="comment-msg">
         <div class="comment-author">${m.author||'Client'}</div>
@@ -1413,7 +1675,30 @@ async function updateDelivStatus(id, newStatus, name){
   await sendTelegram(action+'\n\nClient: '+(CLIENT.name||'—')+'\nDeliverable: '+name);
   await loadDeliverables();
 }
+function initiateTermination(){
+  const m = document.createElement('div');
+  m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px);';
+  m.innerHTML=`<div style="background:#1a0505;border:1.5px solid rgba(255,85,85,0.3);border-radius:20px;padding:40px 36px;max-width:400px;width:100%;text-align:center;"><div style="font-size:40px;margin-bottom:16px;">⚠️</div><div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#ff5555;margin-bottom:12px;">Are you sure?</div><div style="font-size:13px;color:rgba(255,255,255,.5);line-height:1.8;margin-bottom:28px;">You are about to request termination of your FitFlux contract.<br><br>Your account will be revoked <strong style="color:#fff;">within 24 hours</strong> of this request.</div><div style="display:flex;gap:10px;"><button onclick="this.closest('div[style]').remove()" style="flex:1;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.6);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;padding:13px;border-radius:9px;cursor:pointer;">Cancel</button><button onclick="confirmTermination(this)" style="flex:1;background:rgba(255,85,85,0.15);border:1px solid rgba(255,85,85,0.35);color:#ff5555;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;padding:13px;border-radius:9px;cursor:pointer;">Yes, Terminate</button></div></div>`;
+  document.body.appendChild(m);
+}
 
+async function confirmTermination(btn){
+  btn.textContent='Sending...'; btn.disabled=true;
+  await sendTelegram('🚫 TERMINATION REQUEST\n\nClient: '+(CLIENT.name||'—')+'\nEmail: '+(CLIENT.email||'—')+'\nPhone: '+(CLIENT.phone||'—')+'\nTier: '+(TIER||'—')+'\nTerritory: '+(CLIENT.territory||'—')+'\n\nAccount to be revoked within 24 hours.');
+  await apiPost('terminateClient',{token:window.FF_TOKEN||urlToken, name:CLIENT.name, email:CLIENT.email});
+  const box = btn.closest('div[style]');
+  box.querySelector('div').innerHTML=`<div style="font-size:40px;margin-bottom:16px;">✅</div><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:#fff;margin-bottom:12px;">Message Sent</div><div style="font-size:13px;color:rgba(255,255,255,.5);line-height:1.8;margin-bottom:24px;">Your termination request has been received. Your account will be revoked within 24 hours. We're sorry to see you go.</div><button onclick="this.closest('div[style]').remove()" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.6);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;padding:13px;border-radius:9px;cursor:pointer;">Close</button>`;
+}  
+async function sendDirectMessage(){
+  const text = document.getElementById('notes-area').value.trim();
+  if(!text){ document.getElementById('notes-area').focus(); return; }
+  const status = document.getElementById('msg-status');
+  status.style.display='block'; status.style.color='var(--t3)'; status.textContent='Sending...';
+  await sendTelegram('📨 DIRECT MESSAGE FROM CLIENT\n\nClient: '+(CLIENT.name||'—')+'\nEmail: '+(CLIENT.email||'—')+'\nMessage: '+text);
+  await apiPost('saveNotes',{token:window.FF_TOKEN||urlToken, notes:text});
+  status.style.color='var(--green)'; status.textContent='✅ Message sent! We\'ll respond within 24 hours.';
+  document.getElementById('notes-area').value='';
+}
 async function sendDelivChat(id, name){
   const input = document.getElementById('chat-input-'+id);
   const text = input ? input.value.trim() : '';
