@@ -748,8 +748,34 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     <div class="atab" onclick="switchWeek('upcoming',this)">Upcoming</div>
   </div>
   <div id="week-loading" class="loading"><div class="spinner"></div>Loading content...</div>
-  <div id="week-this" class="approval-week">
-    <div id="deliverables-inline"></div>
+<div id="week-this" class="approval-week">
+    <div style="margin-bottom:24px;">
+      <div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(204,255,0,0.5);padding:8px 0;border-bottom:1px solid var(--bdr);margin-bottom:16px;">📦 Deliverables This Period</div>
+      <div style="background:var(--card);border:1px solid var(--bdr);border-radius:14px;overflow:hidden;margin-bottom:16px;">
+        <div class="deliv-header"><span>Deliverable</span><span>Type</span><span>Status</span><span>Date</span><span></span></div>
+        <div id="deliv-list"><div class="loading"><div class="spinner"></div>Loading deliverables...</div></div>
+        <div class="deliv-add">
+          <div class="deliv-add-title">Add Deliverable</div>
+          <div class="deliv-add-grid">
+            <input class="d-input" id="d-name" placeholder="e.g. Week 3 Instagram Posts"/>
+            <select class="d-select" id="d-type">
+              <option>Video</option><option>Graphic</option><option>Caption</option>
+              <option>Strategy</option><option>Report</option><option>Asset</option><option>Other</option>
+            </select>
+            <select class="d-select" id="d-status">
+              <option value="pending">⏳ Pending</option>
+              <option value="progress">🔄 In Progress</option>
+              <option value="waiting">👁 Waiting for Client Approval</option>
+              <option value="approved">✅ Approved by Client</option>
+              <option value="declined">❌ Content Declined</option>
+              <option value="published">🚀 Published</option>
+            </select>
+            <input class="d-input" id="d-link" placeholder="File link (video, image or PDF)"/>
+            <button class="btn-add" onclick="addDeliverable()">+ Add</button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
   <div id="week-last" class="approval-week"></div>
   <div id="week-upcoming" class="approval-week"></div>
@@ -768,41 +794,6 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
   </div>
 
   <div class="dvd"></div>
-
-  <!-- DELIVERABLES TRACKER -->
-  <div class="sec-head"><div class="sec-num">05c</div><div class="sec-title">Deliverables Tracker</div><div class="sec-line"></div></div>
-  <div class="callout">
-    <div class="callout-icon">&#x1F4E6;</div>
-    <div>
-      <div class="callout-title">Everything We've Made For You</div>
-      <div class="callout-text">Every video, graphic, strategy doc, and report is tracked here. Each item has its own chat for feedback.</div>
-    </div>
-  </div>
-  <div style="background:var(--card);border:1px solid var(--bdr);border-radius:14px;overflow:hidden;margin-bottom:16px;">
-    <div class="deliv-header"><span>Deliverable</span><span>Type</span><span>Status</span><span>Date</span><span></span></div>
-    <div id="deliv-list"><div class="loading"><div class="spinner"></div>Loading deliverables...</div></div>
-    <div class="deliv-add">
-      <div class="deliv-add-title">Add Deliverable</div>
-      <div class="deliv-add-grid">
-        <input class="d-input" id="d-name" placeholder="e.g. Week 3 Instagram Posts"/>
-        <select class="d-select" id="d-type">
-          <option>Video</option><option>Graphic</option><option>Caption</option>
-          <option>Strategy</option><option>Report</option><option>Asset</option><option>Other</option>
-        </select>
-        <select class="d-select" id="d-status">
-          <option value="pending">⏳ Pending</option>
-          <option value="progress">🔄 In Progress</option>
-          <option value="waiting">👁 Waiting for Client Approval</option>
-          <option value="approved">✅ Approved by Client</option>
-          <option value="declined">❌ Content Declined</option>
-          <option value="published">🚀 Published</option>
-        </select>
-      <input class="d-input" id="d-link" placeholder="File link (video, image or PDF)"/>
-        <button class="btn-add" onclick="addDeliverable()">+ Add</button>
-      </div>
-    </div>
-  </div>
-</div>
 
     <!-- 06 PERFORMANCE -->
     <div id="performance">
@@ -1096,7 +1087,8 @@ async function unlock(){
           territory: client.Territory || window.FF_CLIENT.territory || '',
           niche:     client.Niche     || window.FF_CLIENT.niche     || '',
           ig:        client.Instagram || window.FF_CLIENT.ig        || '',
-          rec:       window.FF_CLIENT.rec || ''
+          rec:       window.FF_CLIENT.rec || '',
+          createdAt: client.CreatedAt || ''
         };
       window.FF_TOKEN = client.Token || urlToken;
         window.FF_TIER  = (client.Tier || window.FF_TIER || '').toLowerCase();
@@ -1130,6 +1122,7 @@ apiPost('registerClient', {
 await Promise.all([loadContent(), loadDeliverables(), loadDocuments(), loadPerformance(), loadPayments(), loadMilestones()]);
   initGrowthJourney();
   const saved = await apiGet('getNotes', activeToken);
+  checkRenewalReminder();
   if(saved && saved.notes) document.getElementById('notes-area').value = saved.notes;
 }
 
@@ -1619,12 +1612,10 @@ async function loadDeliverables(){
 }
 function renderDeliverables(){
   const el = document.getElementById('deliv-list');
-const inline = document.getElementById('deliverables-inline');
-  if(!deliverables.length){
-  el.innerHTML='<div style="padding:24px;text-align:center;color:var(--t3);font-size:13px;">No deliverables yet.</div>';
-if(inline) inline.innerHTML = '<div style="margin-top:24px;"><div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(204,255,0,0.5);padding:8px 0;border-bottom:1px solid var(--bdr);margin-bottom:12px;">📦 Deliverables This Period</div>' + el.innerHTML + '</div>';
-return;
-}
+if(!deliverables.length){
+    el.innerHTML='<div style="padding:24px;text-align:center;color:var(--t3);font-size:13px;">No deliverables yet.</div>';
+    return;
+  }
   el.innerHTML = deliverables.map((d,i)=>{
     const sid = d.Status||d.status||'pending';
     const sm = {
@@ -1850,6 +1841,28 @@ async function loadPayments(){
     <td><span class="tag tag-g">✓ Paid</span></td>
   </tr>`).join('');
 }  
+
+  function checkRenewalReminder(){
+  const renewalMap = {presence:30,authority:30,categoryking:90,categorykingqueen:90};
+  const days = renewalMap[TIER]||30;
+  const startKey = 'ff_start_'+(window.FF_TOKEN||urlToken).slice(-8);
+  if(!localStorage.getItem(startKey)) localStorage.setItem(startKey,Date.now());
+  const elapsed = Math.floor((Date.now()-parseInt(localStorage.getItem(startKey)))/86400000);
+  const remaining = days-elapsed;
+  if(remaining<=7&&remaining>=0){
+    const banner=document.createElement('div');
+    banner.style.cssText='position:fixed;bottom:20px;right:20px;z-index:9998;max-width:340px;background:#0d1f0a;border:1.5px solid rgba(204,255,0,0.4);border-radius:16px;padding:20px 22px;box-shadow:0 8px 40px rgba(0,0,0,0.5);';
+    banner.innerHTML=`<div style="font-size:10px;font-weight:700;color:var(--gold);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;">⏰ Plan Expiring in ${remaining} day${remaining===1?'':'s'}</div><div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:6px;">Time to Renew Your Plan</div><div style="font-size:12px;color:rgba(255,255,255,.5);line-height:1.7;margin-bottom:14px;">Your content has been live every week, your territory has stayed locked, and your brand has been growing. Don't lose momentum.</div><div style="display:flex;gap:8px;"><button onclick="this.closest('div[style]').remove()" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);font-size:11px;font-weight:700;padding:9px;border-radius:7px;cursor:pointer;font-family:'DM Sans',sans-serif;">Later</button><button onclick="openRenewal()" style="flex:1;background:#CCFF00;border:none;color:#0D1F00;font-size:11px;font-weight:700;padding:9px;border-radius:7px;cursor:pointer;font-family:'DM Sans',sans-serif;">🔄 Renew Now →</button></div>`;
+    document.body.appendChild(banner);
+  }
+}
+
+function openRenewal(){
+  const m=document.createElement('div');
+  m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,.88);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px);';
+  m.innerHTML=`<div style="background:#0d1f0a;border:1.5px solid rgba(204,255,0,0.3);border-radius:20px;padding:40px 36px;max-width:420px;width:100%;text-align:center;"><div style="font-size:36px;margin-bottom:14px;">🏆</div><div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#CCFF00;margin-bottom:10px;">Here's What We've Built Together</div><div style="font-size:13px;color:rgba(255,255,255,.5);line-height:1.8;margin-bottom:20px;">Your territory has been locked. Your content has gone live every single week. Your brand has been showing up consistently in your market.</div><div style="background:rgba(204,255,0,0.06);border:1px solid rgba(204,255,0,0.15);border-radius:10px;padding:14px;margin-bottom:20px;font-size:12px;color:rgba(204,255,0,0.8);line-height:1.7;">Your token: <strong style="color:#CCFF00;">${window.FF_TOKEN||urlToken}</strong><br><span style="color:rgba(255,255,255,.3);font-size:11px;">Use this to log back in after renewal.</span></div><div style="display:flex;flex-direction:column;gap:10px;"><button onclick="this.closest('div[style]').remove()" style="background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;padding:13px;border-radius:9px;cursor:pointer;">See What We Achieved →</button><button onclick="window.open('mailto:fitfluxstudio@gmail.com?subject=Renewal - '+(window.FF_CLIENT.name||'Client'),'_blank');this.closest('div[style]').remove()" style="background:#CCFF00;border:none;color:#0D1F00;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;padding:13px;border-radius:9px;cursor:pointer;">🔄 Renew My Plan →</button></div></div>`;
+  document.body.appendChild(m);
+}
 async function sendDirectMessage(){
   const text = document.getElementById('notes-area').value.trim();
   if(!text){ document.getElementById('notes-area').focus(); return; }
