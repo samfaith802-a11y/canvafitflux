@@ -485,6 +485,9 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     <a class="nv" href="javascript:void(0)" data-target="territory" onclick="nav(this,'Territory')"><span class="nv-icon">&#x1F512;</span>Territory</a>
     <a class="nv" href="javascript:void(0)" data-target="guarantee" onclick="nav(this,'Guarantee')"><span class="nv-icon">&#x1F6E1;</span>Guarantee</a>
     <a class="nv" href="javascript:void(0)" data-target="documents" onclick="nav(this,'Documents')"><span class="nv-icon">&#x1F4C4;</span>Documents</a>
+    <a class="nv" href="javascript:void(0)" data-target="credentials" onclick="nav(this,'Secure Login Details')"><span class="nv-icon">🔒</span>Secure Login Details</a>
+    <a class="nv" href="javascript:void(0)" data-target="milestones" onclick="nav(this,'Milestones')"><span class="nv-icon">🏆</span>Milestones</a>
+    <a class="nv" href="javascript:void(0)" data-target="payments" onclick="nav(this,'Payment History')"><span class="nv-icon">💳</span>Payment History</a>
     <a class="nv" href="javascript:void(0)" data-target="uploads" onclick="nav(this,'Submit Files')"><span class="nv-icon">&#x1F4E4;</span>Submit Files</a>
     <a class="nv" href="javascript:void(0)" data-target="contact" onclick="nav(this,'Contact')"><span class="nv-icon">&#x1F4AC;</span>Contact Team</a>
     <a class="nv" href="javascript:void(0)" data-target="notes" onclick="nav(this,'Notes')"><span class="nv-icon">&#x1F4DD;</span>Notes</a>
@@ -944,10 +947,86 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
 </div>
     </div>
 
+
+<div class="dvd"></div>
+
+    <!-- SECURE CREDENTIALS -->
+    <div id="credentials">
+      <div class="sec-head"><div class="sec-num">14</div><div class="sec-title">Secure Login Details</div><div class="sec-line"></div></div>
+      <div style="background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:24px;margin-bottom:16px;">
+        <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
+          <div style="font-size:28px;">🔒</div>
+          <div>
+            <div style="font-size:13px;font-weight:700;color:var(--t1);margin-bottom:4px;">256-bit Encrypted · FitFlux Eyes Only</div>
+            <div style="font-size:12px;color:var(--t3);line-height:1.6;">Your login details are encrypted on your device before they leave. Only your FitFlux team holds the decryption key. We never store plain-text passwords. This channel is more secure than email.</div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+          <input class="d-input" id="cred-platform" placeholder="Platform (e.g. Instagram, Facebook)"/>
+          <input class="d-input" id="cred-username" placeholder="Username or Email"/>
+          <input class="d-input" id="cred-password" type="password" placeholder="Password"/>
+          <input class="d-input" id="cred-notes" placeholder="Notes (optional)"/>
+        </div>
+        <button onclick="submitCredentials()" style="width:100%;background:var(--purple);border:none;color:#0a1a00;font-family:var(--fb);font-size:13px;font-weight:700;padding:12px;border-radius:8px;cursor:pointer;transition:opacity .2s;">🔒 Send Securely to FitFlux</button>
+        <div id="cred-status" style="display:none;margin-top:10px;font-size:12px;text-align:center;"></div>
+      </div>
+    </div>
+    <div class="dvd"></div>
+
+    <!-- MILESTONES -->
+    <div id="milestones">
+      <div class="sec-head"><div class="sec-num">15</div><div class="sec-title">Milestones</div><div class="sec-line"></div></div>
+      <div class="callout gold">
+        <div class="callout-icon">🏆</div>
+        <div>
+          <div class="callout-title">Your Achievements</div>
+          <div class="callout-text">Every milestone your FitFlux team marks as achieved appears here. These are real results from your content strategy.</div>
+        </div>
+      </div>
+      <div id="milestones-loading" class="loading"><div class="spinner"></div>Loading milestones...</div>
+      <div id="milestones-content" style="display:none;"></div>
+    </div>
+<div class="dvd"></div>
+
+    <!-- PAYMENT HISTORY -->
+    <div id="payments">
+      <div class="sec-head"><div class="sec-num">16</div><div class="sec-title">Payment History</div><div class="sec-line"></div></div>
+      <div class="callout gold">
+        <div class="callout-icon">💳</div>
+        <div>
+          <div class="callout-title">Your Payment Record</div>
+          <div class="callout-text">All payments received, your next due date, and your total investment to date.</div>
+        </div>
+      </div>
+      <div id="payments-loading" class="loading"><div class="spinner"></div>Loading payments...</div>
+      <div id="payments-content" style="display:none;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px;">
+          <div style="background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:16px 20px;">
+            <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;">Total Paid</div>
+            <div style="font-family:var(--fh);font-size:24px;font-weight:700;color:var(--gold);" id="pay-total">—</div>
+          </div>
+          <div style="background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:16px 20px;">
+            <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;">Payments Made</div>
+            <div style="font-family:var(--fh);font-size:24px;font-weight:700;color:var(--t1);" id="pay-count">—</div>
+          </div>
+          <div style="background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:16px 20px;">
+            <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;">Next Due Date</div>
+            <div style="font-family:var(--fh);font-size:18px;font-weight:700;color:var(--green);" id="pay-next">—</div>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr><th>Date</th><th>Amount</th><th>Method</th><th>Reference</th><th>Status</th></tr></thead>
+            <tbody id="pay-list"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+    
     <div class="dvd"></div>
     <!-- TERMINATION -->
 <div id="termination" style="margin-top:40px;">
-  <div class="sec-head"><div class="sec-num">14</div><div class="sec-title">Service Termination</div><div class="sec-line"></div></div>
+  <div class="sec-head"><div class="sec-num">17</div><div class="sec-title">Service Termination</div><div class="sec-line"></div></div>
   <div class="callout red">
     <div class="callout-icon">⚠️</div>
     <div>
@@ -1048,7 +1127,7 @@ apiPost('registerClient', {
     phone: CLIENT.phone, city: CLIENT.city, territory: CLIENT.territory,
     niche: CLIENT.niche, ig: CLIENT.ig, tier: TIER
   });
-await Promise.all([loadContent(), loadDeliverables(), loadDocuments(), loadPerformance()]);
+await Promise.all([loadContent(), loadDeliverables(), loadDocuments(), loadPerformance(), loadPayments(), loadMilestones()]);
   initGrowthJourney();
   const saved = await apiGet('getNotes', activeToken);
   if(saved && saved.notes) document.getElementById('notes-area').value = saved.notes;
@@ -1688,6 +1767,88 @@ async function confirmTermination(btn){
   await apiPost('terminateClient',{token:window.FF_TOKEN||urlToken, name:CLIENT.name, email:CLIENT.email});
   const box = btn.closest('div[style]');
   box.querySelector('div').innerHTML=`<div style="font-size:40px;margin-bottom:16px;">✅</div><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:#fff;margin-bottom:12px;">Message Sent</div><div style="font-size:13px;color:rgba(255,255,255,.5);line-height:1.8;margin-bottom:24px;">Your termination request has been received. Your account will be revoked within 24 hours. We're sorry to see you go.</div><button onclick="this.closest('div[style]').remove()" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.6);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;padding:13px;border-radius:9px;cursor:pointer;">Close</button>`;
+}  
+async function submitCredentials(){
+  const platform = document.getElementById('cred-platform').value.trim();
+  const username = document.getElementById('cred-username').value.trim();
+  const password = document.getElementById('cred-password').value.trim();
+  const notes = document.getElementById('cred-notes').value.trim();
+  const status = document.getElementById('cred-status');
+  if(!platform||!username||!password){ status.style.display='block'; status.style.color='var(--red)'; status.textContent='Please fill in platform, username and password.'; return; }
+  status.style.display='block'; status.style.color='var(--t3)'; status.textContent='Encrypting and sending...';
+  try{
+    const enc = new TextEncoder();
+    const keyMaterial = await crypto.subtle.importKey('raw', enc.encode('FitFluxSecureKey2024!!'), {name:'PBKDF2'}, false, ['deriveKey']);
+    const key = await crypto.subtle.deriveKey({name:'PBKDF2', salt:enc.encode('fitfluxsalt'), iterations:100000, hash:'SHA-256'}, keyMaterial, {name:'AES-GCM', length:256}, false, ['encrypt']);
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const payload = JSON.stringify({platform, username, password, notes});
+    const encrypted = await crypto.subtle.encrypt({name:'AES-GCM', iv}, key, enc.encode(payload));
+    const encryptedB64 = btoa(String.fromCharCode(...new Uint8Array(encrypted)));
+    const ivB64 = btoa(String.fromCharCode(...iv));
+    const timestamp = new Date().toLocaleString('en-GB');
+    await sendTelegram('🔒 SECURE CREDENTIALS RECEIVED\n\nClient: '+(CLIENT.name||'—')+'\nPlatform: '+platform+'\nTime: '+timestamp+'\n\n[ENCRYPTED PAYLOAD]\nIV: '+ivB64+'\nData: '+encryptedB64);
+    await apiPost('saveCredentials',{token:window.FF_TOKEN||urlToken, platform, encryptedData:encryptedB64, iv:ivB64, timestamp});
+    status.style.color='var(--green)'; status.textContent='✅ Received securely at '+timestamp+'. Only your FitFlux team can decrypt this.';
+    document.getElementById('cred-platform').value='';
+    document.getElementById('cred-username').value='';
+    document.getElementById('cred-password').value='';
+    document.getElementById('cred-notes').value='';
+  } catch(e){
+    status.style.color='var(--red)'; status.textContent='Something went wrong. Please try again.';
+  }
+}
+async function loadMilestones(){
+  document.getElementById('milestones-loading').style.display='flex';
+  const data = await apiGet('getMilestones', window.FF_TOKEN || urlToken);
+  document.getElementById('milestones-loading').style.display='none';
+  document.getElementById('milestones-content').style.display='';
+  const milestones = (data && data.milestones) ? data.milestones : [];
+  const el = document.getElementById('milestones-content');
+  if(!milestones.length){
+    el.innerHTML='<div style="text-align:center;padding:40px 20px;"><div style="font-size:40px;margin-bottom:12px;opacity:.3;">🏆</div><div style="font-size:14px;font-weight:600;color:var(--t2);margin-bottom:6px;">No milestones yet</div><div style="font-size:12px;color:var(--t3);">Your FitFlux team will mark milestones as you hit them.</div></div>';
+    return;
+  }
+  el.innerHTML = milestones.map(m=>`
+    <div style="background:linear-gradient(135deg,rgba(126,200,69,0.08),rgba(126,200,69,0.02));border:1px solid var(--gold-bdr);border-radius:14px;padding:22px 24px;margin-bottom:12px;display:flex;align-items:center;gap:18px;">
+      <div style="font-size:36px;flex-shrink:0;">${m.Icon||'🏆'}</div>
+      <div style="flex:1;">
+        <div style="font-size:14px;font-weight:700;color:var(--gold);margin-bottom:4px;">${m.Title||'Milestone Achieved'}</div>
+        <div style="font-size:12px;color:var(--t2);line-height:1.6;margin-bottom:6px;">${m.Description||''}</div>
+        <div style="font-size:11px;color:var(--t3);">📅 ${m.AchievedDate||m.Date||'—'}</div>
+      </div>
+      <div style="background:rgba(61,214,140,0.1);border:1px solid rgba(61,214,140,0.2);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:700;color:var(--green);white-space:nowrap;">✓ Achieved</div>
+    </div>`).join('');
+}
+async function loadPayments(){
+  document.getElementById('payments-loading').style.display='flex';
+  const data = await apiGet('getPayments', window.FF_TOKEN || urlToken);
+  document.getElementById('payments-loading').style.display='none';
+  document.getElementById('payments-content').style.display='';
+  const payments = (data && data.payments) ? data.payments : [];
+  const tbody = document.getElementById('pay-list');
+  if(!payments.length){
+    tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--t3);padding:20px;">No payments recorded yet.</td></tr>';
+    document.getElementById('pay-total').textContent='—';
+    document.getElementById('pay-count').textContent='0';
+    document.getElementById('pay-next').textContent='—';
+    return;
+  }
+  const total = payments.reduce((sum,p)=>sum+(parseFloat(p.Amount)||0),0);
+  document.getElementById('pay-total').textContent='$'+total.toLocaleString();
+  document.getElementById('pay-count').textContent=payments.length;
+  const latest = payments.sort((a,b)=>new Date(b.PaidDate)-new Date(a.PaidDate))[0];
+  if(latest && latest.PaidDate){
+    const next = new Date(latest.PaidDate);
+    next.setDate(next.getDate()+30);
+    document.getElementById('pay-next').textContent=next.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+  }
+  tbody.innerHTML=payments.map(p=>`<tr>
+    <td style="color:var(--t3);font-size:12px;">${p.PaidDate||'—'}</td>
+    <td style="font-weight:600;color:var(--gold);">$${parseFloat(p.Amount||0).toLocaleString()}</td>
+    <td>${p.Method||'—'}</td>
+    <td style="font-size:12px;color:var(--t3);">${p.InvoiceRef||'—'}</td>
+    <td><span class="tag tag-g">✓ Paid</span></td>
+  </tr>`).join('');
 }  
 async function sendDirectMessage(){
   const text = document.getElementById('notes-area').value.trim();
