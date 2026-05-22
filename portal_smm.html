@@ -564,15 +564,14 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
           </div>
         </div>
       </div>
-      <div class="callout gold">
-        <div class="callout-icon">&#x1F4F1;</div>
-        <div>
-          <div class="callout-title">What Happens Next</div>
-          <div class="callout-text">Your FitFlux team is building your content strategy. Within the first week you'll receive your first batch of posts in the <strong style="color:var(--t1);">Content Approval</strong> section &mdash; review, leave comments, or approve. Nothing goes live without your sign-off.</div>
-        </div>
-      </div>
+     <div class="callout gold" id="next-callout">
+  <div class="callout-icon" id="next-icon">&#x1F4F1;</div>
+  <div>
+    <div class="callout-title" id="next-title">What Happens Next</div>
+    <div class="callout-text" id="next-text">Your FitFlux team is building your content strategy. Within the first two weeks you'll receive your first batch of posts in the <strong style="color:var(--t1);">Content Approval</strong> section &mdash; review, leave comments, or approve. Nothing goes live without your sign-off.</div>
+</div>
     </div>
-
+      
     <div class="dvd"></div>
 
     <!-- 02 PORTAL GUIDE -->
@@ -1393,12 +1392,44 @@ async function apiPost(action, body){
 }
 
 /* ── CONTENT APPROVAL ── */
+  function updateNextCallout(contentList){
+  const title = document.getElementById('next-title');
+  const text = document.getElementById('next-text');
+  const icon = document.getElementById('next-icon');
+  if(!title || !text) return;
+
+  if(!contentList || contentList.length === 0){
+    title.textContent = 'What Happens Next';
+    icon.textContent = '📱';
+    text.textContent = 'Your FitFlux team is setting up your content strategy. Your first posts will appear here within the first week for your approval.';
+    return;
+  }
+
+  const hasPending = contentList.some(c => c.Status === 'Pending' || c.Status === 'waiting');
+  const hasApproved = contentList.some(c => c.Status === 'Approved');
+  const hasPublished = contentList.some(c => c.Status === 'published');
+
+  if(hasPublished){
+    title.textContent = 'Your Content Is Live';
+    icon.textContent = '🚀';
+    text.textContent = 'Your content is working for you right now. Check your Performance Dashboard to see this week\'s growth, watch your territory grow.';
+  } else if(hasApproved){
+    title.textContent = 'Content Approved & Scheduled';
+    icon.textContent = '✅';
+    text.textContent = 'Content approved and scheduled. Your posts are going live. We\'ll have the next batch ready for you soon.';
+  } else if(hasPending){
+    title.textContent = 'Action Required — Content Awaiting Approval';
+    icon.textContent = '👁';
+    text.textContent = 'You have content ready for your review. Head to Content Approval now — nothing goes live without your sign-off.';
+  }
+}
 async function loadContent(){
   document.getElementById('week-loading').style.display = 'flex';
   const data = await apiGet('getContent', window.FF_TOKEN || urlToken);
   document.getElementById('week-loading').style.display = 'none';
   if(!data || !data.content){ showEmptyApproval(); return; }
   contentData = data.content;
+  updateNextCallout(contentData);
   const now = new Date();
   const thisWeekStart = new Date(now); thisWeekStart.setDate(now.getDate() - now.getDay());
   const thisWeekEnd   = new Date(thisWeekStart); thisWeekEnd.setDate(thisWeekStart.getDate() + 7);
