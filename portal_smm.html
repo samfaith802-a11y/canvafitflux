@@ -1162,7 +1162,8 @@ function fillClientData(){
   document.getElementById('ov-tier').textContent      = tier;
  const startDate = (window.FF_CLIENT.createdAt) ? new Date(window.FF_CLIENT.createdAt) : new Date();
 document.getElementById('ov-start').textContent = startDate.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
-  const durationMap = {presence:'Monthly (Rolling)',authority:'Monthly (Rolling)',categoryking:'3 Months',categorykingqueen:'3 Months'}; document.getElementById('ov-duration').textContent = durationMap[TIER] || 'Monthly';
+ const durationMap = {presence:'Monthly (Rolling) — 6 posts + 5 stories/week',authority:'Monthly (Rolling) — 12 posts + 10 stories/week',categoryking:'3 Month Contract — 18 posts + daily stories/week',categorykingqueen:'3 Month Contract — 18 posts + daily stories/week'};
+document.getElementById('ov-duration').textContent = durationMap[window.FF_TIER] || 'Monthly';
   document.getElementById('overview-loading').style.display = 'none';
   document.getElementById('overview-props').style.display   = '';
   document.getElementById('terr-display').textContent = niche + (niche!=='\u2014'&&terr!=='\u2014'?' \u00B7 ':'') + terr + ' \u2014 Locked & Protected';
