@@ -179,6 +179,11 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
 .chkb.on::after{content:'✓';font-size:10px;color:#fff;font-weight:700;}
 .chkt{font-size:13px;color:var(--t2);line-height:1.5;}
 .chkt.on{text-decoration:line-through;color:var(--t3);}
+/* LOCKED CHECKBOXES — admin only */
+.chk-locked{display:flex;align-items:flex-start;gap:10px;padding:6px 7px;border-radius:5px;cursor:default;position:relative;}
+.chk-locked:hover{background:rgba(204,255,0,0.03);}
+.chk-tip{display:block;font-size:10px;color:var(--t3);font-style:italic;margin-top:3px;flex-shrink:0;align-self:center;white-space:nowrap;opacity:0.7;}
+.chk-tip.nudge{color:var(--gold);opacity:1;transition:opacity .2s;}
 
 /* PROPS */
 .props{background:var(--card);border:1px solid var(--bdr);border-radius:12px;overflow:hidden;margin-bottom:16px;}
@@ -487,7 +492,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     <a class="nv act" href="javascript:void(0)" data-target="welcome" onclick="nav(this,'Welcome')"><span class="nv-icon">&#x1F44B;</span>Welcome <span class="nv-badge green">NEW</span></a>
     <a class="nv" href="javascript:void(0)" data-target="guide" onclick="nav(this,'Portal Guide')"><span class="nv-icon">&#x1F5FA;</span>Portal Guide</a>
     <a class="nv" href="javascript:void(0)" data-target="overview" onclick="nav(this,'Overview')"><span class="nv-icon">&#x1F4CB;</span>Project Overview</a>
-    <a class="nv" href="javascript:void(0)" data-target="roadmap" onclick="nav(this,'Your SMM Growth Journey')"><span class="nv-icon">&#x1F4CD;</span>Your SMM Growth Journey</a>
+    <a class="nv" href="javascript:void(0)" data-target="roadmap" onclick="nav(this,'SMM Roadmap')"><span class="nv-icon">&#x1F4CD;</span>SMM Roadmap</a>
   </div>
   <div class="sb-section">
     <div class="sb-lbl">Your Content</div>
@@ -622,125 +627,189 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
 
    <!-- 04 YOUR SMM GROWTH JOURNEY -->
 <div id="roadmap">
-  <div class="sec-head"><div class="sec-num">04</div><div class="sec-title">Your SMM Growth Journey</div><div class="sec-line"></div></div>
+  <div class="sec-head"><div class="sec-num">04</div><div class="sec-title">SMM Roadmap</div><div class="sec-line"></div></div>
 
-  <!-- MONTH 1 — always open, pure checkboxes -->
-  <div class="tog" id="phase-1">
-    <div class="tog-h" onclick="tp(this)">
-      <span class="tog-arr op">&#x25B6;</span>
-      <div class="tog-dot dot-gold"></div>
-      <span class="tog-title">Month 1 — Brand Discovery</span>
-      <div class="tog-meta"><span class="tog-days">Week 1–4</span><span class="tag tag-b">Active</span></div>
-    </div>
-    <div class="tog-body op">
-      <div class="chk" onclick="tcj(this,'phase1','brandvoice')"><div class="chkb" id="chk-brandvoice"></div><div class="chkt">Brand voice intake completed</div></div>
-      <div class="chk" onclick="tcj(this,'phase1','niche')"><div class="chkb" id="chk-niche"></div><div class="chkt">Niche and ideal client confirmed</div></div>
-      <div class="chk" onclick="tcj(this,'phase1','pillars')"><div class="chkb" id="chk-pillars"></div><div class="chkt">5 content pillars defined</div></div>
-      <div class="chk" onclick="tcj(this,'phase1','profile')"><div class="chkb" id="chk-profile"></div><div class="chkt">Profile optimisation completed across platforms</div></div>
-      <div class="chk" onclick="tcj(this,'phase1','territory')"><div class="chkb" id="chk-territory"></div><div class="chkt">Territory lock confirmed in writing</div></div>
-      <div class="chk" onclick="tcj(this,'phase1','strategy')"><div class="chkb" id="chk-strategy"></div><div class="chkt">Platform strategy agreed</div></div>
-      <div class="tog-note">&#x26A1; Complete brand voice intake and submit brand assets within 5 business days.</div>
-    </div>
+ <!-- PHASE 1 — always open, admin ticks only -->
+<div class="tog" id="phase-1">
+  <div class="tog-h" onclick="tp(this)">
+    <span class="tog-arr op">&#x25B6;</span>
+    <div class="tog-dot dot-gold"></div>
+    <span class="tog-title">Phase 1 — Brand Discovery</span>
+    <div class="tog-meta"><span class="tog-days">Week 1–2</span><span class="tag tag-b">Active</span></div>
   </div>
+  <div class="tog-body op">
+    <div class="chk-locked" onclick="showLockedTooltip(event)">
+      <div class="chkb" id="chk-brandvoice"></div>
+      <div class="chkt">Brand voice intake completed</div>
+      <span class="chk-tip">Updated by your FitFlux team</span>
+    </div>
+    <div class="chk-locked" onclick="showLockedTooltip(event)">
+      <div class="chkb" id="chk-niche"></div>
+      <div class="chkt">Niche and ideal client confirmed</div>
+      <span class="chk-tip">Updated by your FitFlux team</span>
+    </div>
+    <div class="chk-locked" onclick="showLockedTooltip(event)">
+      <div class="chkb" id="chk-pillars"></div>
+      <div class="chkt">5 content pillars defined</div>
+      <span class="chk-tip">Updated by your FitFlux team</span>
+    </div>
+    <div class="chk-locked" onclick="showLockedTooltip(event)">
+      <div class="chkb" id="chk-profile"></div>
+      <div class="chkt">Profile optimisation completed across all platforms</div>
+      <span class="chk-tip">Updated by your FitFlux team</span>
+    </div>
+    <div class="chk-locked" onclick="showLockedTooltip(event)">
+      <div class="chkb" id="chk-territory"></div>
+      <div class="chkt">Territory lock confirmed in writing</div>
+      <span class="chk-tip">Updated by your FitFlux team</span>
+    </div>
+    <div class="chk-locked" onclick="showLockedTooltip(event)">
+      <div class="chkb" id="chk-strategy"></div>
+      <div class="chkt">Platform strategy agreed</div>
+      <span class="chk-tip">Updated by your FitFlux team</span>
+    </div>
+    <div class="chk-locked" onclick="showLockedTooltip(event)">
+      <div class="chkb" id="chk-assets"></div>
+      <div class="chkt">Brand assets received (logos, photos, videos)</div>
+      <span class="chk-tip">Updated by your FitFlux team</span>
+    </div>
+    <div class="chk-locked" onclick="showLockedTooltip(event)">
+      <div class="chkb" id="chk-logins"></div>
+      <div class="chkt">Login details submitted to FitFlux <a onclick="event.stopPropagation();scrollToSection('credentials')" style="color:var(--gold);font-size:11px;margin-left:6px;cursor:pointer;">→ Go to Secure Login Section</a></div>
+      <span class="chk-tip">Updated by your FitFlux team</span>
+    </div>
+    <div class="tog-note">&#x26A1; All tasks must be completed between client and FitFlux team within 7 days.</div>
+  </div>
+</div>
 
-  <!-- MONTH 2 — unlocks after 30 days -->
-  <div class="tog" id="phase-2" style="opacity:0.4;pointer-events:none;">
-    <div class="tog-h" onclick="tp(this)">
-      <span class="tog-arr">&#x25B6;</span>
-      <div class="tog-dot dot-dim" id="dot-phase2"></div>
-      <span class="tog-title">Month 2 — Momentum</span>
-      <div class="tog-meta"><span class="tog-days" id="days-phase2">Unlocks in — days</span><span class="tag tag-p" id="tag-phase2">Locked</span></div>
-    </div>
-    <div class="tog-body">
-      <div class="chk" onclick="tcj(this,'phase2','followers')">
-        <div class="chkb" id="chk-p2-followers"></div>
-        <div class="chkt">Follower Growth Target <span id="val-p2-followers" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
-      </div>
-      <div class="chk" onclick="tcj(this,'phase2','posts')">
-        <div class="chkb" id="chk-p2-posts"></div>
-        <div class="chkt">Content Published On Schedule <span id="val-p2-posts" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
-      </div>
-      <div class="chk" onclick="tcj(this,'phase2','engagement')">
-        <div class="chkb" id="chk-p2-engagement"></div>
-        <div class="chkt">Engagement Rate Target <span id="val-p2-engagement" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
-      </div>
-      <div class="chk" onclick="tcj(this,'phase2','reach')">
-        <div class="chkb" id="chk-p2-reach"></div>
-        <div class="chkt">Reach Growth Target <span id="val-p2-reach" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
-      </div>
-      <div class="chk" onclick="tcj(this,'phase2','enquiries')">
-        <div class="chkb" id="chk-p2-enquiries"></div>
-        <div class="chkt">Enquiries from Content <span id="val-p2-enquiries" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
-      </div>
-      <div class="tog-note">&#x1F4CA; Numbers pull live from your Performance Dashboard.</div>
-    </div>
+ <!-- PHASE 2 — unlocks when Phase 1 complete -->
+<div class="tog" id="phase-2" style="opacity:0.4;pointer-events:none;">
+  <div class="tog-h" onclick="tp(this)">
+    <span class="tog-arr">&#x25B6;</span>
+    <div class="tog-dot dot-dim" id="dot-phase2"></div>
+    <span class="tog-title">Phase 2 — First Content & Approval</span>
+    <div class="tog-meta"><span class="tog-days" id="days-phase2">Unlocks when Phase 1 complete</span><span class="tag tag-p" id="tag-phase2">Locked</span></div>
   </div>
+  <div class="tog-body">
+    <div class="chk-locked" onclick="showLockedTooltip(event)">
+      <div class="chkb" id="chk-p2-batch"></div>
+      <div class="chkt">First batch of posts created and uploaded for approval <span id="val-p2-posts" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
+      <span class="chk-tip">Updated by your FitFlux team</span>
+    </div>
+    <div class="chk-locked" onclick="showLockedTooltip(event)">
+      <div class="chkb" id="chk-p2-stories"></div>
+      <div class="chkt">Stories designed and scheduled <span id="val-p2-stories" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
+      <span class="chk-tip">Updated by your FitFlux team</span>
+    </div>
+    <div class="chk-locked" onclick="showLockedTooltip(event)">
+      <div class="chkb" id="chk-p2-captions"></div>
+      <div class="chkt">Captions written in your voice</div>
+      <span class="chk-tip">Updated by your FitFlux team</span>
+    </div>
+    <div class="chk-locked" onclick="showLockedTooltip(event)">
+      <div class="chkb" id="chk-p2-approved"></div>
+      <div class="chkt">Client reviews and approves content in portal</div>
+      <span class="chk-tip">Updated by your FitFlux team</span>
+    </div>
+    <div class="chk-locked" onclick="showLockedTooltip(event)">
+      <div class="chkb" id="chk-p2-scheduled"></div>
+      <div class="chkt">Content scheduled across all active platforms</div>
+      <span class="chk-tip">Updated by your FitFlux team</span>
+    </div>
+    <div class="chk-locked" onclick="showLockedTooltip(event)">
+      <div class="chkb" id="chk-p2-baseline"></div>
+      <div class="chkt">First performance baseline recorded <span id="val-p2-followers" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
+      <span class="chk-tip">Updated by your FitFlux team</span>
+    </div>
+    <div class="tog-note">&#x1F4CB; Your first content batch will be ready for your review within 7 days of Phase 1 completion.</div>
+  </div>
+</div>
 
-  <!-- MONTH 3 — unlocks after 60 days -->
-  <div class="tog" id="phase-3" style="opacity:0.4;pointer-events:none;">
-    <div class="tog-h" onclick="tp(this)">
-      <span class="tog-arr">&#x25B6;</span>
-      <div class="tog-dot dot-dim" id="dot-phase3"></div>
-      <span class="tog-title">Month 3 — Authority</span>
-      <div class="tog-meta"><span class="tog-days" id="days-phase3">Unlocks in — days</span><span class="tag tag-p" id="tag-phase3">Locked</span></div>
-    </div>
-    <div class="tog-body">
-      <div class="chk" onclick="tcj(this,'phase3','followers')">
-        <div class="chkb" id="chk-p3-followers"></div>
-        <div class="chkt">Follower Growth Target <span id="val-p3-followers" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
-      </div>
-      <div class="chk" onclick="tcj(this,'phase3','posts')">
-        <div class="chkb" id="chk-p3-posts"></div>
-        <div class="chkt">Content Published On Schedule <span id="val-p3-posts" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
-      </div>
-      <div class="chk" onclick="tcj(this,'phase3','engagement')">
-        <div class="chkb" id="chk-p3-engagement"></div>
-        <div class="chkt">Engagement Rate Target <span id="val-p3-engagement" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
-      </div>
-      <div class="chk" onclick="tcj(this,'phase3','reach')">
-        <div class="chkb" id="chk-p3-reach"></div>
-        <div class="chkt">Reach Growth Target <span id="val-p3-reach" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
-      </div>
-      <div class="chk" onclick="tcj(this,'phase3','enquiries')">
-        <div class="chkb" id="chk-p3-enquiries"></div>
-        <div class="chkt">Enquiries from Content <span id="val-p3-enquiries" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
-      </div>
-      <div class="tog-note">&#x1F525; At this stage your content is compounding and your authority in your territory is building.</div>
-    </div>
+  <!-- PHASE 3 — unlocks when Phase 2 complete -->
+<div class="tog" id="phase-3" style="opacity:0.4;pointer-events:none;">
+  <div class="tog-h" onclick="tp(this)">
+    <span class="tog-arr">&#x25B6;</span>
+    <div class="tog-dot dot-dim" id="dot-phase3"></div>
+    <span class="tog-title">Phase 3 — Consistent Posting & Growth</span>
+    <div class="tog-meta"><span class="tog-days" id="days-phase3">Unlocks when Phase 2 complete</span><span class="tag tag-p" id="tag-phase3">Locked</span></div>
   </div>
+  <div class="tog-body">
+    <div class="chk-locked" onclick="showLockedTooltip(event)">
+      <div class="chkb" id="chk-p3-batches"></div>
+      <div class="chkt">Weekly content batches approved and scheduled <span id="val-p3-posts" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
+      <span class="chk-tip">Updated by your FitFlux team</span>
+    </div>
+    <div class="chk-locked" onclick="showLockedTooltip(event)">
+      <div class="chkb" id="chk-p3-engagement"></div>
+      <div class="chkt">Engagement building on target platforms <span id="val-p3-engagement" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
+      <span class="chk-tip">Updated by your FitFlux team</span>
+    </div>
+    <div class="chk-locked" onclick="showLockedTooltip(event)">
+      <div class="chkb" id="chk-p3-report"></div>
+      <div class="chkt">Monthly performance report delivered <span id="val-p3-reach" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
+      <span class="chk-tip">Updated by your FitFlux team</span>
+    </div>
+    <div class="chk-locked" onclick="showLockedTooltip(event)">
+      <div class="chkb" id="chk-p3-strategy"></div>
+      <div class="chkt">Strategy refined based on what's working</div>
+      <span class="chk-tip">Updated by your FitFlux team</span>
+    </div>
+    <div class="chk-locked" onclick="showLockedTooltip(event)">
+      <div class="chkb" id="chk-p3-enquiries"></div>
+      <div class="chkt">Enquiries beginning from warm audience <span id="val-p3-enquiries" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
+      <span class="chk-tip">Updated by your FitFlux team</span>
+    </div>
+    <div class="chk-locked" onclick="showLockedTooltip(event)">
+      <div class="chkb" id="chk-p3-territory"></div>
+      <div class="chkt">Territory dominance being established</div>
+      <span class="chk-tip">Updated by your FitFlux team</span>
+    </div>
+    <div class="tog-note">&#x1F4C8; Consistency is the strategy. Every week compounds on the last.</div>
+  </div>
+</div>
 
-  <!-- MONTH 4+ — unlocks after 90 days -->
-  <div class="tog" id="phase-4" style="opacity:0.4;pointer-events:none;">
-    <div class="tog-h" onclick="tp(this)">
-      <span class="tog-arr">&#x25B6;</span>
-      <div class="tog-dot dot-dim" id="dot-phase4"></div>
-      <span class="tog-title">Month 4+ — Category Dominance</span>
-      <div class="tog-meta"><span class="tog-days" id="days-phase4">Unlocks in — days</span><span class="tag tag-p" id="tag-phase4">Locked</span></div>
-    </div>
-    <div class="tog-body">
-      <div class="chk" onclick="tcj(this,'phase4','followers')">
-        <div class="chkb" id="chk-p4-followers"></div>
-        <div class="chkt">Follower Growth Target <span id="val-p4-followers" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
-      </div>
-      <div class="chk" onclick="tcj(this,'phase4','posts')">
-        <div class="chkb" id="chk-p4-posts"></div>
-        <div class="chkt">Content Published On Schedule <span id="val-p4-posts" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
-      </div>
-      <div class="chk" onclick="tcj(this,'phase4','engagement')">
-        <div class="chkb" id="chk-p4-engagement"></div>
-        <div class="chkt">Engagement Rate Target <span id="val-p4-engagement" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
-      </div>
-      <div class="chk" onclick="tcj(this,'phase4','reach')">
-        <div class="chkb" id="chk-p4-reach"></div>
-        <div class="chkt">Reach Growth Target <span id="val-p4-reach" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
-      </div>
-      <div class="chk" onclick="tcj(this,'phase4','enquiries')">
-        <div class="chkb" id="chk-p4-enquiries"></div>
-        <div class="chkt">Enquiries from Content <span id="val-p4-enquiries" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
-      </div>
-      <div class="tog-note">&#x1F3C6; You are now the dominant brand in your territory. Content is converting consistently.</div>
-    </div>
+  <!-- PHASE 4 — unlocks when Phase 3 complete, resets every 30 days -->
+<div class="tog" id="phase-4" style="opacity:0.4;pointer-events:none;">
+  <div class="tog-h" onclick="tp(this)">
+    <span class="tog-arr">&#x25B6;</span>
+    <div class="tog-dot dot-dim" id="dot-phase4"></div>
+    <span class="tog-title">Phase 4 — Authority & Conversion</span>
+    <div class="tog-meta"><span class="tog-days" id="days-phase4">Unlocks when Phase 3 complete</span><span class="tag tag-p" id="tag-phase4">Locked</span></div>
   </div>
+  <div class="tog-body">
+    <div class="chk-locked" onclick="showLockedTooltip(event)">
+      <div class="chkb" id="chk-p4-conversion"></div>
+      <div class="chkt">Conversion content firing consistently <span id="val-p4-posts" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
+      <span class="chk-tip">Updated by your FitFlux team</span>
+    </div>
+    <div class="chk-locked" onclick="showLockedTooltip(event)">
+      <div class="chkb" id="chk-p4-enquiries"></div>
+      <div class="chkt">Warm followers enquiring regularly <span id="val-p4-enquiries" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
+      <span class="chk-tip">Updated by your FitFlux team</span>
+    </div>
+    <div class="chk-locked" onclick="showLockedTooltip(event)">
+      <div class="chkb" id="chk-p4-authority"></div>
+      <div class="chkt">Authority established in your niche and city <span id="val-p4-engagement" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
+      <span class="chk-tip">Updated by your FitFlux team</span>
+    </div>
+    <div class="chk-locked" onclick="showLockedTooltip(event)">
+      <div class="chkb" id="chk-p4-compounding"></div>
+      <div class="chkt">Content system compounding month on month <span id="val-p4-reach" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
+      <span class="chk-tip">Updated by your FitFlux team</span>
+    </div>
+    <div class="chk-locked" onclick="showLockedTooltip(event)">
+      <div class="chkb" id="chk-p4-brand"></div>
+      <div class="chkt">Brand recognised as the go-to in your territory</div>
+      <span class="chk-tip">Updated by your FitFlux team</span>
+    </div>
+    <div class="chk-locked" onclick="showLockedTooltip(event)">
+      <div class="chkb" id="chk-p4-referrals"></div>
+      <div class="chkt">Client referrals and word of mouth growing <span id="val-p4-visits" style="color:var(--gold);font-size:11px;margin-left:6px;"></span></div>
+      <span class="chk-tip">Updated by your FitFlux team</span>
+    </div>
+    <div class="tog-note" id="phase4-note">&#x1F3C6; You are now the dominant brand in your territory. This is where the compounding effect takes over.</div>
+  </div>
+</div>
 
 </div>
 
@@ -1212,6 +1281,17 @@ function nav(el, page){
 
 /* ── TOGGLES ── */
 function tp(h){ h.querySelector('.tog-arr').classList.toggle('op'); h.nextElementSibling.classList.toggle('op'); }
+function scrollToSection(id){
+  const el = document.getElementById(id);
+  if(el){ const top = el.getBoundingClientRect().top + window.scrollY - 64; window.scrollTo({top, behavior:'smooth'}); }
+}
+
+function showLockedTooltip(e){
+  const tip = e.currentTarget.querySelector('.chk-tip');
+  if(!tip) return;
+  tip.classList.add('nudge');
+  setTimeout(()=>tip.classList.remove('nudge'), 1200);
+}
 function tc(el){ el.querySelector('.chkb').classList.toggle('on'); el.querySelector('.chkt').classList.toggle('on'); }
 
 async function tcj(el, phase, key){
@@ -1237,40 +1317,12 @@ async function tcj(el, phase, key){
 }
 
 async function initGrowthJourney(){
-  // Use actual client start date from sheet
   let startTs;
   const createdAt = window.FF_CLIENT && window.FF_CLIENT.createdAt;
-  if(createdAt){
-    startTs = new Date(createdAt).getTime();
-  } else {
-    // Fallback — use today if no date found (shouldn't happen)
-    startTs = Date.now();
-  }
-
+  if(createdAt){ startTs = new Date(createdAt).getTime(); } else { startTs = Date.now(); }
   const elapsed = Math.floor((Date.now() - startTs) / 86400000);
 
-  const unlockAt = { 2:30, 3:60, 4:90 };
-
-  [2,3,4].forEach(ph=>{
-    const el = document.getElementById('phase-'+ph);
-    const daysEl = document.getElementById('days-phase'+ph);
-    const tagEl = document.getElementById('tag-phase'+ph);
-    const dotEl = document.getElementById('dot-phase'+ph);
-    const threshold = unlockAt[ph];
-    const remaining = threshold - elapsed;
-
-    if(elapsed >= threshold){
-      el.style.opacity = '1';
-      el.style.pointerEvents = '';
-      if(daysEl) daysEl.textContent = 'Month '+ph;
-      if(tagEl){ tagEl.textContent='Active'; tagEl.className='tag tag-b'; }
-      if(dotEl){ dotEl.className='tog-dot dot-gold'; }
-    } else {
-      if(daysEl) daysEl.textContent = 'Unlocks in '+remaining+' day'+(remaining===1?'':'s');
-      if(tagEl){ tagEl.textContent='Locked'; tagEl.className='tag tag-p'; }
-    }
-  });
-
+  // Load saved check states from sheet
   const data = await apiGet('getJourneyChecks', window.FF_TOKEN || urlToken);
   if(data && data.checks){
     data.checks.forEach(c=>{
@@ -1292,67 +1344,81 @@ async function initGrowthJourney(){
         chkb.style.background='var(--amber)';
         chkb.style.borderColor='var(--amber)';
       }
-      const chkt = chkb.closest('.chk')?.querySelector('.chkt');
+      const chkt = chkb.closest('.chk-locked')?.querySelector('.chkt');
       if(chkt) chkt.classList.add('on');
     });
+  }
+
+  // Check phase completion and unlock next phase
+  function allChecked(ids){
+    return ids.every(id=>{ const el=document.getElementById(id); return el && el.classList.contains('on'); });
+  }
+
+  function unlockPhase(ph){
+    const el=document.getElementById('phase-'+ph);
+    const daysEl=document.getElementById('days-phase'+ph);
+    const tagEl=document.getElementById('tag-phase'+ph);
+    const dotEl=document.getElementById('dot-phase'+ph);
+    if(el){ el.style.opacity='1'; el.style.pointerEvents=''; }
+    if(daysEl) daysEl.textContent='Phase '+ph;
+    if(tagEl){ tagEl.textContent='Active'; tagEl.className='tag tag-b'; }
+    if(dotEl){ dotEl.className='tog-dot dot-gold'; }
+  }
+
+  const ph1Done = allChecked(['chk-brandvoice','chk-niche','chk-pillars','chk-profile','chk-territory','chk-strategy','chk-assets','chk-logins']);
+  const ph2Done = allChecked(['chk-p2-batch','chk-p2-stories','chk-p2-captions','chk-p2-approved','chk-p2-scheduled','chk-p2-baseline']);
+  const ph3Done = allChecked(['chk-p3-batches','chk-p3-engagement','chk-p3-report','chk-p3-strategy','chk-p3-enquiries','chk-p3-territory']);
+
+  if(ph1Done) unlockPhase(2);
+  if(ph2Done) unlockPhase(3);
+  if(ph3Done) unlockPhase(4);
+
+  // Phase 4 reset every 30 days
+  const ph4ResetKey = 'ff_p4reset_'+(window.FF_TOKEN||urlToken).slice(-8);
+  if(!localStorage.getItem(ph4ResetKey)) localStorage.setItem(ph4ResetKey, Date.now());
+  const daysSinceReset = Math.floor((Date.now()-parseInt(localStorage.getItem(ph4ResetKey)))/86400000);
+
+  if(daysSinceReset >= 30){
+    ['conversion','enquiries','authority','compounding','brand','referrals'].forEach(k=>{
+      const chkb = document.getElementById('chk-p4-'+k);
+      if(chkb){ chkb.classList.remove('on'); chkb.style.background=''; chkb.style.borderColor=''; const chkt=chkb.closest('.chk-locked')?.querySelector('.chkt'); if(chkt) chkt.classList.remove('on'); }
+    });
+    localStorage.setItem(ph4ResetKey, Date.now());
+    const note = document.getElementById('phase4-note');
+    if(note) note.textContent='🔄 New Month Starting — your FitFlux team is delivering another month of content.';
+  } else {
+    const allP4Done = allChecked(['chk-p4-conversion','chk-p4-enquiries','chk-p4-authority','chk-p4-compounding','chk-p4-brand','chk-p4-referrals']);
+    if(allP4Done){
+      const tagEl = document.getElementById('tag-phase4');
+      if(tagEl){ tagEl.textContent='System Active'; tagEl.className='tag tag-g'; }
+    }
   }
 
   updateJourneyValues();
 }
 
 function updateJourneyValues(){
-  const targets = {
-    presence:{
-      2:{followers:'8% growth target',posts:'24 posts',engagement:'10% eng. rate',reach:'12% reach growth',enquiries:'5+ enquiries'},
-      3:{followers:'18% growth target',posts:'48 posts',engagement:'22% eng. rate',reach:'25% reach growth',enquiries:'15+ enquiries'},
-      4:{followers:'30% growth target',posts:'72 posts',engagement:'35% eng. rate',reach:'40% reach growth',enquiries:'25+ enquiries'}
-    },
-    authority:{
-      2:{followers:'15% growth target',posts:'48 posts',engagement:'18% eng. rate',reach:'20% reach growth',enquiries:'10+ enquiries'},
-      3:{followers:'32% growth target',posts:'96 posts',engagement:'35% eng. rate',reach:'42% reach growth',enquiries:'25+ enquiries'},
-      4:{followers:'52% growth target',posts:'144 posts',engagement:'55% eng. rate',reach:'65% reach growth',enquiries:'42+ enquiries'}
-    },
-    categoryking:{
-      2:{followers:'22% growth target',posts:'72 posts',engagement:'25% eng. rate',reach:'28% reach growth',enquiries:'15+ enquiries'},
-      3:{followers:'48% growth target',posts:'144 posts',engagement:'50% eng. rate',reach:'58% reach growth',enquiries:'35+ enquiries'},
-      4:{followers:'75% growth target',posts:'216 posts',engagement:'78% eng. rate',reach:'85% reach growth',enquiries:'60+ enquiries'}
-    },
-    categorykingqueen:{
-      2:{followers:'22% growth target',posts:'72 posts',engagement:'25% eng. rate',reach:'28% reach growth',enquiries:'15+ enquiries'},
-      3:{followers:'48% growth target',posts:'144 posts',engagement:'50% eng. rate',reach:'58% reach growth',enquiries:'35+ enquiries'},
-      4:{followers:'75% growth target',posts:'216 posts',engagement:'78% eng. rate',reach:'85% reach growth',enquiries:'60+ enquiries'}
-    }
-  };
-
-  const tier = (window.FF_TIER||TIER||'presence').toLowerCase();
-  const tierTargets = targets[tier] || targets['presence'];
-
   const latest = Object.values(perfData['instagram_weekly']||{}).sort((a,b)=>new Date(b.UpdatedAt)-new Date(a.UpdatedAt))[0] || {};
 
-  [2,3,4].forEach(ph=>{
-    const t = tierTargets[ph];
-    if(!t) return;
-    const setVal = (id, val) => { const el=document.getElementById(id); if(el) el.textContent='→ '+val; };
-    setVal('val-p'+ph+'-followers', latest.Followers ? latest.Followers+' followers · '+t.followers : t.followers);
-    setVal('val-p'+ph+'-posts', latest.Posts ? latest.Posts+' published · '+t.posts : t.posts);
-    setVal('val-p'+ph+'-engagement', latest.Engagement ? latest.Engagement+' current · '+t.engagement : t.engagement);
-    setVal('val-p'+ph+'-reach', latest.Reach ? latest.Reach+' reach · '+t.reach : t.reach);
-    setVal('val-p'+ph+'-enquiries', latest.Enquiries ? latest.Enquiries+' so far · '+t.enquiries : t.enquiries);
+  const setVal = (id, val) => { const el=document.getElementById(id); if(el && val) el.textContent='· '+val; };
 
-    if(latest.Posts){
-      const postTarget = parseInt(t.posts);
-      if(latest.Posts >= postTarget){
-        const chkb = document.getElementById('chk-p'+ph+'-posts');
-        if(chkb && !chkb.classList.contains('on')){
-          chkb.classList.add('on');
-          chkb.style.background='var(--green)';
-          chkb.style.borderColor='var(--green)';
-          const chkt = chkb.closest('.chk')?.querySelector('.chkt');
-          if(chkt) chkt.classList.add('on');
-        }
-      }
-    }
-  });
+  // Phase 2 live numbers
+  setVal('val-p2-posts', latest.Posts ? latest.Posts+' posts published' : '');
+  setVal('val-p2-followers', latest.Followers ? latest.Followers+' followers' : '');
+  setVal('val-p2-stories', latest.StoryPercent ? latest.StoryPercent+'% stories' : '');
+
+  // Phase 3 live numbers
+  setVal('val-p3-posts', latest.Posts ? latest.Posts+' published' : '');
+  setVal('val-p3-engagement', latest.Engagement ? latest.Engagement+' engagement' : '');
+  setVal('val-p3-reach', latest.Reach ? latest.Reach+' reach' : '');
+  setVal('val-p3-enquiries', latest.Enquiries ? latest.Enquiries+' enquiries' : '');
+
+  // Phase 4 live numbers
+  setVal('val-p4-posts', latest.Posts ? latest.Posts+' posts' : '');
+  setVal('val-p4-enquiries', latest.Enquiries ? latest.Enquiries+' enquiries' : '');
+  setVal('val-p4-engagement', latest.Engagement ? latest.Engagement+' engagement' : '');
+  setVal('val-p4-reach', latest.Reach ? latest.Reach+' reach' : '');
+  setVal('val-p4-visits', latest.ProfileVisits ? latest.ProfileVisits+' profile visits' : '');
 }
 
 /* ── PLATFORM / VIEW / WEEK ── */
