@@ -1512,31 +1512,52 @@ async function loadContent(){
 
 function renderWeek(week, items){
   const el = document.getElementById('week-'+week);
+  const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
   if(!items.length){
-    el.innerHTML = '<div class="approval-empty"><div class="approval-empty-icon">'+(week==='this'?'&#x1F4ED;':'&#x1F4C5;')+'</div><div style="font-size:14px;font-weight:600;color:var(--t2);margin-bottom:6px;">'+(week==='this'?'No content pending this week':week==='last'?'No content from last week':'No upcoming content scheduled')+'</div><div style="font-size:12px;color:var(--t3);">Your FitFlux team will upload content here for your review.</div></div>';
+    el.innerHTML = '<div class="approval-empty"><div class="approval-empty-icon">'+(week==='this'?'📭':'📅')+'</div><div style="font-size:14px;font-weight:600;color:var(--t2);margin-bottom:6px;">'+(week==='this'?'No content pending this week':week==='last'?'No content from last week':'No upcoming content scheduled')+'</div><div style="font-size:12px;color:var(--t3);">Your FitFlux team will upload content here for your review.</div></div>';
     return;
   }
-
-  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
-  const grouped = {};
+  const byDay = {};
+  days.forEach(d => byDay[d] = []);
   items.forEach(c => {
-    const d = new Date(c.ScheduledDate||c.CreatedAt);
-    const dayName = days[d.getDay()];
-    if(!grouped[dayName]) grouped[dayName] = [];
-    grouped[dayName].push(c);
+    const dateObj = new Date(c.ScheduledDate || c.CreatedAt);
+    const dayName = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][dateObj.getDay()];
+    if(!byDay[dayName]) byDay[dayName] = [];
+    byDay[dayName].push(c);
   });
-
   let html = '';
   days.forEach(day => {
-    if(!grouped[day]) return;
-    html += `<div style="margin-bottom:24px;">
-      <div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(204,255,0,0.5);padding:8px 0;border-bottom:1px solid var(--bdr);margin-bottom:12px;">${day}</div>
-      ${grouped[day].map((c,i)=>buildApprovalCard(c,i)).join('')}
+    const dayItems = byDay[day] || [];
+    html += `<div style="margin-bottom:18px;">
+      <div style="font-size:11px;font-weight:700;color:var(--gold);letter-spacing:.12em;text-transform:uppercase;padding:6px 0 10px;border-bottom:1px solid var(--bdr);margin-bottom:10px;">
+        ${day} ${dayItems.length ? '<span style="background:rgba(126,200,69,0.12);color:var(--gold);font-size:10px;padding:2px 8px;border-radius:10px;margin-left:6px;">'+dayItems.length+'</span>' : '<span style="color:var(--t3);font-size:11px;font-weight:400;margin-left:6px;">— nothing scheduled</span>'}
+      </div>
+      ${dayItems.length ? dayItems.map((c,i) => week==='upcoming' ? buildUpcomingCard(c, week+day+i) : buildApprovalCard(c, week+day+i)).join('') : ''}
     </div>`;
   });
   el.innerHTML = html;
 }
-
+function buildUpcomingCard(c, uid){
+  const platformColors = {
+    instagram:'rgba(126,200,69,0.1)',
+    tiktok:'rgba(77,157,255,0.1)',
+    facebook:'rgba(77,157,255,0.1)',
+    youtube:'rgba(255,85,85,0.1)',
+    linkedin:'rgba(245,158,11,0.1)',
+    twitter:'rgba(255,255,255,0.06)'
+  };
+  const p = (c.Platform||'post').toLowerCase();
+  const bg = platformColors[p] || 'rgba(126,200,69,0.1)';
+  return `
+  <div style="background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:14px 18px;margin-bottom:10px;display:flex;align-items:center;gap:14px;">
+    <div style="background:${bg};border-radius:8px;padding:8px 14px;font-size:11px;font-weight:700;color:var(--gold);letter-spacing:.06em;text-transform:uppercase;flex-shrink:0;">${c.Platform||'Post'}</div>
+    <div style="flex:1;">
+      <div style="font-size:13px;font-weight:600;color:var(--t1);margin-bottom:3px;">${c.Title||'Untitled'}</div>
+      <div style="font-size:11px;color:var(--t3);">${c.ScheduledDate||'Date TBC'}</div>
+    </div>
+    <div style="font-size:11px;color:var(--t3);font-style:italic;text-align:right;flex-shrink:0;max-width:160px;line-height:1.5;">Full details available<br>when this week arrives</div>
+  </div>`;
+}
 function buildApprovalCard(c, i){
   const sc = c.Status==='Approved'?'status-approved':c.Status==='Revision'||c.Status==='declined'?'status-revision':'status-pending';
   const statusMap = {
@@ -1853,9 +1874,43 @@ document.addEventListener('DOMContentLoaded',()=>{
   if(first) first.classList.add('act');
 });
 async function updateDelivStatus(id, newStatus, name){
+  if(newStatus === 'declined'){
+    const existing = document.getElementById('deliv-decline-'+id);
+    if(existing) return;
+    const block = document.createElement('div');
+    block.id = 'deliv-decline-'+id;
+    block.style.cssText = 'margin:10px 0;padding:14px;background:rgba(255,85,85,0.06);border:1px solid rgba(255,85,85,0.2);border-radius:9px;';
+    block.innerHTML = `
+      <div style="font-size:12px;color:var(--red);font-weight:700;margin-bottom:8px;">You must leave a reason before declining:</div>
+      <textarea id="deliv-decline-reason-${id}" class="comment-input" placeholder="Explain what needs to change..." style="background:rgba(0,0,0,0.2);border:1px solid rgba(255,85,85,0.25);border-radius:7px;min-height:70px;width:100%;"></textarea>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <button class="btn-revision" onclick="submitDelivDecline('${id}','${name}')">Confirm Decline</button>
+        <button onclick="document.getElementById('deliv-decline-${id}').remove()" style="background:none;border:1px solid var(--bdr);color:var(--t3);border-radius:7px;padding:7px 14px;font-size:12px;cursor:pointer;">Cancel</button>
+      </div>`;
+    const actionArea = document.querySelector('#deliv-list [data-id="'+id+'"]');
+    if(actionArea) actionArea.appendChild(block);
+    else document.getElementById('deliv-list').appendChild(block);
+    return;
+  }
   await apiPost('updateDeliverableStatus', {token: window.FF_TOKEN || urlToken, id, status: newStatus});
-  const action = newStatus === 'approved' ? '✅ DELIVERABLE APPROVED' : '❌ DELIVERABLE DECLINED';
-  await sendTelegram(action+'\n\nClient: '+(CLIENT.name||'—')+'\nDeliverable: '+name);
+  const action = newStatus === 'approved' ? '✅ DELIVERABLE APPROVED' : '🔄 DELIVERABLE STATUS UPDATED';
+  await sendTelegram(action+'\n\nClient: '+(CLIENT.name||'—')+'\nDeliverable: '+name+'\nStatus: '+newStatus);
+  await loadDeliverables();
+}
+
+async function submitDelivDecline(id, name){
+  const reasonEl = document.getElementById('deliv-decline-reason-'+id);
+  const reason = reasonEl ? reasonEl.value.trim() : '';
+  if(!reason){
+    if(reasonEl){
+      reasonEl.style.border = '1px solid var(--red)';
+      reasonEl.placeholder = 'You must write a reason before declining.';
+      reasonEl.focus();
+    }
+    return;
+  }
+  await apiPost('updateDeliverableStatus', {token: window.FF_TOKEN || urlToken, id, status: 'declined', reason});
+  await sendTelegram('❌ DELIVERABLE DECLINED\n\nClient: '+(CLIENT.name||'—')+'\nDeliverable: '+name+'\nReason: '+reason);
   await loadDeliverables();
 }
 function initiateTermination(){
