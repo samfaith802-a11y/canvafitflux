@@ -823,6 +823,10 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
           <div style="font-size:28px;">🔒</div>
           <div>
+            <div id="submitted-platforms" style="margin-bottom:16px;padding:12px 14px;background:rgba(204,255,0,0.04);border:1px solid rgba(204,255,0,0.12);border-radius:10px;">
+  <div style="font-size:10px;font-weight:700;color:var(--gold);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;">Accounts Already Submitted</div>
+  <div id="submitted-list" style="font-size:12px;color:var(--t3);">Loading...</div>
+</div>
             <div style="font-size:13px;font-weight:700;color:var(--t1);margin-bottom:4px;">256-bit Encrypted · FitFlux Eyes Only</div>
             <div style="font-size:12px;color:var(--t3);line-height:1.6;">Your login details are encrypted on your device before they leave. Only your FitFlux team holds the decryption key. We never store plain-text passwords. This channel is more secure than email.</div>
           </div>
@@ -1210,6 +1214,7 @@ await Promise.all([loadContent(), loadDeliverables(), loadDocuments(), loadPerfo
   initGrowthJourney();
   const saved = await apiGet('getNotes', activeToken);
   checkRenewalReminder();
+  loadSubmittedPlatforms();
   if(saved && saved.notes) document.getElementById('notes-area').value = saved.notes;
 }
 
@@ -2052,6 +2057,18 @@ async function sendDirectMessage(){
   await apiPost('saveNotes',{token:window.FF_TOKEN||urlToken, notes:text});
   status.style.color='var(--green)'; status.textContent='✅ Message sent! We\'ll respond within 24 hours.';
   document.getElementById('notes-area').value='';
+}
+  async function loadSubmittedPlatforms(){
+  const data = await apiGet('getCredentials', window.FF_TOKEN || urlToken);
+  const el = document.getElementById('submitted-list');
+  if(!el) return;
+  if(!data || !data.credentials || !data.credentials.length){
+    el.textContent = 'No accounts submitted yet.';
+    return;
+  }
+  el.innerHTML = data.credentials.map(c=>
+    `<span style="display:inline-flex;align-items:center;gap:5px;background:rgba(61,214,140,0.1);border:1px solid rgba(61,214,140,0.2);border-radius:20px;padding:3px 10px;margin:3px;font-size:11px;color:var(--green);">✓ ${c.Platform}</span>`
+  ).join('');
 }
 async function sendDelivChat(id, name){
   const input = document.getElementById('chat-input-'+id);
