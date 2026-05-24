@@ -938,9 +938,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
         <div class="guar-h">Consistent, Strategic Content &mdash; Every Single Week.</div>
         <div class="guar-txt">
           We guarantee your content goes out on schedule, in your voice, every week without fail.<br><br>
-          <strong>Presence:</strong> 6 posts + 5 stories per week.<br>
-          <strong>Authority:</strong> 12 posts + 10 stories per week.<br>
-          <strong>Category King/Queen:</strong> 18 posts + daily stories per week.
+          <span id="guar-detail">Loading your guarantee...</span>
         </div>
         <div class="guar-cond">Content is approved by you before going live. Territory exclusivity is guaranteed in writing from day one.</div>
       </div>
@@ -1242,6 +1240,14 @@ document.getElementById('ov-duration').textContent = durationMap[window.FF_TIER]
   const tierNames = {presence:'Presence',authority:'Authority',categoryking:'Category King',categorykingqueen:'Category King/Queen'};
   const tierEl = document.getElementById('stat-tier');
   if(tierEl && tierNames[TIER]) tierEl.textContent = tierNames[TIER];
+  const guarMap = {
+  presence:'<strong>Your Plan — Presence:</strong> 6 posts + 5 stories per week. Your content goes out on schedule, in your voice, every single week without fail.',
+  authority:'<strong>Your Plan — Authority:</strong> 12 posts + 10 stories per week. Your content goes out on schedule, in your voice, every single week without fail.',
+  categoryking:'<strong>Your Plan — Category King:</strong> 18 posts + daily stories per week. Maximum output, maximum dominance in your territory.',
+  categorykingqueen:'<strong>Your Plan — Category King/Queen:</strong> 18 posts + daily stories per week. Maximum output, maximum dominance in your territory.'
+};
+const guarEl = document.getElementById('guar-detail');
+if(guarEl) guarEl.innerHTML = guarMap[window.FF_TIER] || guarMap[TIER] || 'Your content guarantee is confirmed in your contract.';
 }
 
 /* ── WELCOME MODAL ── */
