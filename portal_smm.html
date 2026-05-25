@@ -1219,6 +1219,9 @@ await Promise.all([loadContent(), loadDeliverables(), loadDocuments(), loadPerfo
   const saved = await apiGet('getNotes', activeToken);
   checkRenewalReminder();
   loadSubmittedPlatforms();
+setInterval(async ()=>{
+  await initGrowthJourney();
+}, 30000);
   if(saved && saved.notes) document.getElementById('notes-area').value = saved.notes;
 }
 
