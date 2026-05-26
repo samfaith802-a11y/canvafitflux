@@ -442,7 +442,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     <div class="lock-title">Client Portal Access</div>
     <div class="lock-sub">Enter your email address and your access token (last 8 characters) to unlock your portal.</div>
     <input class="lock-input" id="emailInput" type="email" placeholder="your@email.com" style="letter-spacing:0;text-align:left;" onkeydown="if(event.key==='Enter')unlock()"/>
-    <input class="lock-input" id="pwInput" type="text" placeholder="Access Token (last 8 chars)" maxlength="8" style="text-transform:uppercase;" onkeydown="if(event.key==='Enter')unlock()"/>
+    <input class="lock-input" id="pwInput" type="text" placeholder="Access Token (last 8 chars)" maxlength="8" style="text-transform:uppercase;" autocomplete="off" onkeydown="if(event.key==='Enter')unlock()"/>
     <div class="lock-err" id="lockErr">Incorrect email or token. Check your receipt and try again.</div>
     <button class="lock-btn" onclick="unlock()">Enter Portal &rarr;</button>
     <div style="margin-top:12px;padding:12px 14px;background:rgba(204,255,0,0.03);border:1px solid rgba(204,255,0,0.1);border-radius:8px;font-size:11px;color:rgba(255,255,255,0.4);line-height:1.7;text-align:left;">
@@ -1263,7 +1263,7 @@ function showWelcomeModal(){
       <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#CCFF00;margin-bottom:10px;line-height:1.2;">Welcome, ${name}!</div>
       <div style="font-size:13px;color:rgba(255,255,255,.55);line-height:1.8;margin-bottom:8px;">Your <strong style="color:#fff;">${tier}</strong> plan is now active.</div>
       <div style="font-size:12px;color:rgba(255,255,255,.35);line-height:1.75;margin-bottom:32px;">Your territory is locked. Your content is being built.<br>Check back here to approve your posts before they go live.</div>
-      <button onclick="this.closest('div[style]').remove()" style="background:#CCFF00;color:#0D1F00;border:none;border-radius:10px;padding:14px 40px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.06em;text-transform:uppercase;width:100%;transition:opacity .2s;">Let's Go →</button>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="background:#CCFF00;color:#0D1F00;border:none;border-radius:10px;padding:14px 40px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.06em;text-transform:uppercase;width:100%;transition:opacity .2s;">Let's Go →</button>
     </div>`;
   document.body.appendChild(m);
 }
