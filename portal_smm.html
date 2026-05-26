@@ -433,6 +433,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
 <body>
 <body>
 <script>
+window.addEventListener('DOMContentLoaded', function(){
   document.getElementById('lock').style.display = 'none';
   window.FF_TOKEN = 'FF-presence-TESTTEST';
   window.FF_TIER = 'presence';
@@ -443,6 +444,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     ig: 'testclient', rec: '', createdAt: '2026-04-21'
   };
   setTimeout(() => { initPortal(); }, 100);
+});
 </script>
 
 <!-- LOCK -->
@@ -1125,8 +1127,8 @@ const TG_ASSETS  = '-1003888423178';
 
 const urlToken  = new URLSearchParams(window.location.search).get('token') || '';
 const PW        = urlToken ? urlToken.slice(-8).toUpperCase() : 'FF2024';
-const CLIENT    = window.FF_CLIENT || {};
-const TIER      = window.FF_TIER   || '';
+let CLIENT    = window.FF_CLIENT || {};
+let TIER      = window.FF_TIER   || '';
 
 let currentPlatform = 'instagram';
 let currentView     = 'weekly';
@@ -1198,6 +1200,8 @@ async function unlock(){
 
 /* ── INIT ── */
 async function initPortal(){
+  CLIENT = window.FF_CLIENT || {};
+  TIER   = window.FF_TIER   || '';
   fillClientData();
 const activeToken = window.FF_TOKEN || urlToken;
 apiPost('registerClient', {
