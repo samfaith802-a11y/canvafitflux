@@ -20,16 +20,9 @@ if(!tierOk){
   }
   window.FF_TOKEN  = token;
   window.FF_TIER   = tierParam;
- window.FF_CLIENT = {
-  name:      client.Name      || window.FF_CLIENT.name      || '',
-  email:     client.Email     || window.FF_CLIENT.email     || '',
-  phone:     client.Phone     || window.FF_CLIENT.phone     || '',
-  city:      client.City      || window.FF_CLIENT.city      || '',
-  territory: client.Territory || window.FF_CLIENT.territory || '',
-  niche:     client.Niche     || window.FF_CLIENT.niche     || '',
-  ig:        client.Instagram || window.FF_CLIENT.ig        || '',
-  rec:       window.FF_CLIENT.rec || '',
-  createdAt: client.CreatedAt || ''
+window.FF_CLIENT = {
+  name:'', email:'', phone:'', city:'',
+  territory:'', niche:'', rec:'', createdAt:''
 };
 })();
 </script>
