@@ -1174,7 +1174,6 @@ async function unlock(){
           city:      client.City      || window.FF_CLIENT.city      || '',
           territory: client.Territory || window.FF_CLIENT.territory || '',
           niche:     client.Niche     || window.FF_CLIENT.niche     || '',
-          ig:        client.Instagram || window.FF_CLIENT.ig        || '',
           rec:       window.FF_CLIENT.rec || '',
           createdAt: client.CreatedAt || ''
         };
@@ -1223,7 +1222,6 @@ function fillClientData(){
   const name  = CLIENT.name || '\u2014';
   const terr  = CLIENT.territory || '\u2014';
   const niche = CLIENT.niche || '\u2014';
-  const ig    = CLIENT.ig || '\u2014';
   const tier  = TIER ? (TIER.charAt(0).toUpperCase()+TIER.slice(1)+' Plan') : '\u2014';
   document.getElementById('sb-name').textContent = name;
   document.getElementById('sb-tier').textContent = tier;
