@@ -1599,9 +1599,10 @@ async function loadAdminContent(){
 </div>
     </div>`;
 <div class="cai-actions" style="margin-top:8px;display:flex;gap:8px;">
-  <button class="btn-sm btn-sm-green" onclick="setContentWaiting('${c.Token}','${c.Title}','${c.Platform}')">👁 Send for Approval</button>
-  <button class="btn-sm btn-sm-red" onclick="setContentPublished('${c.Token}','${c.Title}','${c.Platform}')">🚀 Mark Published</button>
-</div>
+        <button class="btn-sm btn-sm-green" onclick="setContentWaiting('${c.Token}','${c.Title}','${c.Platform}')">👁 Send for Approval</button>
+        <button class="btn-sm btn-sm-red" onclick="setContentPublished('${c.Token}','${c.Title}','${c.Platform}')">🚀 Mark Published</button>
+      </div>
+    </div>`;
   }).join('');
 }
 async function setContentWaiting(token, title, platform){
@@ -1681,11 +1682,6 @@ async function loadAdminDeliverables(){
   if(!delivs.length){ el.innerHTML='<div class="empty-state"><div class="empty-icon">📦</div><div class="empty-text">No deliverables yet.</div></div>'; return; }
   const sm = {pending:'<span class="tag tag-a">⏳ Pending</span>',progress:'<span class="tag tag-b">🔄 In Progress</span>',delivered:'<span class="tag tag-g">✅ Delivered</span>',approved:'<span class="tag tag-g">🎉 Approved</span>'};
   el.innerHTML = delivs.map((d,i)=>`
-    <div class="deliv-admin-row">
-      <div><div class="deliv-admin-name">${d.Name||d.name||'—'}</div><div class="deliv-admin-type">${d.Date||d.date||'—'}</div></div>
-      <span>${d.Type||d.type||'—'}</span>
-      <span>${sm[d.Status||d.status]||d.Status||d.status||'—'}</span>
-      <span>${d.Link?`<a href="${d.Link}" target="_blank" style="color:var(--blue);font-size:11px;">Link →</a>`:'—'}</span>
      <div class="deliv-admin-row" style="flex-direction:column;align-items:flex-start;gap:10px;">
   <div style="display:flex;align-items:center;gap:12px;width:100%;">
     <div style="flex:1;"><div class="deliv-admin-name">${d.Name||d.name||'—'}</div><div class="deliv-admin-type">${d.Date||d.date||'—'}</div></div>
