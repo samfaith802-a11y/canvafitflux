@@ -1164,8 +1164,8 @@ async function unlock(){
           territory: client.Territory || window.FF_CLIENT.territory || '',
           niche:     client.Niche     || window.FF_CLIENT.niche     || '',
           rec:       window.FF_CLIENT.rec || '',
-          createdAt: client.CreatedAt || ''
-          billingCycle: client.BillingCycle || 'monthly',
+          createdAt: client.CreatedAt || '',
+billingCycle: client.BillingCycle || 'monthly',
         };
       window.FF_TOKEN = client.Token || urlToken;
         window.FF_TIER  = (client.Tier || window.FF_TIER || '').toLowerCase();
