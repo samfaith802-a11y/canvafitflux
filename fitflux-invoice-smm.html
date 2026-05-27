@@ -438,13 +438,13 @@ function fmtMoney(n){ return '$'+n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',
 
 const urlP = new URLSearchParams(window.location.search);
 const tierKey   = (urlP.get('tier') || '').toLowerCase().replace(/[\s\/]/g,'');
+const billingKey = urlP.get('billing') || 'monthly';
 const clientName = urlP.get('name')      || '';
 const clientEmail= urlP.get('email')     || '';
 const clientPhone= urlP.get('phone')     || '';
 const clientCity = urlP.get('city')      || '';
 const clientTerritory = urlP.get('territory') || '';
 const clientNiche= urlP.get('niche')     || '';
-const clientIg   = urlP.get('ig')        || '';
 
 const pkg = PKG[tierKey] || PKG['presence'];
 
@@ -693,6 +693,7 @@ const hasCorrectAmount = text.includes(priceStr) || text.includes(priceFormatted
 function openReceipt(){
   const p = new URLSearchParams({
     tier: tierKey,
+    billing: billingKey,
     name: clientName, email: clientEmail, phone: clientPhone,
     city: clientCity, territory: clientTerritory,
     niche: clientNiche, ig: clientIg,
