@@ -1597,8 +1597,7 @@ async function loadAdminContent(){
     <button onclick="sendAdminContentReply('${c.Token}','${c.Title}','${c.Platform}','${c.ID||c.Title}')" style="background:var(--lime);border:none;color:#080c08;font-family:var(--fb);font-size:12px;font-weight:700;padding:8px 16px;border-radius:7px;cursor:pointer;">Reply →</button>
   </div>
 </div>
-    </div>`;
-<div class="cai-actions" style="margin-top:8px;display:flex;gap:8px;">
+   <div class="cai-actions" style="margin-top:8px;display:flex;gap:8px;">
         <button class="btn-sm btn-sm-green" onclick="setContentWaiting('${c.Token}','${c.Title}','${c.Platform}')">👁 Send for Approval</button>
         <button class="btn-sm btn-sm-red" onclick="setContentPublished('${c.Token}','${c.Title}','${c.Platform}')">🚀 Mark Published</button>
       </div>
