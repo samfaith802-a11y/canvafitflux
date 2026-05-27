@@ -23,6 +23,7 @@ if(!tierOk){
 window.FF_CLIENT = {
   name:'', email:'', phone:'', city:'',
   territory:'', niche:'', rec:'', createdAt:''
+  
 };
 })();
 </script>
@@ -1164,6 +1165,7 @@ async function unlock(){
           niche:     client.Niche     || window.FF_CLIENT.niche     || '',
           rec:       window.FF_CLIENT.rec || '',
           createdAt: client.CreatedAt || ''
+          billingCycle: client.BillingCycle || 'monthly',
         };
       window.FF_TOKEN = client.Token || urlToken;
         window.FF_TIER  = (client.Tier || window.FF_TIER || '').toLowerCase();
