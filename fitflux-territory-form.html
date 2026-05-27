@@ -246,6 +246,7 @@ const PACKAGES = {
 };
 const urlP = new URLSearchParams(window.location.search);
 const tierKey = (urlP.get('tier') || 'presence').toLowerCase().replace(/[\s\/]/g,'');
+  const billingKey = urlP.get('billing') || 'monthly';
 const pkg = PACKAGES[tierKey] || PACKAGES['presence'];
 document.getElementById('pkg-label').textContent = pkg.label;
 
@@ -315,7 +316,7 @@ function showSuccess() {
 }
 
 function goToInvoice() {
-  const p = new URLSearchParams({ tier: tierKey, ...fd });
+  const p = new URLSearchParams({ tier: tierKey, billing: billingKey, ...fd });
   window.location.href = 'fitflux-invoice-smm.html?' + p.toString();
 }
 
