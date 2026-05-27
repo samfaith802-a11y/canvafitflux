@@ -314,15 +314,15 @@ function fmtMoney(n){ return '$'+n.toFixed(2).replace(/\B(?=(\d{3})+(?!\d))/g,',
 
 
 const urlP = new URLSearchParams(window.location.search);
-const tierKey   = (urlP.get('tier') || '').toLowerCase().replace(/[\s\/]/g,'');
-const rName     = urlP.get('name')      || '';
-const rEmail    = urlP.get('email')     || '';
-const rPhone    = urlP.get('phone')     || '';
-const rCity     = urlP.get('city')      || '';
-const rTerritory= urlP.get('territory') || '';
-const rNiche    = urlP.get('niche')     || '';
-const rIg       = urlP.get('ig')        || '';
-const invRef    = urlP.get('inv')       || 'FF-' + Date.now().toString().slice(-6);
+const tierKey    = (urlP.get('tier') || '').toLowerCase().replace(/[\s\/]/g,'');
+const billingKey = urlP.get('billing') || 'monthly';
+const rName      = urlP.get('name')      || '';
+const rEmail     = urlP.get('email')     || '';
+const rPhone     = urlP.get('phone')     || '';
+const rCity      = urlP.get('city')      || '';
+const rTerritory = urlP.get('territory') || '';
+const rNiche     = urlP.get('niche')     || '';
+const invRef     = urlP.get('inv')       || 'FF-' + Date.now().toString().slice(-6);
 
 const pkg = PKG[tierKey] || PKG['presence'];
 
@@ -393,19 +393,20 @@ if(SHEET_URL !== 'YOUR_APPS_SCRIPT_URL_HERE') {
     mode: 'no-cors',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
-      date:      new Date().toISOString(),
-      rec:       recNum,
-      name:      rName      || '',
-      email:     rEmail     || '',
-      phone:     rPhone     || '',
-      tier:      tierKey    || '',
-      amount:    fmtAmt     || '',
-      territory: rTerritory || '',
-      niche:     rNiche     || '',
-      city:      rCity      || '',
-      ig:        rIg        || '',
-      token:     TOKEN,
-      portal_pw: PORTAL_PW
+      date:        new Date().toISOString(),
+      rec:         recNum,
+      name:        rName      || '',
+      email:       rEmail     || '',
+      phone:       rPhone     || '',
+      tier:        tierKey    || '',
+      billingCycle: billingKey || 'monthly',
+      amount:      fmtAmt     || '',
+      territory:   rTerritory || '',
+      niche:       rNiche     || '',
+      city:        rCity      || '',
+      ig:          rIg        || '',
+      token:       TOKEN,
+      portal_pw:   PORTAL_PW
     })
   }).catch(() => {});
 }
