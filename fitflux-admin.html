@@ -1062,6 +1062,12 @@ function adminLogout(){
   document.getElementById('app').style.display = 'none';
   document.getElementById('adminPw').value = '';
 }
+
+// Clear password on page load
+window.addEventListener('DOMContentLoaded', function(){
+  document.getElementById('adminPw').value = '';
+  document.getElementById('adminPw').focus();
+});
 document.addEventListener('keydown', e => {
   if(e.key === 'Enter' && document.getElementById('lock').style.display !== 'none'){
     adminLogin();
