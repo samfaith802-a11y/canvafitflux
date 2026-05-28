@@ -452,7 +452,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     <div class="lock-badge">🔒 RESTRICTED ACCESS</div>
     <div class="form-group">
       <div class="lock-label">Admin Password</div>
-      <input class="lock-input" id="adminPw" type="password" placeholder="Enter admin password" onkeydown="if(event.key==='Enter')adminLogin()"/>
+     <input class="lock-input" id="adminPw" type="password" placeholder="Enter admin password" autocomplete="new-password" onkeydown="if(event.key==='Enter')adminLogin()"/>
     </div>
     <div class="lock-err" id="adminErr">Incorrect password. Access denied.</div>
     <button class="lock-btn" onclick="adminLogin()">ACCESS COMMAND CENTRE</button>
@@ -1983,11 +1983,21 @@ async function sendReminderViaTelegram(){
   const d = window._reminderData;
   if(!d) return;
   const msg = REMINDER_SCRIPTS[reminderTone]?.(d.c, d.due, d.daysLeft, d.price) || '';
-  await sendTelegramAdmin('📨 <b>PAYMENT REMINDER — '+d.c.Name+'</b>\n\n'+msg);
-  toast('✅ Reminder sent via Telegram');
+  
+  // Send to client email via Apps Script
+  await apiPost('sendReminderEmail',{
+    token: d.c.Token,
+    email: d.c.Email,
+    name: d.c.Name,
+    message: msg,
+    subject: 'Your FitFlux Retainer is Due — '+d.due
+  });
+  
+  // Also notify you via Telegram
+  await sendTelegramAdmin('📨 PAYMENT REMINDER SENT\n\nClient: '+d.c.Name+'\nEmail: '+d.c.Email+'\nDue: '+d.due+'\n\nMessage sent to client email.');
+  toast('✅ Reminder sent to '+d.c.Email);
   document.getElementById('reminder-modal').style.display='none';
 }
-
 // ── SUBMISSION STATUS — PIPELINE UI ──────────────────────────
 function filterSubmission(val){
   document.querySelectorAll('.pipeline-row').forEach(row=>{
