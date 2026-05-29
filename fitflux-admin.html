@@ -452,7 +452,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     <div class="lock-badge">🔒 RESTRICTED ACCESS</div>
     <div class="form-group">
       <div class="lock-label">Admin Password</div>
-    <input class="lock-input" id="adminPw" type="password" placeholder="Enter admin password" autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" onkeydown="if(event.key==='Enter')adminLogin()"/>
+   <input class="lock-input" id="adminPw" type="password" placeholder="Enter admin password" autocomplete="new-password" readonly onkeydown="if(event.key==='Enter')adminLogin()"/>
     </div>
     <div class="lock-err" id="adminErr">Incorrect password. Access denied.</div>
     <button class="lock-btn" onclick="adminLogin()">ACCESS COMMAND CENTRE</button>
@@ -1065,8 +1065,13 @@ function adminLogout(){
 
 // Clear password on page load
 window.addEventListener('DOMContentLoaded', function(){
-  document.getElementById('adminPw').value = '';
-  document.getElementById('adminPw').focus();
+  const pw = document.getElementById('adminPw');
+  pw.value = '';
+  pw.setAttribute('readonly', true);
+  setTimeout(function(){
+    pw.removeAttribute('readonly');
+    pw.value = '';
+  }, 100);
 });
 document.addEventListener('keydown', e => {
   if(e.key === 'Enter' && document.getElementById('lock').style.display !== 'none'){
