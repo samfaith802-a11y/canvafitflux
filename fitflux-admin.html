@@ -452,7 +452,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     <div class="lock-badge">🔒 RESTRICTED ACCESS</div>
     <div class="form-group">
       <div class="lock-label">Admin Password</div>
-    <input class="lock-input" id="adminPw" type="password" placeholder="Enter admin password" autocomplete="off" onkeydown="if(event.key==='Enter')adminLogin()"/>
+    <input class="lock-input" id="adminPw" type="password" placeholder="Enter admin password" autocomplete="off" readonly onfocus="this.removeAttribute('readonly')" onkeydown="if(event.key==='Enter')adminLogin()"/>
     </div>
     <div class="lock-err" id="adminErr">Incorrect password. Access denied.</div>
     <button class="lock-btn" onclick="adminLogin()">ACCESS COMMAND CENTRE</button>
