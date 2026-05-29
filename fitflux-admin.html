@@ -485,9 +485,6 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
         <button class="nav-item active" onclick="showPage('dashboard',this)">
           <span class="nav-icon">📊</span> Dashboard
         </button>
-        <button class="nav-item" onclick="showPage('timeline',this)">
-          <span class="nav-icon">📅</span> Client Timeline
-        </button>
         <button class="nav-item" onclick="showPage('submission',this)">
           <span class="nav-icon">📋</span> Submission Status
           <span class="nav-badge" id="pending-tasks-badge" style="display:none;">!</span>
@@ -605,8 +602,6 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
       </div>
 
       <!-- TIMELINE -->
-      <div class="page" id="page-timeline">
-        <div class="sec-head"><div class="sec-title">CLIENT TIMELINE</div><div class="sec-line"></div></div>
         <div class="timeline-filters">
           <button class="tl-filter active" onclick="filterTimeline('all',this)">🕐 All Time</button>
           <button class="tl-filter" onclick="filterTimeline('year',this)">📆 This Year</button>
@@ -650,9 +645,10 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
       <!-- ALL CLIENTS -->
       <div class="page" id="page-all-clients">
         <div class="sec-head">
-          <div class="sec-title">ALL CLIENTS</div>
+         <div class="sec-title">ALL CLIENTS</div>
           <div class="sec-line"></div>
           <input class="form-input" id="client-search" placeholder="🔍 Search by name, email, city..." style="width:240px;padding:7px 12px;font-size:12px;" oninput="filterClients(this.value)"/>
+          <div style="font-size:10px;color:var(--t3);margin-top:6px;">Grouped by month joined · Type to search</div>
         </div>
         <!-- When search active, flat list; otherwise grouped by year/month -->
         <div id="all-clients-list"><div class="loading"><div class="spinner"></div>Loading clients...</div></div>
