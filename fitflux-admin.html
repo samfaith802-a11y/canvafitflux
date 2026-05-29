@@ -601,16 +601,6 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
         <div id="dash-tasks" class="loading"><div class="spinner"></div>Loading tasks...</div>
       </div>
 
-      <!-- TIMELINE -->
-        <div class="timeline-filters">
-          <button class="tl-filter active" onclick="filterTimeline('all',this)">🕐 All Time</button>
-          <button class="tl-filter" onclick="filterTimeline('year',this)">📆 This Year</button>
-          <button class="tl-filter" onclick="filterTimeline('month',this)">🗓 This Month</button>
-          <button class="tl-filter" onclick="filterTimeline('week',this)">📋 This Week</button>
-        </div>
-        <div id="timeline-wrap" class="loading"><div class="spinner"></div>Loading timeline...</div>
-      </div>
-
       <!-- SUBMISSION STATUS — FLOWCHART UI -->
       <div class="page" id="page-submission">
         <div class="sec-head"><div class="sec-title">📋 SUBMISSION STATUS</div><div class="sec-line"></div>
@@ -657,10 +647,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
   </div>
   <div id="all-clients-list"><div class="loading"><div class="spinner"></div>Loading clients...</div></div>
 </div>
-        <!-- When search active, flat list; otherwise grouped by year/month -->
-        <div id="all-clients-list"><div class="loading"><div class="spinner"></div>Loading clients...</div></div>
-      </div>
-
+        
       <!-- CONTENT QUEUE -->
       <div class="page" id="page-content-queue">
         <div class="sec-head">
@@ -1295,7 +1282,6 @@ function renderAllClients(filter=''){
 
   let clients = allClients;
 
-  // Apply time filter first
   if(clientTimeFilter==='year'){
     clients = clients.filter(c=>{ const d=new Date(c.CreatedAt||c.PaymentConfirmedAt||''); return d.getFullYear().toString()===thisYear; });
   } else if(clientTimeFilter==='month'){
@@ -1304,7 +1290,6 @@ function renderAllClients(filter=''){
     clients = clients.filter(c=>{ const d=new Date(c.CreatedAt||c.PaymentConfirmedAt||''); return d>=weekStart&&d<weekEnd; });
   }
 
-  // Apply search filter on top
   if(filter){
     const q = filter.toLowerCase();
     clients = clients.filter(c=>
@@ -1321,13 +1306,27 @@ function renderAllClients(filter=''){
     return;
   }
 
-  // If searching show flat list, otherwise grouped
-  if(filter){
+  // Flat list for search or week filter
+  if(filter || clientTimeFilter==='week'){
     el.innerHTML = clients.map(c=>buildClientRow(c)).join('');
     return;
   }
 
-  // Grouped by year → month
+  // This Month — skip year header, show month directly, open
+  if(clientTimeFilter==='month'){
+    el.innerHTML = `<div class="month-block">
+      <div class="month-header" onclick="toggleMonth(this)">
+        <span class="month-arrow open">▶</span>
+        <span class="month-name">${thisMonth} ${thisYear}</span>
+        <span class="month-count">(${clients.length} client${clients.length!==1?'s':''})</span>
+        <div class="month-stats"><span class="month-stat">Active: <span>${clients.filter(c=>(c.Status||'Active')==='Active').length}</span></span></div>
+      </div>
+      <div class="month-clients open">${clients.map(c=>buildClientRow(c)).join('')}</div>
+    </div>`;
+    return;
+  }
+
+  // Group by year → month
   const grouped = {};
   clients.forEach(c=>{
     const d = new Date(c.CreatedAt||c.PaymentConfirmedAt||'');
@@ -1339,34 +1338,34 @@ function renderAllClients(filter=''){
   });
 
   const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
-  const currentYear = now.getFullYear().toString();
-  const currentMonth = now.toLocaleString('default',{month:'long'});
   const years = Object.keys(grouped).sort((a,b)=>b-a);
+
+  // This Year — year open, months collapsed
+  // All Time — everything collapsed
+  const yearOpen = clientTimeFilter==='year';
 
   el.innerHTML = years.map(year=>{
     const months = Object.keys(grouped[year]).sort((a,b)=>MONTHS.indexOf(b)-MONTHS.indexOf(a));
     const totalClients = Object.values(grouped[year]).flat().length;
-    const isCurrentYear = year===currentYear;
     const monthsHtml = months.map(month=>{
       const cs = grouped[year][month];
-      const isCurrentMonth = isCurrentYear && month===currentMonth;
       return `<div class="month-block">
         <div class="month-header" onclick="toggleMonth(this)">
-          <span class="month-arrow ${isCurrentMonth?'open':''}">▶</span>
+          <span class="month-arrow">▶</span>
           <span class="month-name">${month}</span>
           <span class="month-count">(${cs.length} client${cs.length!==1?'s':''})</span>
           <div class="month-stats"><span class="month-stat">Active: <span>${cs.filter(c=>(c.Status||'Active')==='Active').length}</span></span></div>
         </div>
-        <div class="month-clients ${isCurrentMonth?'open':''}">${cs.map(c=>buildClientRow(c)).join('')}</div>
+        <div class="month-clients">${cs.map(c=>buildClientRow(c)).join('')}</div>
       </div>`;
     }).join('');
     return `<div class="year-block">
       <div class="year-header" onclick="toggleYear(this)">
-        <span class="year-arrow ${isCurrentYear?'open':''}">▶</span>
+        <span class="year-arrow ${yearOpen?'open':''}">▶</span>
         <span class="year-name">${year}</span>
         <span class="year-count">(${totalClients} client${totalClients!==1?'s':''})</span>
       </div>
-      <div class="year-body ${isCurrentYear?'open':''}">${monthsHtml}</div>
+      <div class="year-body ${yearOpen?'open':''}">${monthsHtml}</div>
     </div>`;
   }).join('');
 }
