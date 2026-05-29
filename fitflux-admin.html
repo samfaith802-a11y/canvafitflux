@@ -1131,8 +1131,13 @@ function toast(msg, type='success'){
 
 // ── TIER PRICING (for revenue calculation) ────────────────────
 const TIER_PRICE = {
-  'presence': 500, 'authority': 800, 'category': 1200,
-  'launchpad': 600, 'growth': 1000, 'pro': 1500
+  'presence': 350,
+  'authority': 700,
+  'categoryking': 1200,
+  'categorykingqueen': 1200,
+  'launchpad': 500,
+  'growth': 750,
+  'pro': 1200
 };
 function clientRevenue(c){
   const tier = (c.Tier||'').toLowerCase().replace(/[\s\/]/g,'');
@@ -1174,7 +1179,6 @@ async function loadDashboard(){
   document.getElementById('stat-year').textContent = yearClients.length;
   document.getElementById('stat-year-label').textContent = thisYear;
   document.getElementById('stat-active').textContent = allClients.filter(c=>(c.Status||'Active')==='Active').length;
-  document.getElementById('stat-pending').textContent = '—';
 
   // Revenue
   const fmtRev = n => n>=1000 ? '£'+(n/1000).toFixed(1)+'k' : '£'+n;
