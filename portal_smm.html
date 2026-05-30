@@ -2019,19 +2019,130 @@ async function loadPayments(){
   </tr>`).join('');
 }  
 
-  function checkRenewalReminder(){
-  const renewalMap = {presence:30,authority:30,categoryking:90,categorykingqueen:90};
-  const days = renewalMap[TIER]||30;
-  const startKey = 'ff_start_'+(window.FF_TOKEN||urlToken).slice(-8);
-  if(!localStorage.getItem(startKey)) localStorage.setItem(startKey,Date.now());
-  const elapsed = Math.floor((Date.now()-parseInt(localStorage.getItem(startKey)))/86400000);
-  const remaining = days-elapsed;
-  if(remaining<=7&&remaining>=0){
-    const banner=document.createElement('div');
-    banner.style.cssText='position:fixed;bottom:20px;right:20px;z-index:9998;max-width:340px;background:#0d1f0a;border:1.5px solid rgba(204,255,0,0.4);border-radius:16px;padding:20px 22px;box-shadow:0 8px 40px rgba(0,0,0,0.5);';
-    banner.innerHTML=`<div style="font-size:10px;font-weight:700;color:var(--gold);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;">⏰ Plan Expiring in ${remaining} day${remaining===1?'':'s'}</div><div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:6px;">Time to Renew Your Plan</div><div style="font-size:12px;color:rgba(255,255,255,.5);line-height:1.7;margin-bottom:14px;">Your content has been live every week, your territory has stayed locked, and your brand has been growing. Don't lose momentum.</div><div style="display:flex;gap:8px;"><button onclick="this.closest('div[style]').remove()" style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);font-size:11px;font-weight:700;padding:9px;border-radius:7px;cursor:pointer;font-family:'DM Sans',sans-serif;">Later</button><button onclick="openRenewal()" style="flex:1;background:#CCFF00;border:none;color:#0D1F00;font-size:11px;font-weight:700;padding:9px;border-radius:7px;cursor:pointer;font-family:'DM Sans',sans-serif;">🔄 Renew Now →</button></div>`;
-    document.body.appendChild(banner);
+  async function checkRenewalReminder() {
+  const paidAt = window.FF_CLIENT && window.FF_CLIENT.createdAt;
+  if (!paidAt) return;
+
+  const paidDate = new Date(paidAt);
+  const now = new Date();
+  const nextDue = new Date(paidDate);
+  nextDue.setMonth(nextDue.getMonth() + 1);
+  while (nextDue < now) nextDue.setMonth(nextDue.getMonth() + 1);
+
+  const daysLeft = Math.ceil((nextDue - now) / (1000 * 60 * 60 * 24));
+  const daysOverdue = Math.ceil((now - nextDue) / (1000 * 60 * 60 * 24));
+
+  const tier = (window.FF_TIER || '').toLowerCase().replace(/[\s\/]/g, '');
+  const TIER_PRICE = { presence: 350, authority: 700, categoryking: 1200, categorykingqueen: 1200 };
+  const TIER_LABEL = { presence: 'Presence', authority: 'Authority', categoryking: 'Category King', categorykingqueen: 'Category King/Queen' };
+  const price = TIER_PRICE[tier] || 0;
+  const tierLabel = TIER_LABEL[tier] || tier;
+  const name = (window.FF_CLIENT.name || '').split(' ')[0];
+  const email = window.FF_CLIENT.email || '';
+  const renewalLink = 'https://canvafitflux.vercel.app/fitflux-receipt-smm.html'
+    + '?email=' + encodeURIComponent(email)
+    + '&tier=' + encodeURIComponent(tier)
+    + '&name=' + encodeURIComponent(window.FF_CLIENT.name || '')
+    + '&renewal=true'
+    + '&amount=' + price;
+
+  // FREEZE — overdue by 2+ days
+  if (daysOverdue >= 2) {
+    showPortalFreeze(name, tierLabel, price, nextDue, renewalLink);
+    return;
   }
+
+  // BANNER — within 5 days
+  if (daysLeft <= 5 && daysLeft >= 0) {
+    showRenewalBanner(daysLeft, price, tierLabel, nextDue, renewalLink);
+  }
+}
+
+function showRenewalBanner(daysLeft, price, tier, dueDate, link) {
+  const isUrgent = daysLeft <= 3;
+  const dueFmt = dueDate.toLocaleDateString('en-GB', {day:'2-digit', month:'long', year:'numeric'});
+  const banner = document.createElement('div');
+  banner.id = 'renewal-banner';
+  banner.style.cssText = `
+    position:fixed;bottom:20px;right:20px;z-index:9000;max-width:360px;width:calc(100% - 40px);
+    background:#0d1f0a;
+    border:1.5px solid ${isUrgent ? '#ff4d4d' : 'rgba(204,255,0,0.5)'};
+    border-radius:16px;padding:20px 22px;
+    box-shadow:0 8px 40px rgba(0,0,0,0.6);
+    animation:slideUp .35s ease;
+  `;
+  banner.innerHTML = `
+    <style>@keyframes slideUp{from{transform:translateY(80px);opacity:0}to{transform:translateY(0);opacity:1}}</style>
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:12px;">
+      <div>
+        <div style="font-size:10px;font-weight:700;color:${isUrgent ? '#ff4d4d' : '#CCFF00'};letter-spacing:.12em;text-transform:uppercase;margin-bottom:5px;">
+          ${isUrgent ? `⚠️ Due in ${daysLeft} day${daysLeft !== 1 ? 's' : ''}` : `📅 Renews in ${daysLeft} days`}
+        </div>
+        <div style="font-size:14px;font-weight:700;color:#fff;margin-bottom:3px;">
+          ${isUrgent ? 'Renew Now to Avoid Pause' : 'Your Retainer Is Coming Up'}
+        </div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.45);line-height:1.6;">
+          ${tier} · <span style="color:${isUrgent ? '#ff4d4d' : '#CCFF00'};font-weight:700;">£${price}</span> due ${dueFmt}
+        </div>
+      </div>
+      <button onclick="document.getElementById('renewal-banner').remove()" 
+        style="background:none;border:none;color:rgba(255,255,255,0.3);font-size:20px;cursor:pointer;padding:0;flex-shrink:0;line-height:1;">×</button>
+    </div>
+    ${isUrgent ? `<div style="font-size:11px;color:rgba(255,77,77,0.8);background:rgba(255,77,77,0.08);border-radius:7px;padding:9px 12px;margin-bottom:12px;line-height:1.6;">
+      Your portal will pause 2 days after the due date if payment is not confirmed.
+    </div>` : ''}
+    <div style="display:flex;gap:8px;">
+      <button onclick="document.getElementById('renewal-banner').remove()" 
+        style="flex:1;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);font-family:'DM Sans',sans-serif;font-size:11px;font-weight:700;padding:9px;border-radius:7px;cursor:pointer;">
+        Remind me later
+      </button>
+      <a href="${link}" 
+        style="flex:2;background:${isUrgent ? '#ff4d4d' : '#CCFF00'};color:${isUrgent ? '#fff' : '#080c08'};font-family:'DM Sans',sans-serif;font-size:11px;font-weight:800;padding:9px;border-radius:7px;text-align:center;text-decoration:none;display:flex;align-items:center;justify-content:center;">
+        ${isUrgent ? '⚡ Renew Now →' : '✅ Confirm Renewal →'}
+      </a>
+    </div>
+  `;
+  document.body.appendChild(banner);
+}
+
+function showPortalFreeze(name, tier, price, dueDate, link) {
+  // Remove any existing freeze
+  const existing = document.getElementById('portal-freeze');
+  if (existing) existing.remove();
+
+  const dueFmt = dueDate.toLocaleDateString('en-GB', {day:'2-digit', month:'long', year:'numeric'});
+  const freeze = document.createElement('div');
+  freeze.id = 'portal-freeze';
+  freeze.style.cssText = `
+    position:fixed;inset:0;z-index:9999;
+    background:rgba(5,10,5,0.94);
+    backdrop-filter:blur(12px);
+    display:flex;align-items:center;justify-content:center;
+    padding:20px;
+  `;
+  freeze.innerHTML = `
+    <div style="max-width:460px;width:100%;background:#0d1f0a;border:1.5px solid rgba(255,77,77,0.4);border-radius:20px;padding:40px 36px;text-align:center;">
+      <div style="font-size:48px;margin-bottom:20px;">⏸</div>
+      <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#fff;margin-bottom:10px;line-height:1.3;">
+        Your Plan Is Paused, ${name}
+      </div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.5);line-height:1.8;margin-bottom:24px;">
+        Your FitFlux <strong style="color:#fff;">${tier}</strong> plan payment was due on <strong style="color:#ff4d4d;">${dueFmt}</strong> and hasn't been confirmed yet.<br><br>
+        Your content has been paused. Your territory lock is still in place — but renew now to keep it secured.
+      </div>
+      <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:12px;padding:16px 20px;margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:12px;color:rgba(255,255,255,0.4);">Amount to renew</span>
+        <span style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#CCFF00;">£${price}</span>
+      </div>
+      <a href="${link}" style="display:block;background:#CCFF00;color:#080c08;font-size:14px;font-weight:800;padding:16px;border-radius:10px;text-decoration:none;letter-spacing:.06em;margin-bottom:12px;">
+        ⚡ RENEW NOW — REACTIVATE PORTAL
+      </a>
+      <div style="font-size:11px;color:rgba(255,255,255,0.25);line-height:1.7;">
+        Once your payment is confirmed, your portal reactivates automatically.<br>No action needed from you after payment.
+      </div>
+    </div>
+  `;
+  document.body.appendChild(freeze);
 }
 
 function openRenewal(){
