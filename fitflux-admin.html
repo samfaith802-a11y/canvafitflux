@@ -600,37 +600,32 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
         <div class="sec-head"><div class="sec-title">📋 WEEKLY TASK SUMMARY</div><div class="sec-line"></div></div>
         <div id="dash-tasks" class="loading"><div class="spinner"></div>Loading tasks...</div>
       </div>
+<!-- CLIENT HEALTH TRACKER -->
+<div class="page" id="page-submission">
+  <div class="sec-head">
+    <div class="sec-title">📋 CLIENT HEALTH TRACKER</div>
+    <div class="sec-line"></div>
+    <input class="form-input" id="submission-search" placeholder="🔍 Filter clients..." style="width:200px;padding:7px 12px;font-size:12px;" oninput="filterSubmission(this.value)"/>
+  </div>
 
-      <!-- SUBMISSION STATUS — FLOWCHART UI -->
-      <div class="page" id="page-submission">
-        <div class="sec-head"><div class="sec-title">📋 SUBMISSION STATUS</div><div class="sec-line"></div>
-          <input class="form-input" id="submission-search" placeholder="🔍 Filter clients..." style="width:200px;padding:7px 12px;font-size:12px;" oninput="filterSubmission(this.value)"/>
-        </div>
-        <!-- Pipeline stage legend -->
-        <div class="pipeline-legend">
-          <div class="pl-stage"><div class="pl-dot" style="background:var(--t3)"></div>Not Started</div>
-          <div class="pl-stage"><div class="pl-dot" style="background:var(--amber)"></div>Pending</div>
-          <div class="pl-stage"><div class="pl-dot" style="background:var(--green)"></div>Done</div>
-          <div class="pl-stage"><div class="pl-dot" style="background:var(--red)"></div>Overdue</div>
-        </div>
-        <!-- Pipeline columns header -->
-        <div class="pipeline-header">
-          <div class="ph-client">CLIENT</div>
-          <div class="ph-stages">
-            <div class="ph-stage">📁<br>Brand<br>Assets</div>
-            <div class="ph-arrow">→</div>
-            <div class="ph-stage">📝<br>Contract</div>
-            <div class="ph-arrow">→</div>
-            <div class="ph-stage">📅<br>Week 1<br>Content</div>
-            <div class="ph-arrow">→</div>
-            <div class="ph-stage">📊<br>Performance<br>Logged</div>
-            <div class="ph-arrow">→</div>
-            <div class="ph-stage">🗺<br>Roadmap<br>Started</div>
-          </div>
-          <div class="ph-progress">PROGRESS</div>
-        </div>
-        <div id="submission-list"><div class="loading" style="padding:20px;"><div class="spinner"></div>Loading...</div></div>
-      </div>
+  <!-- SUMMARY ROW -->
+  <div id="health-summary" style="display:flex;gap:12px;margin-bottom:24px;flex-wrap:wrap;">
+    <div style="background:rgba(61,214,140,0.08);border:1px solid rgba(61,214,140,0.2);border-radius:10px;padding:10px 18px;font-size:12px;color:var(--green);">🟢 <span id="hs-green">0</span> On Track</div>
+    <div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:10px;padding:10px 18px;font-size:12px;color:var(--amber);">🟡 <span id="hs-amber">0</span> Need Attention</div>
+    <div style="background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.2);border-radius:10px;padding:10px 18px;font-size:12px;color:var(--red);">🔴 <span id="hs-red">0</span> Overdue</div>
+    <div style="background:rgba(255,255,255,0.04);border:1px solid var(--bdr3);border-radius:10px;padding:10px 18px;font-size:12px;color:var(--t3);">⚪ <span id="hs-grey">0</span> Not Started</div>
+  </div>
+
+  <!-- LEGEND -->
+  <div style="display:flex;gap:20px;margin-bottom:16px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--t3);">🟢 Done / On Track</div>
+    <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--t3);">🟡 Amber — act soon (2+ days)</div>
+    <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--t3);">🔴 Red — overdue (3+ days)</div>
+    <div style="display:flex;align-items:center;gap:6px;font-size:11px;color:var(--t3);">⚪ Grey — not started yet, not late</div>
+  </div>
+
+  <div id="submission-list"><div class="loading" style="padding:20px;"><div class="spinner"></div>Loading...</div></div>
+</div>
 
       <!-- ALL CLIENTS -->
       <div class="page" id="page-all-clients">
@@ -2042,7 +2037,7 @@ async function sendReminderViaTelegram(){
 }
 // ── SUBMISSION STATUS — PIPELINE UI ──────────────────────────
 function filterSubmission(val){
-  document.querySelectorAll('.pipeline-row').forEach(row=>{
+  document.querySelectorAll('.health-row').forEach(row=>{
     const name = row.getAttribute('data-name')||'';
     row.style.display = name.toLowerCase().includes(val.toLowerCase()) ? '' : 'none';
   });
@@ -2111,21 +2106,6 @@ async function loadSubmissionStatus(){
   const badge = document.getElementById('pending-tasks-badge');
   if(totalOverdue>0){ badge.textContent=totalOverdue; badge.style.display=''; }
   else badge.style.display='none';
-}
-
-// Fix toggleSubmissionStatus to work with new pipeline nodes
-async function toggleSubmissionStatus(token, col, nodeEl){
-  const cur = (submissionStatuses[token]||{})[col];
-  const next = cur==='done'?'pending':'done';
-  if(!submissionStatuses[token]) submissionStatuses[token]={Token:token};
-  submissionStatuses[token][col] = next;
-  const circle = nodeEl.querySelector('.pip-circle')||nodeEl;
-  const label = nodeEl.querySelector('.pip-label');
-  const newState = next==='done'?'done':'pending';
-  if(circle){ circle.className='pip-circle '+newState; circle.textContent=newState==='done'?'✓':'·'; }
-  if(label){ label.className='pip-label '+newState; }
-  await apiPost('setSubmissionStatus',{token, col, value:next});
-  toast(next==='done'?'✅ Marked done':'↩ Marked pending');
 }
 
 // ── CLIENT REVENUE TAB ────────────────────────────────────────
@@ -2335,72 +2315,188 @@ let submissionStatuses = {}; // token -> {BrandAssets:'done', Contract:'pending'
 
 async function loadSubmissionStatus(){
   const el = document.getElementById('submission-list');
+  el.innerHTML = '<div class="loading" style="padding:20px;"><div class="spinner"></div>Loading...</div>';
+
   if(!allClients.length){
     const data = await apiGet('getAllClients');
     allClients = data&&data.clients ? data.clients.filter(c=>c.Token&&c.Name) : [];
   }
-  if(!allClients.length){ el.innerHTML='<div class="empty-state" style="padding:20px;"><div class="empty-text">No clients.</div></div>'; return; }
+  if(!allClients.length){ el.innerHTML='<div class="empty-state" style="padding:20px;"><div class="empty-text">No clients yet.</div></div>'; return; }
 
-  // Load submission statuses from sheet if available
-  const statusData = await apiGet('getSubmissionStatuses');
-  submissionStatuses = {};
-  if(statusData && statusData.statuses){
-    statusData.statuses.forEach(row=>{
-      submissionStatuses[row.Token] = row;
-    });
-  }
+  // Load all journey checks for all clients
+  const checksMap = {};
+  await Promise.all(allClients.map(async c=>{
+    const data = await apiGet('getJourneyChecks', c.Token);
+    checksMap[c.Token] = (data&&data.checks) ? data.checks : [];
+  }));
 
   const now = Date.now();
-  el.innerHTML = allClients.map(c=>{
-    const st = submissionStatuses[c.Token] || {};
+  let countGreen=0, countAmber=0, countRed=0, countGrey=0;
+
+  const rows = allClients.map(c=>{
     const joined = new Date(c.CreatedAt||c.PaymentConfirmedAt||'').getTime();
-    const daysSince = isNaN(joined) ? 0 : Math.floor((now - joined)/(86400000));
+    const daysSince = isNaN(joined) ? 0 : Math.floor((now - joined) / 86400000);
+    const checks = checksMap[c.Token] || [];
+    const tier = (c.Tier||'').toLowerCase();
 
-    const dots = TASK_COLS.map((col,i)=>{
-      const val = st[col];
-      let dotClass='task-pending', label='Pending';
-      if(val==='done'){ dotClass='task-done'; label='Done'; }
-      else if(daysSince>7 && !val){ dotClass='task-overdue'; label='Overdue'; }
-      return `<div class="sub-task clickable" onclick="toggleSubmissionStatus('${c.Token}','${col}',this)" title="Click to toggle: ${TASK_LABELS[i]}">
-        <div class="task-dot ${dotClass}"></div>
-        <span class="task-label">${label}</span>
-      </div>`;
-    }).join('');
+    // Determine current phase
+    const ph1Keys = ['brandvoice','niche','pillars','profile','territory','strategy','assets','logins'];
+    const ph2Keys = ['batch','stories','captions','approved','scheduled','baseline'];
+    const ph3Keys = ['batches','engagement','report','strategy','enquiries','territory'];
+    const ph4Keys = ['conversion','enquiries','authority','compounding','brand','referrals'];
 
-    return `<div class="sub-table-row">
-      <div>
-        <div class="sub-client-name" style="cursor:pointer;" onclick="openClient('${c.Token}')">${c.Name||'—'}</div>
-        <div class="sub-client-tier">${c.Tier||'—'} · ${c.Territory||'—'}</div>
+    function isDone(phase, key){
+      return checks.some(ch=> ch.Phase===phase && ch.Key===key && ch.Checked && ch.Checked!=='FALSE' && ch.Checked!==false && ch.Checked!=='false');
+    }
+
+    const ph1Done = ph1Keys.filter(k=>isDone('phase1',k)).length;
+    const ph2Done = ph2Keys.filter(k=>isDone('phase2',k)).length;
+    const ph3Done = ph3Keys.filter(k=>isDone('phase3',k)).length;
+    const ph4Done = ph4Keys.filter(k=>isDone('phase4',k)).length;
+
+    const ph1Complete = ph1Done === ph1Keys.length;
+    const ph2Complete = ph2Done === ph2Keys.length;
+    const ph3Complete = ph3Done === ph3Keys.length;
+
+    // Detect phase 1 completion timestamp
+    const ph1CompletedAt = ph1Complete ? Math.max(...checks.filter(ch=>ch.Phase==='phase1').map(ch=>new Date(ch.UpdatedAt||'').getTime()).filter(t=>!isNaN(t))) : null;
+    const daysSincePh1 = ph1CompletedAt ? Math.floor((now - ph1CompletedAt) / 86400000) : null;
+
+    // Find current phase
+    let currentPhase = 1;
+    if(ph1Complete && ph2Complete && ph3Complete) currentPhase = 4;
+    else if(ph1Complete && ph2Complete) currentPhase = 3;
+    else if(ph1Complete) currentPhase = 2;
+
+    // Now of month for phase 4
+    const dayOfMonth = new Date().getDate();
+
+    // Build items to show based on current phase
+    let items = [];
+    let overallStatus = 'grey';
+
+    if(currentPhase === 1){
+      // Show incomplete Phase 1 items
+      const incompleteItems = ph1Keys.filter(k=>!isDone('phase1',k));
+      const labels = {
+        brandvoice:'Brand Voice', niche:'Niche Confirmed', pillars:'Content Pillars',
+        profile:'Profile Optimised', territory:'Territory Lock', strategy:'Platform Strategy',
+        assets:'Brand Assets', logins:'Logins Submitted'
+      };
+      // Timing: amber after 2 days, red after 3 days
+      incompleteItems.forEach(k=>{
+        let status = 'grey';
+        if(daysSince >= 3) status = 'red';
+        else if(daysSince >= 2) status = 'amber';
+        items.push({ label: labels[k], status });
+      });
+      ph1Keys.filter(k=>isDone('phase1',k)).forEach(k=>{
+        items.push({ label: (labels[k]||k), status:'green' });
+      });
+    } else if(currentPhase === 2){
+      const incompleteItems = ph2Keys.filter(k=>!isDone('phase2',k));
+      const labels = {
+        batch:'First Batch Created', stories:'Stories Designed', captions:'Captions Written',
+        approved:'Client Approved', scheduled:'Content Scheduled', baseline:'Baseline Recorded'
+      };
+      const daysInPh2 = daysSincePh1 !== null ? daysSincePh1 : 0;
+      incompleteItems.forEach(k=>{
+        let status = 'grey';
+        if(daysInPh2 >= 3) status = 'red';
+        else if(daysInPh2 >= 2) status = 'amber';
+        items.push({ label: labels[k], status });
+      });
+      ph2Keys.filter(k=>isDone('phase2',k)).forEach(k=>{
+        items.push({ label: (labels[k]||k), status:'green' });
+      });
+    } else if(currentPhase === 3){
+      // Weekly reset — check day of week
+      const dayOfWeek = new Date().getDay(); // 0=Sun, 1=Mon
+      const daysIntoWeek = dayOfWeek === 0 ? 6 : dayOfWeek - 1; // days since Monday
+      const labels = {
+        batches:'Weekly Batches', engagement:'Engagement Active', report:'Report Delivered',
+        strategy:'Strategy Refined', enquiries:'Enquiries Tracked', territory:'Territory Active'
+      };
+      const incompleteItems = ph3Keys.filter(k=>!isDone('phase3',k));
+      incompleteItems.forEach(k=>{
+        let status = 'grey';
+        if(daysIntoWeek >= 3) status = 'red';
+        else if(daysIntoWeek >= 2) status = 'amber';
+        items.push({ label: labels[k], status });
+      });
+      ph3Keys.filter(k=>isDone('phase3',k)).forEach(k=>{
+        items.push({ label: (labels[k]||k), status:'green' });
+      });
+    } else if(currentPhase === 4){
+      const labels = {
+        conversion:'Conversion Content', enquiries:'Warm Enquiries', authority:'Authority Built',
+        compounding:'Content Compounding', brand:'Brand Recognised', referrals:'Referrals Growing'
+      };
+      const incompleteItems = ph4Keys.filter(k=>!isDone('phase4',k));
+      incompleteItems.forEach(k=>{
+        let status = 'grey';
+        if(dayOfMonth >= 25) status = 'red';
+        else if(dayOfMonth >= 20) status = 'amber';
+        items.push({ label: labels[k], status });
+      });
+      ph4Keys.filter(k=>isDone('phase4',k)).forEach(k=>{
+        items.push({ label: (labels[k]||k), status:'green' });
+      });
+    }
+
+    // Overall row status
+    if(items.some(i=>i.status==='red')) overallStatus = 'red';
+    else if(items.some(i=>i.status==='amber')) overallStatus = 'amber';
+    else if(items.every(i=>i.status==='green')) overallStatus = 'green';
+    else overallStatus = 'grey';
+
+    if(overallStatus==='green') countGreen++;
+    else if(overallStatus==='amber') countAmber++;
+    else if(overallStatus==='red') countRed++;
+    else countGrey++;
+
+    const statusColors = {green:'var(--green)',amber:'var(--amber)',red:'var(--red)',grey:'var(--t3)'};
+    const statusEmoji = {green:'🟢',amber:'🟡',red:'🔴',grey:'⚪'};
+    const phaseLabel = ['','Phase 1 — Onboarding','Phase 2 — First Content','Phase 3 — Weekly Delivery','Phase 4 — Monthly Authority'][currentPhase];
+    const totalItems = items.length;
+    const doneItems = items.filter(i=>i.status==='green').length;
+    const pct = totalItems > 0 ? Math.round((doneItems/totalItems)*100) : 100;
+
+    const dots = items.slice(0,8).map(item=>`
+      <div style="display:flex;align-items:center;gap:5px;background:rgba(255,255,255,0.03);border:1px solid var(--bdr3);border-radius:6px;padding:5px 9px;font-size:10px;color:${statusColors[item.status]};">
+        ${statusEmoji[item.status]} ${item.label}
+      </div>`).join('');
+
+    return `<div class="health-row" data-name="${c.Name||''}" style="background:var(--card);border:1px solid ${overallStatus==='red'?'rgba(255,77,77,0.3)':overallStatus==='amber'?'rgba(245,158,11,0.25)':overallStatus==='green'?'rgba(61,214,140,0.2)':'var(--bdr3)'};border-radius:12px;padding:16px 20px;margin-bottom:10px;transition:border-color .2s;">
+      <div style="display:flex;align-items:center;gap:16px;margin-bottom:12px;">
+        <div style="cursor:pointer;" onclick="openClient('${c.Token}')">
+          <div style="font-size:13px;font-weight:700;color:var(--t1);">${statusEmoji[overallStatus]} ${c.Name||'—'}</div>
+          <div style="font-size:10px;color:var(--t3);margin-top:2px;">${c.Tier||'—'} · Day ${daysSince} · ${phaseLabel}</div>
+        </div>
+        <div style="margin-left:auto;text-align:right;">
+          <div style="font-size:10px;color:var(--t3);margin-bottom:4px;">${doneItems}/${totalItems} done</div>
+          <div style="width:100px;height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;">
+            <div style="width:${pct}%;height:100%;background:${statusColors[overallStatus]};border-radius:3px;transition:width .4s;"></div>
+          </div>
+        </div>
+        <button onclick="openClient('${c.Token}')" style="background:var(--bg3);border:1px solid var(--bdr);color:var(--t2);border-radius:6px;padding:5px 12px;font-family:var(--fb);font-size:11px;cursor:pointer;white-space:nowrap;">Open →</button>
       </div>
-      ${dots}
+      <div style="display:flex;gap:6px;flex-wrap:wrap;">${dots}</div>
     </div>`;
   }).join('');
 
-  // Update pending badge
-  const totalOverdue = allClients.reduce((n,c)=>{
-    const st = submissionStatuses[c.Token]||{};
-    const joined = new Date(c.CreatedAt||c.PaymentConfirmedAt||'').getTime();
-    const daysSince = isNaN(joined) ? 0 : Math.floor((Date.now()-joined)/86400000);
-    return n + TASK_COLS.filter(col=>daysSince>7 && (!st[col]||st[col]!=='done')).length;
-  }, 0);
+  // Update summary
+  document.getElementById('hs-green').textContent = countGreen;
+  document.getElementById('hs-amber').textContent = countAmber;
+  document.getElementById('hs-red').textContent = countRed;
+  document.getElementById('hs-grey').textContent = countGrey;
+
+  // Update badge
   const badge = document.getElementById('pending-tasks-badge');
-  if(totalOverdue>0){ badge.textContent=totalOverdue; badge.style.display=''; }
-  else { badge.style.display='none'; }
-}
+  if(countRed+countAmber > 0){ badge.textContent = countRed+countAmber; badge.style.display=''; }
+  else badge.style.display='none';
 
-async function toggleSubmissionStatus(token, col, cell){
-  const cur = (submissionStatuses[token]||{})[col];
-  const next = cur==='done' ? 'pending' : 'done';
-  if(!submissionStatuses[token]) submissionStatuses[token]={Token:token};
-  submissionStatuses[token][col] = next;
-
-  const dot = cell.querySelector('.task-dot');
-  const lbl = cell.querySelector('.task-label');
-  dot.className = 'task-dot '+(next==='done'?'task-done':'task-pending');
-  lbl.textContent = next==='done'?'Done':'Pending';
-
-  await apiPost('setSubmissionStatus',{token, col, value:next});
-  toast(next==='done'?'✅ Marked done':'↩ Marked pending');
+  el.innerHTML = rows;
 }
 
 // ── MILESTONES ────────────────────────────────────────────────
