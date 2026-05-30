@@ -323,6 +323,8 @@ const rCity      = urlP.get('city')      || '';
 const rTerritory = urlP.get('territory') || '';
 const rNiche     = urlP.get('niche')     || '';
 const invRef     = urlP.get('inv')       || 'FF-' + Date.now().toString().slice(-6);
+  const isRenewal = urlP.get('renewal') === 'true';
+const rIg = urlP.get('ig') || '';
 
 const pkg = PKG[tierKey] || PKG['presence'];
 
@@ -377,17 +379,34 @@ function generateUUID() {
 
 // Token = FF-{tierSlug}-{uuid}-{timestamp}
 // Tier slug is embedded so the contract page can verify tier without a DB
-const TOKEN = 'FF-' + tierKey + '-' + generateUUID() + '-' + Date.now();
-document.getElementById('token-display').textContent = TOKEN;
-// Show last 8 chars as portal password
-const PORTAL_PW = TOKEN.slice(-8).toUpperCase();
-const pwEl = document.getElementById('portal-pw-display');
-if(pwEl) pwEl.textContent = PORTAL_PW;
+let TOKEN = '';
+let PORTAL_PW = '';
+if (!isRenewal) {
+  TOKEN = 'FF-' + tierKey + '-' + generateUUID() + '-' + Date.now();
+  document.getElementById('token-display').textContent = TOKEN;
+  PORTAL_PW = TOKEN.slice(-8).toUpperCase();
+  const pwEl = document.getElementById('portal-pw-display');
+  if(pwEl) pwEl.textContent = PORTAL_PW;
+}
 
 // ── GOOGLE SHEET LOGGER ──────────────────────────────────────────────────
-// Apps Script Web App URL — paste your published URL here
-const SHEET_URL = 'https://script.google.com/macros/s/AKfycbyBljnpIvBqjpyG8IMmhh8tBapWXbxWSpGhXHdsZm-UMT0VwnivjzbX0YRbZR0SqQcODg/exec';
-if(SHEET_URL !== 'YOUR_APPS_SCRIPT_URL_HERE') {
+if (isRenewal) {
+  fetch(SHEET_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      action: 'logRenewalPayment',
+      email:   rEmail,
+      tier:    tierKey,
+      amount:  pkg.price,
+      paidDate: new Date().toISOString()
+    })
+  }).then(r => r.json()).then(data => {
+    if (data.status === 'renewed') {
+      window.location.href = 'portal_smm.html?tier=' + tierKey;
+    }
+  }).catch(() => {});
+} else {
   fetch(SHEET_URL, {
     method: 'POST',
     mode: 'no-cors',
@@ -429,7 +448,10 @@ const contractParams = new URLSearchParams({
   ig: rIg,
   rec: recNum
 });
-
+if (isRenewal) {
+  const dmSection = document.querySelector('.rec-dm');
+  if (dmSection) dmSection.style.display = 'none';
+}
 function goToContract() {
   if(!contractFile) { alert('Unable to determine contract. Please contact fitfluxstudio@gmail.com'); return; }
   window.location.href = contractFile + '?' + contractParams.toString();
