@@ -1945,7 +1945,7 @@ Hope you're having a great week! Just a quick reminder that your FitFlux retaine
 📦 Package: ${c.Tier||'—'}
 💰 Amount: £${price}/month
 
-You can send payment via [payment link] — just let me know if you need anything!
+You can send payment via ${renewalLink}] — just let me know if you need anything!
 
 Speak soon 🙌
 FitFlux`,
@@ -1957,7 +1957,7 @@ This is a courtesy reminder that your FitFlux monthly retainer is due in ${daysL
 Service: ${c.Tier||'—'} Package
 Amount Due: £${price}
 
-Please arrange payment at your earliest convenience. If you have any queries, don't hesitate to reach out.
+Please arrange payment at your earliest convenience. If you have any queries, don't hesitate to reach out.  Renewal link: ${renewalLink}
 
 Best regards,
 FitFlux Management`,
@@ -1968,8 +1968,7 @@ URGENT: Your FitFlux retainer payment of £${price} ${daysLeft<=0?'is now OVERDU
 
 ⚠️ Please note that content scheduling may be paused if payment is not received within 48 hours.
 
-Please make payment immediately: [payment link]
-
+Please make payment immediately: ${renewalLink}
 Thank you,
 FitFlux`
 };
