@@ -791,10 +791,12 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
                 <div class="form-label">Scheduled Date</div>
                 <input class="form-input" id="c-date" type="date"/>
               </div>
-              <div class="form-group">
-                <div class="form-label">Media URL (Google Drive / Dropbox)</div>
-                <input class="form-input" id="c-media" placeholder="https://drive.google.com/..."/>
-              </div>
+           <div class="form-group">
+  <div class="form-label">Upload Media File</div>
+  <input type="file" id="c-media-file" accept="image/*,video/*" style="background:var(--bg3);border:1px solid var(--bdr3);border-radius:8px;padding:10px 14px;color:var(--t1);width:100%;cursor:pointer;"/>
+  <input class="form-input" id="c-media" placeholder="URL will appear here after upload..." style="margin-top:6px;" readonly/>
+  <div id="c-upload-status" style="font-size:11px;color:var(--t3);margin-top:4px;"></div>
+</div>
               <div class="form-group">
                 <div class="form-label">Media Type</div>
                 <select class="form-select" id="c-mediatype">
@@ -1667,6 +1669,34 @@ async function uploadContent(){
   const title = document.getElementById('c-title').value.trim();
   const caption = document.getElementById('c-caption').value.trim();
   if(!title||!caption){ toast('Title and caption are required','error'); return; }
+
+  // Handle R2 upload if file selected
+  const fileInput = document.getElementById('c-media-file');
+  const file = fileInput && fileInput.files[0];
+  if(file){
+    const status = document.getElementById('c-upload-status');
+    status.textContent = '⬆️ Uploading to Cloudflare...';
+    const formData = new FormData();
+    formData.append('file', file);
+    try {
+      const res = await fetch('https://canvafitflux.vercel.app/api/upload', {
+        method: 'POST',
+        body: formData
+      });
+      const data = await res.json();
+      if(data.url){
+        document.getElementById('c-media').value = data.url;
+        status.textContent = '✅ Uploaded successfully';
+      } else {
+        status.textContent = '❌ Upload failed — ' + (data.error||'unknown error');
+        return;
+      }
+    } catch(err){
+      status.textContent = '❌ Upload error — ' + err.message;
+      return;
+    }
+  }
+
   const body = {
     token: currentClient.Token,
     platform: document.getElementById('c-platform').value,
@@ -1680,6 +1710,8 @@ async function uploadContent(){
   document.getElementById('c-title').value='';
   document.getElementById('c-caption').value='';
   document.getElementById('c-media').value='';
+  document.getElementById('c-media-file').value='';
+  document.getElementById('c-upload-status').textContent='';
   document.getElementById('c-date').value='';
   loadAdminContent();
 }
