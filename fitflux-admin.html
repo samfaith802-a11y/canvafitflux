@@ -701,7 +701,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
           <div id="reminder-script-wrap"></div>
           <div class="modal-actions">
             <button class="btn-copy-script" onclick="copyReminderScript()">📋 Copy Message</button>
-            <button class="btn-tg-send" onclick="sendReminderViaTelegram()">✈️ Send via Telegram</button>
+           <button class="btn-tg-send" onclick="sendReminderViaTelegram()">📧 Send Email Reminder</button>
           </div>
         </div>
       </div>
@@ -1938,7 +1938,7 @@ let reminderClient = null;
 let reminderTone = 'friendly';
 
 const REMINDER_SCRIPTS = {
-  friendly: (c,due,daysLeft,price)=>`Hey ${c.Name?.split(' ')[0]||'there'} 👋
+  friendly: (c,due,daysLeft,price,renewalLink)==>`Hey ${c.Name?.split(' ')[0]||'there'} 👋
 
 Hope you're having a great week! Just a quick reminder that your FitFlux retainer is due in ${daysLeft} day${daysLeft!==1?'s':''} — on ${due}.
 
@@ -1950,19 +1950,19 @@ You can send payment via ${renewalLink}] — just let me know if you need anythi
 Speak soon 🙌
 FitFlux`,
 
-  professional: (c,due,daysLeft,price)=>`Hi ${c.Name?.split(' ')[0]||'there'},
+  professional: (c,due,daysLeft,price,renewalLink)=>`Hi ${c.Name?.split(' ')[0]||'there'},
 
 This is a courtesy reminder that your FitFlux monthly retainer is due in ${daysLeft} day${daysLeft!==1?'s':''}, on ${due}.
 
 Service: ${c.Tier||'—'} Package
 Amount Due: £${price}
 
-Please arrange payment at your earliest convenience. If you have any queries, don't hesitate to reach out.  Renewal link: ${renewalLink}
+Please arrange payment at your earliest convenience. If you have any queries, don't hesitate to reach out.  \n\nRenewal link: ${renewalLink}
 
 Best regards,
 FitFlux Management`,
 
-  urgent: (c,due,daysLeft,price)=>`Hi ${c.Name?.split(' ')[0]||'there'},
+  urgent: (c,due,daysLeft,price,renewalLink)=>`Hi ${c.Name?.split(' ')[0]||'there'},
 
 URGENT: Your FitFlux retainer payment of £${price} ${daysLeft<=0?'is now OVERDUE':'is due TODAY' }${daysLeft>0?' ('+due+')':''}.
 
@@ -1990,7 +1990,12 @@ function openReminderModal(token){
     📅 Due: <strong>${dueFmt}</strong> · ${daysLeft<=0?'<span style="color:var(--red);">OVERDUE</span>':`<span style="color:${daysLeft<=5?'var(--red)':daysLeft<=10?'var(--amber)':'var(--green)'};">${daysLeft} days remaining</span>`}`;
 
   // Store for script generation
-  window._reminderData = {c:reminderClient, due:dueFmt, daysLeft, price:rev};
+  const renewalLink = 'https://canvafitflux.vercel.app/fitflux-invoice-smm.html'
+  + '?email=' + encodeURIComponent(reminderClient.Email||'')
+  + '&tier=' + encodeURIComponent((reminderClient.Tier||'').toLowerCase().replace(/[\s\/]/g,''))
+  + '&name=' + encodeURIComponent(reminderClient.Name||'')
+  + '&renewal=true';
+window._reminderData = {c:reminderClient, due:dueFmt, daysLeft, price:rev, renewalLink};
   reminderTone = 'friendly';
   setScriptTone('friendly', document.querySelector('.rs-tab'));
   document.getElementById('reminder-modal').classList.add('show');
@@ -2003,7 +2008,7 @@ function setScriptTone(tone, btn){
   if(btn) btn.classList.add('active');
   const d = window._reminderData;
   if(!d) return;
-  const script = REMINDER_SCRIPTS[tone]?.(d.c, d.due, d.daysLeft, d.price) || '';
+ const script = REMINDER_SCRIPTS[tone]?.(d.c, d.due, d.daysLeft, d.price, d.renewalLink) || '';
   document.getElementById('reminder-script-wrap').innerHTML = `<div class="reminder-script">${script}</div>`;
 }
 
@@ -2020,7 +2025,7 @@ function copyReminderScript(){
 async function sendReminderViaTelegram(){
   const d = window._reminderData;
   if(!d) return;
-  const msg = REMINDER_SCRIPTS[reminderTone]?.(d.c, d.due, d.daysLeft, d.price) || '';
+  const msg = REMINDER_SCRIPTS[reminderTone]?.(d.c, d.due, d.daysLeft, d.price, d.renewalLink) || '';
   const result = await apiPost('sendRetainerReminder',{
     token: d.c.Token,
     amount: '£'+d.price,
