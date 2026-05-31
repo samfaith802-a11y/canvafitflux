@@ -220,7 +220,6 @@
       <label>Engagement Details</label>
       <p>
         <strong>Niche / Industry:</strong> <span id="c-niche">—</span><br/>
-        <strong>Instagram:</strong> <span id="c-ig">—</span><br/>
         <strong>Start Date:</strong> <span contenteditable="true" class="ph">To be confirmed</span><br/>
         <strong>Location:</strong> <span id="c-location">—</span>
       </p>
@@ -470,8 +469,6 @@ if(clientPhone)     document.getElementById('c-phone').textContent = clientPhone
 const addrStr = [clientCity, clientTerritory].filter(Boolean).join(', ');
 if(addrStr) document.getElementById('c-addr').textContent = addrStr;
 if(clientNiche) document.getElementById('c-niche').textContent = clientNiche;
-const igStr = clientIg.startsWith('@') ? clientIg : '@' + clientIg;
-if(clientIg) document.getElementById('c-ig').textContent = igStr;
 if(addrStr)  document.getElementById('c-location').textContent = addrStr;
 if(clientNiche && clientCity) {
   document.getElementById('terr-lock').textContent = '🔒 Territory Locked: ' + clientNiche + ' · ' + addrStr;
@@ -697,8 +694,8 @@ function openReceipt(){
     billing: billingKey,
     name: clientName, email: clientEmail, phone: clientPhone,
     city: clientCity, territory: clientTerritory,
-    niche: clientNiche, ig: clientIg,
-    inv: invNum
+    niche: clientNiche,
+    inv: invNum,
     renewal: urlP.get('renewal') || ''
   });
   window.location.href = 'fitflux-receipt-smm.html?' + p.toString();
@@ -746,7 +743,6 @@ tgPing(
   '📦 Package: ' + pkg.name + '\n' +
   '👤 Client: ' + clientName + '\n' +
   '📧 Email: ' + clientEmail + '\n' +
-  '📸 Instagram: @' + clientIg + '\n' +
   '🔒 Territory: ' + clientNiche + ' · ' + clientCity + ', ' + clientTerritory + '\n' +
   '💰 Amount: ' + pkg.price + '\n' +
   '📋 Invoice: ' + invNum + '\n\n' +
