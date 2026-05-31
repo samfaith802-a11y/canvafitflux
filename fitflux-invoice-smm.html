@@ -445,6 +445,7 @@ const clientPhone= urlP.get('phone')     || '';
 const clientCity = urlP.get('city')      || '';
 const clientTerritory = urlP.get('territory') || '';
 const clientNiche= urlP.get('niche')     || '';
+const isRenewal = urlP.get('renewal') === 'true';
 
 const pkg = PKG[tierKey] || PKG['presence'];
 
@@ -698,8 +699,10 @@ function openReceipt(){
     city: clientCity, territory: clientTerritory,
     niche: clientNiche, ig: clientIg,
     inv: invNum
+    renewal: urlP.get('renewal') || ''
   });
   window.location.href = 'fitflux-receipt-smm.html?' + p.toString();
+ 
 }
 
 // ── CONTENTEDITABLE PLACEHOLDERS ─────────────────────────────
