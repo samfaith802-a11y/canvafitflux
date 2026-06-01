@@ -1474,7 +1474,6 @@ async function openClient(token){
     <div class="pr"><div class="prk">📦 Tier</div><div class="prv">${currentClient.Tier||'—'}</div></div>
     <div class="pr"><div class="prk">💰 Monthly Rev</div><div class="prv" style="color:var(--lime);font-weight:700;">${rev?'£'+rev+'/mo':'Not set'}</div></div>
     <div class="pr"><div class="prk">📊 Annual Rev</div><div class="prv" style="color:var(--lime);font-weight:700;">${rev?'£'+(rev*12).toLocaleString()+'/yr':'Not set'}</div></div>
-    <div class="pr"><div class="prk">📸 Instagram</div><div class="prv">${currentClient.Instagram?'@'+currentClient.Instagram:'—'}</div></div>
     <div class="pr"><div class="prk">● Status</div><div class="prv"><span class="tag tag-g">Active</span></div></div>
     <div class="pr"><div class="prk">🔑 Full Token</div><div class="prv" style="font-family:var(--fm);font-size:11px;word-break:break-all;">${currentClient.Token||'—'}</div></div>`;
 
