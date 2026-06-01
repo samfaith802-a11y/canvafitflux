@@ -733,12 +733,6 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
         <!-- OVERVIEW TAB -->
         <div class="detail-tab-content active" id="dtab-overview">
           <div class="props" id="client-props"></div>
-          <div class="sec-head"><div class="sec-title">ADMIN NOTES</div><div class="sec-line"></div></div>
-          <div style="background:var(--card);border:1px solid var(--bdr3);border-radius:12px;padding:16px 20px;">
-            <div style="font-size:11px;color:var(--t3);margin-bottom:10px;">Shared with client — they can see and add notes too.</div>
-            <textarea class="notes-admin" id="admin-notes" placeholder="Add notes about this client... (shared with client)"></textarea>
-            <button class="notes-save-btn" onclick="saveAdminNotes()">SAVE NOTES</button>
-          </div>
         </div>
 
         <!-- REVENUE TAB (CLIENT) -->
@@ -1488,21 +1482,6 @@ async function openClient(token){
   loadAdminCredentials();
   // Switch to overview tab
   switchDetailTab('overview', document.querySelector('.dtab'));
-}
-
-async function loadAdminNotes(){
-  if(!currentClient) return;
-  const data = await apiGet('getNotes', currentClient.Token);
-  const notes = (data&&data.notes) ? data.notes : '';
-  const el = document.getElementById('admin-notes');
-  if(el) el.value = notes;
-}
-
-async function saveAdminNotes(){
-  if(!currentClient) return;
-  const notes = document.getElementById('admin-notes').value;
-  await apiPost('saveNotes',{ token: currentClient.Token, notes });
-  toast('✅ Notes saved — client can see these in their portal');
 }
 
 function backToClients(){
