@@ -745,7 +745,6 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
           <div class="sec-head"><div class="sec-title">RETAINER STATUS</div><div class="sec-line"></div></div>
           <div id="client-retainer-status" style="background:var(--card);border:1px solid var(--bdr3);border-radius:12px;padding:16px 20px;margin-bottom:20px;"></div>
           <div class="sec-head"><div class="sec-title">PAYMENT HISTORY</div><div class="sec-line"></div>
-            <button class="sec-action" onclick="logPayment()">+ Log Payment</button>
           </div>
           <div style="background:var(--card);border:1px solid var(--bdr3);border-radius:12px;overflow:hidden;">
             <div class="payment-log-row" style="background:var(--bg3);font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;">
@@ -2034,19 +2033,41 @@ function copyReminderScript(){
 async function sendReminderViaTelegram(){
   const d = window._reminderData;
   if(!d) return;
+  
+  // Instant visual feedback
+  const btn = document.querySelector('.btn-tg-send');
+  const original = btn.textContent;
+  btn.textContent = '⏳ Sending...';
+  btn.style.opacity = '0.7';
+  btn.style.transform = 'scale(0.97)';
+  btn.disabled = true;
+
   const msg = REMINDER_SCRIPTS[reminderTone]?.(d.c, d.due, d.daysLeft, d.price, d.renewalLink) || '';
+  
   const result = await apiPost('sendRetainerReminder',{
     token: d.c.Token,
     amount: '£'+d.price,
     dueDate: d.due,
     message: msg
   });
+
   if(result && result.status === 'sent'){
-    toast('✅ Payment reminder email sent to '+d.c.Email);
+    btn.textContent = '✅ Sent!';
+    btn.style.opacity = '1';
+    btn.style.transform = 'scale(1)';
+    setTimeout(()=>{
+      document.getElementById('reminder-modal').style.display='none';
+      document.getElementById('reminder-modal').classList.remove('show');
+      toast('✅ Payment reminder email sent to '+d.c.Email);
+    }, 800);
   } else {
-    toast('❌ Failed to send email — check Apps Script logs','error');
+    btn.textContent = '❌ Failed — Try Again';
+    btn.style.opacity = '1';
+    btn.style.transform = 'scale(1)';
+    btn.disabled = false;
+    setTimeout(()=>{ btn.textContent = original; }, 2000);
+    toast('❌ Failed to send email','error');
   }
-  document.getElementById('reminder-modal').style.display='none';
 }
 // ── SUBMISSION STATUS — PIPELINE UI ──────────────────────────
 function filterSubmission(val){
@@ -2170,9 +2191,6 @@ async function loadClientRevenue(){
     </div>`).join('') : '<div class="empty-state"><div class="empty-text">No payment history yet.</div></div>';
 }
 
-function logPayment(){
-  toast('Payment logging — connect to your payment sheet via Apps Script → addPayment action');
-}
 const TIER_PRICES = {presence:350, authority:700, categoryking:1200, launchpad:500, growth:750, pro:1200};
 
 function renderRetainerTracker(clients){
