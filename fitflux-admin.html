@@ -689,7 +689,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
         <div class="modal-box">
           <div class="modal-header">
             <div class="modal-title">📨 PAYMENT REMINDER</div>
-            <button class="modal-close" onclick="document.getElementById('reminder-modal').style.display='none'">×</button>
+onclick="document.getElementById('reminder-modal').style.display='none';document.getElementById('reminder-modal').classList.remove('show');const b=document.querySelector('.btn-tg-send');if(b){b.textContent='📧 Send Email Reminder';b.style.opacity='1';b.disabled=false;}">×</button>
           </div>
           <div class="modal-client-info" id="reminder-client-info"></div>
           <div class="sec-head" style="margin-top:16px;"><div class="sec-title" style="font-size:14px;">MESSAGE SCRIPT</div><div class="sec-line"></div></div>
