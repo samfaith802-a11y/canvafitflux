@@ -1198,7 +1198,12 @@ apiPost('registerClient', {
     phone: CLIENT.phone, city: CLIENT.city, territory: CLIENT.territory,
     niche: CLIENT.niche, ig: CLIENT.ig, tier: TIER
   });
-await Promise.all([loadContent(), loadDeliverables(), loadDocuments(), loadPerformance(), loadPayments(), loadMilestones()]);
+await loadContent();
+await loadDeliverables();
+loadDocuments();
+loadPerformance();
+loadPayments();
+loadMilestones();
   initGrowthJourney();
   const saved = await apiGet('getNotes', activeToken);
   checkRenewalReminder();
