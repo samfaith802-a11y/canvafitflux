@@ -1652,25 +1652,39 @@ async function uploadContent(){
   if(file){
     const status = document.getElementById('c-upload-status');
     status.textContent = '⬆️ Uploading to Cloudflare...';
-    const formData = new FormData();
-    formData.append('file', file);
-    try {
-      const res = await fetch('https://canvafitflux.vercel.app/api/upload', {
-        method: 'POST',
-        body: formData
-      });
-      const data = await res.json();
-      if(data.url){
-        document.getElementById('c-media').value = data.url;
-        status.textContent = '✅ Uploaded successfully';
-      } else {
-        status.textContent = '❌ Upload failed — ' + (data.error||'unknown error');
-        return;
-      }
-    } catch(err){
-      status.textContent = '❌ Upload error — ' + err.message;
-      return;
-    }
+   try {
+  // Step 1 — get presigned URL
+  status.textContent = '⏳ Preparing upload...';
+  const presignRes = await fetch('https://canvafitflux.vercel.app/api/upload', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fileName: file.name, fileType: file.type })
+  });
+  const presignData = await presignRes.json();
+  if(!presignData.presignedUrl){
+    status.textContent = '❌ Failed to prepare upload — ' + (presignData.error||'unknown');
+    return;
+  }
+
+  // Step 2 — upload directly to R2
+  status.textContent = '⬆️ Uploading to Cloudflare...';
+  const uploadRes = await fetch(presignData.presignedUrl, {
+    method: 'PUT',
+    headers: { 'Content-Type': file.type },
+    body: file
+  });
+
+  if(!uploadRes.ok){
+    status.textContent = '❌ Upload failed — ' + uploadRes.status;
+    return;
+  }
+
+  document.getElementById('c-media').value = presignData.publicUrl;
+  status.textContent = '✅ Uploaded successfully';
+} catch(err){
+  status.textContent = '❌ Upload error — ' + err.message;
+  return;
+}
   }
 
   const body = {
