@@ -1198,8 +1198,8 @@ apiPost('registerClient', {
     phone: CLIENT.phone, city: CLIENT.city, territory: CLIENT.territory,
     niche: CLIENT.niche, ig: CLIENT.ig, tier: TIER
   });
-await loadContent();
-await loadDeliverables();
+loadContent();
+loadDeliverables();
 loadDocuments();
 loadPerformance();
 loadPayments();
