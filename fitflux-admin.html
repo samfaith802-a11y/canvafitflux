@@ -2021,7 +2021,17 @@ function setScriptTone(tone, btn){
 }
 
 function closeReminderModal(e){
-  if(e.target.id==='reminder-modal'){ document.getElementById('reminder-modal').style.display='none'; document.getElementById('reminder-modal').classList.remove('show'); }
+  if(e.target.id==='reminder-modal'){
+    document.getElementById('reminder-modal').style.display='none';
+    document.getElementById('reminder-modal').classList.remove('show');
+    const btn = document.querySelector('.btn-tg-send');
+    if(btn){
+      btn.textContent = '📧 Send Email Reminder';
+      btn.style.opacity = '1';
+      btn.style.transform = 'scale(1)';
+      btn.disabled = false;
+    }
+  }
 }
 
 function copyReminderScript(){
@@ -2051,16 +2061,21 @@ async function sendReminderViaTelegram(){
     message: msg
   });
 
-  if(result && result.status === 'sent'){
+ if(result && result.status === 'sent'){
     btn.textContent = '✅ Sent!';
     btn.style.opacity = '1';
     btn.style.transform = 'scale(1)';
     setTimeout(()=>{
+      // Reset button before closing
+      btn.textContent = original;
+      btn.style.opacity = '1';
+      btn.disabled = false;
       document.getElementById('reminder-modal').style.display='none';
       document.getElementById('reminder-modal').classList.remove('show');
       toast('✅ Payment reminder email sent to '+d.c.Email);
     }, 800);
-  } else {
+  }
+  else {
     btn.textContent = '❌ Failed — Try Again';
     btn.style.opacity = '1';
     btn.style.transform = 'scale(1)';
