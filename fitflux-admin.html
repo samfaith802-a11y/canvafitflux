@@ -1807,6 +1807,7 @@ async function submitAllCards(){
     const files = window.cardFiles?.[id] || [];
     const hasUploadedFile = files.some(f=>f.status==='done');
     const hasFailed = files.some(f=>f.status==='error');
+    const hasUploading = files.some(f=>f.status==='uploading'||f.status==='pending');
 
     if(!name){
       toast('Please fill in the Deliverable Name for all cards','error');
@@ -1821,6 +1822,10 @@ async function submitAllCards(){
       toast('Some files failed to upload — retry or remove them','error');
       return;
     }
+    if(hasUploading){
+  toast('Please wait — files are still uploading','error');
+  return;
+}
   }
 
   const btn = document.getElementById('submit-all-btn');
