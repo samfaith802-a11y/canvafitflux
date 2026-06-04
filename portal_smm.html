@@ -1904,7 +1904,198 @@ function saveNotes(){
   notesTimer=setTimeout(async()=>{ await apiPost('saveNotes',{token:window.FF_TOKEN || urlToken, notes:document.getElementById('notes-area').value}); },1500);
 }
 
-  
+ function downloadMonthlyReport(){
+  const period = document.getElementById('report-month-select').value;
+  if(!period){ alert('Please select a month first.'); return; }
+
+  const client = window.FF_CLIENT;
+  const tier = (window.FF_TIER||'').charAt(0).toUpperCase()+(window.FF_TIER||'').slice(1);
+
+  // Gather data for all platforms for this period
+  const platforms = ['instagram','tiktok','facebook','youtube','linkedin','twitter'];
+  const platformData = {};
+  platforms.forEach(p=>{
+    const key = p+'_monthly';
+    if(perfData[key] && perfData[key][period]){
+      platformData[p] = perfData[key][period];
+    }
+  });
+
+  // Pick primary platform (instagram first, then whatever has data)
+  const primary = platformData['instagram'] || Object.values(platformData)[0] || {};
+
+  // Auto-generate executive summary
+  const followers = primary.Followers || 0;
+  const reach = primary.Reach || 0;
+  const engagement = primary.Engagement || 0;
+  const posts = primary.Posts || 0;
+  const enquiries = primary.Enquiries || 0;
+  const note = primary.Note || '';
+
+  // Tier targets
+  const tierTargets = {
+    presence:{followers:'8%',engagement:'10%',posts:'24',reach:'12%'},
+    authority:{followers:'15%',engagement:'18%',posts:'48',reach:'20%'},
+    categoryking:{followers:'22%',engagement:'25%',posts:'72',reach:'28%'},
+    categorykingqueen:{followers:'22%',engagement:'25%',posts:'72',reach:'28%'}
+  }[window.FF_TIER] || {followers:'8%',engagement:'10%',posts:'24',reach:'12%'};
+
+  const postsTarget = parseInt(tierTargets.posts);
+  const postsStatus = posts >= postsTarget ? '✅ Met' : '❌ Below target';
+  const today = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8"/>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap');
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'DM Sans',sans-serif;background:#fff;color:#1a1a1a;font-size:13px;line-height:1.6;}
+  .header{background:#0a1a00;padding:32px 40px;display:flex;align-items:center;justify-content:space-between;}
+  .logo{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;color:#CCFF00;letter-spacing:.08em;}
+  .header-sub{font-size:11px;color:rgba(255,255,255,0.4);letter-spacing:.1em;text-transform:uppercase;margin-top:3px;}
+  .header-right{text-align:right;}
+  .header-right .period{font-size:18px;font-weight:700;color:#CCFF00;font-family:'Syne',sans-serif;}
+  .header-right .date{font-size:11px;color:rgba(255,255,255,0.4);margin-top:3px;}
+  .accent-bar{height:4px;background:linear-gradient(90deg,#CCFF00,#5fa832);}
+  .client-banner{background:#f5f9f0;border-left:4px solid #CCFF00;padding:18px 40px;display:flex;gap:40px;}
+  .client-banner .label{font-size:10px;font-weight:700;color:#666;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;}
+  .client-banner .value{font-size:14px;font-weight:600;color:#1a1a1a;}
+  .body{padding:32px 40px;}
+  .section-title{font-family:'Syne',sans-serif;font-size:16px;font-weight:700;color:#0a1a00;border-bottom:2px solid #CCFF00;padding-bottom:8px;margin-bottom:16px;margin-top:28px;}
+  .section-title:first-child{margin-top:0;}
+  .summary-box{background:#f5f9f0;border-radius:8px;padding:18px 20px;font-size:13px;color:#333;line-height:1.8;}
+  .metrics-table{width:100%;border-collapse:collapse;margin-bottom:8px;}
+  .metrics-table th{background:#0a1a00;color:#CCFF00;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:10px 14px;text-align:left;}
+  .metrics-table td{padding:10px 14px;border-bottom:1px solid #eee;font-size:13px;}
+  .metrics-table tr:last-child td{border-bottom:none;}
+  .metrics-table tr:nth-child(even) td{background:#f9f9f9;}
+  .bar-row{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+  .bar-label{width:160px;font-size:12px;color:#555;flex-shrink:0;}
+  .bar-track{flex:1;height:10px;background:#e8e8e8;border-radius:5px;overflow:hidden;}
+  .bar-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,#CCFF00,#5fa832);}
+  .bar-val{width:40px;text-align:right;font-size:12px;font-weight:600;color:#0a1a00;}
+  .goals-table{width:100%;border-collapse:collapse;}
+  .goals-table th{background:#0a1a00;color:#CCFF00;font-size:10px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;padding:10px 14px;text-align:left;}
+  .goals-table td{padding:10px 14px;border-bottom:1px solid #eee;font-size:13px;}
+  .win-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid #f0f0f0;}
+  .win-item:last-child{border-bottom:none;}
+  .win-num{width:28px;height:28px;background:#CCFF00;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:#0a1a00;flex-shrink:0;}
+  .rec-item{padding:12px 16px;background:#f5f9f0;border-left:3px solid #CCFF00;border-radius:0 6px 6px 0;margin-bottom:8px;}
+  .footer{background:#0a1a00;padding:20px 40px;display:flex;justify-content:space-between;align-items:center;margin-top:40px;}
+  .footer-text{font-size:11px;color:rgba(255,255,255,0.4);}
+  .footer-brand{font-family:'Syne',sans-serif;font-size:14px;color:#CCFF00;font-weight:700;}
+  .met{color:#3dd68c;font-weight:700;}
+  .missed{color:#ff4d4d;font-weight:700;}
+  .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:8px;}
+  .stat-box{background:#f5f9f0;border-radius:8px;padding:14px 16px;text-align:center;}
+  .stat-box-val{font-family:'Syne',sans-serif;font-size:28px;font-weight:700;color:#0a1a00;}
+  .stat-box-lbl{font-size:10px;color:#888;text-transform:uppercase;letter-spacing:.08em;margin-top:3px;}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="logo">FitFlux Studio</div>
+    <div class="header-sub">Social Media Management · Monthly Report</div>
+  </div>
+  <div class="header-right">
+    <div class="period">${period}</div>
+    <div class="date">Generated ${today}</div>
+  </div>
+</div>
+<div class="accent-bar"></div>
+
+<div class="client-banner">
+  <div><div class="label">Client</div><div class="value">${client.name||'—'}</div></div>
+  <div><div class="label">Plan</div><div class="value">${tier} Plan</div></div>
+  <div><div class="label">Niche</div><div class="value">${client.niche||'—'}</div></div>
+  <div><div class="label">Territory</div><div class="value">${client.territory||'—'}</div></div>
+</div>
+
+<div class="body">
+
+  <div class="section-title">01 — EXECUTIVE SUMMARY</div>
+  <div class="summary-box">
+    ${note || `This report covers the ${period} performance period for ${client.name||'your account'}. 
+    The account recorded ${followers} followers, ${reach} accounts reached, and ${posts} posts published this period. 
+    ${enquiries > 0 ? `Content generated ${enquiries} direct enquiries.` : ''} 
+    Your territory remains exclusively locked to you within your niche and market.`}
+  </div>
+
+  <div class="section-title">02 — GROWTH METRICS</div>
+  <div class="stat-grid">
+    <div class="stat-box"><div class="stat-box-val">${followers||'—'}</div><div class="stat-box-lbl">Followers</div></div>
+    <div class="stat-box"><div class="stat-box-val">${reach||'—'}</div><div class="stat-box-lbl">Reach</div></div>
+    <div class="stat-box"><div class="stat-box-val">${engagement||'—'}</div><div class="stat-box-lbl">Engagement</div></div>
+    <div class="stat-box"><div class="stat-box-val">${posts||'—'}</div><div class="stat-box-lbl">Posts Published</div></div>
+    <div class="stat-box"><div class="stat-box-val">${primary.ProfileVisits||'—'}</div><div class="stat-box-lbl">Profile Visits</div></div>
+    <div class="stat-box"><div class="stat-box-val">${enquiries||'—'}</div><div class="stat-box-lbl">Enquiries</div></div>
+  </div>
+
+  <div class="section-title">03 — CONTENT PERFORMANCE BREAKDOWN</div>
+  <div class="bar-row">
+    <div class="bar-label">Videos / Reels</div>
+    <div class="bar-track"><div class="bar-fill" style="width:${primary.VideoPercent||0}%"></div></div>
+    <div class="bar-val">${primary.VideoPercent||0}%</div>
+  </div>
+  <div class="bar-row">
+    <div class="bar-label">Graphics / Carousels</div>
+    <div class="bar-track"><div class="bar-fill" style="width:${primary.GraphicPercent||0}%"></div></div>
+    <div class="bar-val">${primary.GraphicPercent||0}%</div>
+  </div>
+  <div class="bar-row">
+    <div class="bar-label">Stories</div>
+    <div class="bar-track"><div class="bar-fill" style="width:${primary.StoryPercent||0}%"></div></div>
+    <div class="bar-val">${primary.StoryPercent||0}%</div>
+  </div>
+
+  <div class="section-title">04 — GOALS REVIEW</div>
+  <table class="goals-table">
+    <thead><tr><th>Goal</th><th>Target</th><th>Result</th><th>Status</th></tr></thead>
+    <tbody>
+      <tr><td>Posts Published</td><td>${tierTargets.posts} posts</td><td>${posts} posts</td><td class="${posts>=postsTarget?'met':'missed'}">${postsStatus}</td></tr>
+      <tr><td>Follower Growth</td><td>${tierTargets.followers} target</td><td>${followers} followers</td><td>—</td></tr>
+      <tr><td>Reach Growth</td><td>${tierTargets.reach} target</td><td>${reach} accounts</td><td>—</td></tr>
+      <tr><td>Engagement Rate</td><td>${tierTargets.engagement} target</td><td>${engagement}</td><td>—</td></tr>
+      ${enquiries>0?`<tr><td>Enquiries from Content</td><td>—</td><td>${enquiries}</td><td class="met">✅ Generated</td></tr>`:''}
+    </tbody>
+  </table>
+
+  <div class="section-title">05 — WINS THIS MONTH</div>
+  <div>
+    ${posts>0?`<div class="win-item"><div class="win-num">1</div><div>${posts} posts published and delivered on schedule — content consistency maintained throughout the month.</div></div>`:''}
+    ${enquiries>0?`<div class="win-item"><div class="win-num">2</div><div>${enquiries} direct enquiries generated from content — your audience is converting to real business interest.</div></div>`:''}
+    ${reach>0?`<div class="win-item"><div class="win-num">3</div><div>${reach} accounts reached this month — your content is extending beyond your existing audience.</div></div>`:''}
+    <div class="win-item"><div class="win-num">${enquiries>0&&reach>0?4:enquiries>0||reach>0?3:2}</div><div>Territory remains exclusively locked — no competitor in your market has access to this system.</div></div>
+  </div>
+
+  <div class="section-title">06 — RECOMMENDATIONS FOR NEXT MONTH</div>
+  <div class="rec-item"><strong>Continue Content Consistency</strong> — Maintaining the posting schedule is the single most important factor in compounding growth. Do not reduce volume.</div>
+  ${engagement<5?`<div class="rec-item"><strong>Boost Engagement</strong> — Engagement rate is currently low. Respond to every comment within 24 hours to signal active presence to the algorithm.</div>`:''}
+  ${enquiries===0?`<div class="rec-item"><strong>Add Conversion Content</strong> — No enquiries were recorded this period. Next month will include stronger calls-to-action designed to move warm followers toward direct contact.</div>`:''}
+  <div class="rec-item"><strong>Review Profile</strong> — Ensure your bio, highlights and link-in-bio are up to date and directing followers to the right place.</div>
+
+</div>
+
+<div class="footer">
+  <div class="footer-text">Prepared by FitFlux Studio · fitfluxstudio@gmail.com · ${today}</div>
+  <div class="footer-brand">FitFlux Studio</div>
+</div>
+
+</body>
+</html>`;
+
+  // Open in new window and trigger print/save as PDF
+  const win = window.open('','_blank');
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  setTimeout(()=>{ win.print(); }, 500);
+} 
 /* ── TELEGRAM ── */
 async function sendTelegram(msg){
   try{ await fetch('https://api.telegram.org/bot'+TG_BOT+'/sendMessage',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({chat_id:TG_CHAT,text:msg})}); }catch(e){}
