@@ -2965,15 +2965,67 @@ async function loadSubmissionStatus(){
 }
 
 // ── MILESTONES ────────────────────────────────────────────────
-const MILESTONES = [
-  { id:'m_100followers', icon:'🌱', name:'First 100 Followers', desc:'Reached 100 followers on primary platform' },
-  { id:'m_firstenquiry', icon:'💬', name:'First Enquiry', desc:'Received their first inbound client enquiry from social' },
-  { id:'m_firstapproved', icon:'✅', name:'First Content Approved', desc:'Client approved their first batch of content' },
-  { id:'m_month1', icon:'🗓', name:'Month 1 Complete', desc:'Successfully completed their first full month' },
-  { id:'m_month3', icon:'🚀', name:'Month 3 Complete', desc:'3 months of consistent posting — major milestone' },
-  { id:'m_firstsale', icon:'💰', name:'First Sale from Social', desc:'Directly attributed a sale to FitFlux social content' },
-  { id:'m_1000followers', icon:'⭐', name:'1,000 Followers', desc:'Hit 1,000 followers on primary platform' },
-  { id:'m_authority', icon:'👑', name:'Niche Authority Established', desc:'Recognised as a go-to voice in their niche + territory' },
+const MILESTONE_STAGES = [
+  { stage:1, label:'Foundation', milestones:[
+    { id:'s1_followers',    icon:'🌱', name:'First 150 Followers',         desc:'Reached 150 followers on primary platform' },
+    { id:'s1_enquiry',      icon:'💬', name:'First Inbound Enquiry',        desc:'Received first enquiry directly from social content' },
+    { id:'s1_approved',     icon:'✅', name:'First Content Batch Approved', desc:'Client approved their first batch of content' },
+    { id:'s1_month1',       icon:'🗓', name:'Month 1 Complete',             desc:'Successfully completed first full month of posting' },
+    { id:'s1_profile',      icon:'📸', name:'Profile Fully Optimised',      desc:'Bio, highlights, link-in-bio all set up and polished' },
+    { id:'s1_territory',    icon:'🔒', name:'Territory Locked',             desc:'Niche and city locked — zero competition in area' },
+    { id:'s1_report',       icon:'📊', name:'First Performance Report',     desc:'First monthly analytics report delivered' },
+    { id:'s1_pillars',      icon:'🎯', name:'Content Pillars Established',  desc:'5 content pillars defined and posting consistently' }
+  ]},
+  { stage:2, label:'Momentum', milestones:[
+    { id:'s2_followers',    icon:'⭐', name:'600 Followers',                desc:'Hit 600 followers on primary platform' },
+    { id:'s2_sale',         icon:'💰', name:'First Sale from Social',       desc:'First paying client directly attributed to social content' },
+    { id:'s2_month3',       icon:'🚀', name:'Month 3 Complete',             desc:'3 months of consistent posting achieved' },
+    { id:'s2_viral',        icon:'🔥', name:'First Viral Post',             desc:'A post reached 500+ people organically' },
+    { id:'s2_engagement',   icon:'📈', name:'Engagement Above 6%',          desc:'Consistent engagement rate above 6% achieved' },
+    { id:'s2_enquiries10',  icon:'📬', name:'10 Enquiries in One Month',    desc:'10 inbound enquiries received in a single month' },
+    { id:'s2_month4',       icon:'🗓', name:'Month 4 Complete',             desc:'4 months of consistent posting achieved' },
+    { id:'s2_niche',        icon:'👤', name:'Recognised Voice in Niche',    desc:'Audience growing and engaging as a trusted expert' }
+  ]},
+  { stage:3, label:'Authority', milestones:[
+    { id:'s3_followers',    icon:'🏆', name:'1,500 Followers',              desc:'Hit 1,500 followers on primary platform' },
+    { id:'s3_revenue',      icon:'💰', name:'£1.5k Month from Social',      desc:'Generated £1,500 in a single month from social leads' },
+    { id:'s3_territory',    icon:'🌍', name:'Territory Dominated',          desc:'Undisputed go-to coach in niche and city' },
+    { id:'s3_referral',     icon:'🔁', name:'First Referral Client',        desc:'First client referred by an existing social follower' },
+    { id:'s3_featured',     icon:'📣', name:'Featured by Another Account',  desc:'Shared or featured by another account in your niche' },
+    { id:'s3_month6',       icon:'🗓', name:'6 Months Complete',            desc:'6 months of consistent posting — major milestone' },
+    { id:'s3_repeat',       icon:'🤝', name:'5 Repeat Clients from Social', desc:'5 clients have returned or re-signed from social content' },
+    { id:'s3_category',     icon:'👑', name:'Category Status Achieved',     desc:'Recognised as the category king or queen in territory' }
+  ]},
+  { stage:4, label:'Growth', milestones:[
+    { id:'s4_followers',    icon:'📊', name:'2,500 Followers',              desc:'Hit 2,500 followers on primary platform' },
+    { id:'s4_revenue',      icon:'💎', name:'£3k Month from Social',        desc:'Generated £3,000 in a single month from social leads' },
+    { id:'s4_referrals',    icon:'🔁', name:'8 Referral Clients',           desc:'8 clients referred through social presence' },
+    { id:'s4_booked',       icon:'📅', name:'Booked 3 Weeks Ahead',         desc:'Fully booked 3 weeks in advance from social demand' },
+    { id:'s4_reviews',      icon:'⭐', name:'15 Google Reviews',            desc:'15 five-star Google reviews from social-driven clients' },
+    { id:'s4_month9',       icon:'🗓', name:'9 Months Complete',            desc:'9 months of consistent content and growth' },
+    { id:'s4_enquiries',    icon:'📬', name:'25 Enquiries in One Month',    desc:'25 inbound enquiries received in a single month' },
+    { id:'s4_territory2',   icon:'🗺', name:'Second Territory Interest',    desc:'Demand coming in from a second city or niche' }
+  ]},
+  { stage:5, label:'Scale', milestones:[
+    { id:'s5_followers',    icon:'🚀', name:'4,000 Followers',              desc:'Hit 4,000 followers on primary platform' },
+    { id:'s5_revenue',      icon:'💰', name:'£4k Month from Social',        desc:'Generated £4,000 in a single month from social leads' },
+    { id:'s5_waitlist',     icon:'⏳', name:'Waiting List Created',         desc:'Demand so high a waiting list had to be created' },
+    { id:'s5_month12',      icon:'🗓', name:'12 Months Complete',           desc:'One full year of consistent posting — elite milestone' },
+    { id:'s5_repeat',       icon:'🤝', name:'15 Repeat Clients',            desc:'15 clients have returned or re-signed from social' },
+    { id:'s5_brand',        icon:'🤜', name:'Brand Partnership',            desc:'First brand partnership or collaboration secured' },
+    { id:'s5_press',        icon:'📰', name:'Featured in Local Press',      desc:'Featured in local media or online publication' },
+    { id:'s5_reviews',      icon:'⭐', name:'75 Google Reviews',            desc:'75 five-star Google reviews accumulated' }
+  ]},
+  { stage:6, label:'Dominance', milestones:[
+    { id:'s6_followers',    icon:'👑', name:'6,000 Followers',              desc:'Hit 6,000 followers on primary platform' },
+    { id:'s6_revenue',      icon:'💎', name:'£6k Month from Social',        desc:'Generated £6,000 in a single month from social leads' },
+    { id:'s6_booked',       icon:'📅', name:'Fully Booked',                 desc:'100% capacity filled purely through social content' },
+    { id:'s6_team',         icon:'👥', name:'Team Member Hired',            desc:'Business grown enough to bring on a team member' },
+    { id:'s6_reviews',      icon:'⭐', name:'150 Google Reviews',           desc:'150 five-star Google reviews — undeniable social proof' },
+    { id:'s6_month18',      icon:'🗓', name:'18 Months Complete',           desc:'18 months of elite consistent content' },
+    { id:'s6_location',     icon:'📍', name:'Second Location Interest',     desc:'Demand for a second location or franchise emerging' },
+    { id:'s6_goto',         icon:'🏙', name:'Go-To Coach in City',          desc:'Undisputed number one fitness coach in the city' }
+  ]}
 ];
 
 let milestoneState = {};
@@ -2984,55 +3036,94 @@ async function loadAdminMilestones(){
   el.innerHTML = '<div class="loading"><div class="spinner"></div>Loading milestones...</div>';
 
   const data = await apiGet('getMilestones', currentClient.Token);
-  milestoneState = {};
-  if(data && data.milestones){
-    data.milestones.forEach(m=>{ milestoneState[m.ID||m.id] = { achieved: m.Achieved==='true'||m.Achieved===true, date: m.Date||m.date||'' }; });
-  }
+  const achieved = new Set((data&&data.milestones ? data.milestones : []).map(m=>m.ID||m.id||m.Title));
 
-  el.innerHTML = MILESTONES.map(m=>{
-    const achieved = (milestoneState[m.id]||{}).achieved || false;
-    const date = (milestoneState[m.id]||{}).date || '';
-    return `<div class="milestone-item ${achieved?'achieved':''}" id="ms-${m.id}">
-      <div class="milestone-cb ${achieved?'achieved':''}" onclick="toggleMilestone('${m.id}',this)"></div>
-      <div class="milestone-icon">${m.icon}</div>
-      <div class="milestone-info">
-        <div class="milestone-name">${m.name}</div>
-        <div class="milestone-desc">${m.desc}</div>
-        ${date?`<div class="milestone-date">Achieved: ${date}</div>`:''}
+  // Count total achieved to determine current stage
+  let totalAchieved = 0;
+  MILESTONE_STAGES.forEach(s=> s.milestones.forEach(m=>{ if(achieved.has(m.id)) totalAchieved++; }));
+
+  // Current stage index (0-based)
+  const currentStageIdx = Math.min(Math.floor(totalAchieved/8), MILESTONE_STAGES.length-1);
+  const currentStage = MILESTONE_STAGES[currentStageIdx];
+
+  // Count achieved in current stage
+  const stageAchieved = currentStage.milestones.filter(m=>achieved.has(m.id)).length;
+
+  el.innerHTML = `
+    <div style="background:var(--card);border:1px solid var(--bdr2);border-radius:12px;padding:14px 18px;margin-bottom:16px;display:flex;align-items:center;gap:14px;">
+      <div style="font-family:var(--fh);font-size:28px;color:var(--lime);">STAGE ${currentStage.stage}</div>
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--t1);">${currentStage.label}</div>
+        <div style="font-size:11px;color:var(--t3);">${stageAchieved}/8 completed · ${8-stageAchieved} remaining</div>
       </div>
-      ${achieved?'<div class="milestone-celebrate">🎉</div>':''}
-    </div>`;
-  }).join('');
+      <div style="margin-left:auto;width:120px;">
+        <div style="height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;">
+          <div style="width:${Math.round((stageAchieved/8)*100)}%;height:100%;background:var(--lime);border-radius:3px;transition:width .4s;"></div>
+        </div>
+      </div>
+    </div>
+    ${currentStage.milestones.map(m=>{
+      const done = achieved.has(m.id);
+      return `<div class="milestone-item ${done?'achieved':''}" id="ms-${m.id}" style="opacity:${done?'0.5':'1'};transition:all .3s;">
+        <div class="milestone-cb ${done?'achieved':''}" onclick="toggleMilestone('${m.id}',this,'${currentStageIdx}')"></div>
+        <div class="milestone-icon">${m.icon}</div>
+        <div class="milestone-info">
+          <div class="milestone-name">${m.name}</div>
+          <div class="milestone-desc">${m.desc}</div>
+        </div>
+        ${done?'<div class="milestone-celebrate">🎉</div>':''}
+      </div>`;
+    }).join('')}`;
 }
 
-async function toggleMilestone(id, cbEl){
+async function toggleMilestone(id, cbEl, stageIdx){
   if(!currentClient) return;
-  const cur = (milestoneState[id]||{}).achieved || false;
-  const next = !cur;
-  const date = next ? new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '';
+  const stageIndex = parseInt(stageIdx);
+  const stage = MILESTONE_STAGES[stageIndex];
+  const m = stage.milestones.find(x=>x.id===id);
+  if(!m) return;
 
-  milestoneState[id] = { achieved: next, date };
-
-  // Animate
   const itemEl = document.getElementById('ms-'+id);
-  cbEl.classList.toggle('achieved', next);
-  itemEl.classList.toggle('achieved', next);
+  const date = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
 
-  // Re-render this item
-  const m = MILESTONES.find(x=>x.id===id);
-  itemEl.innerHTML = `
-    <div class="milestone-cb ${next?'achieved':''}" onclick="toggleMilestone('${id}',this)"></div>
-    <div class="milestone-icon">${m.icon}</div>
-    <div class="milestone-info">
-      <div class="milestone-name">${m.name}</div>
-      <div class="milestone-desc">${m.desc}</div>
-      ${date?`<div class="milestone-date">Achieved: ${date}</div>`:''}
-    </div>
-    ${next?'<div class="milestone-celebrate">🎉</div>':''}
-  `;
+  // Animate — celebrate then fade out
+  itemEl.style.background = 'rgba(204,255,0,0.1)';
+  itemEl.style.borderColor = 'rgba(204,255,0,0.4)';
+  cbEl.classList.add('achieved');
+  itemEl.querySelector('.milestone-info').insertAdjacentHTML('afterend','<div class="milestone-celebrate">🎉</div>');
 
-  await apiPost('saveMilestone',{ token: currentClient.Token, id, achieved: next.toString(), date });
-  toast(next ? '🏆 Milestone achieved! Client will see a celebration' : 'Milestone cleared');
+  // Save to sheet + send email
+  await apiPost('saveMilestone',{ token: currentClient.Token, id, achieved:'true', date, title: m.name, icon: m.icon, desc: m.desc });
+  toast('🏆 '+m.name+' — email sent to client!');
+
+  // Fade out after 2.5 seconds
+  setTimeout(()=>{
+    itemEl.style.transition = 'all 0.6s';
+    itemEl.style.opacity = '0';
+    itemEl.style.transform = 'translateX(30px)';
+
+    setTimeout(async()=>{
+      // Check if all 8 in stage are now done
+      const data = await apiGet('getMilestones', currentClient.Token);
+      const achieved = new Set((data&&data.milestones?data.milestones:[]).map(m=>m.ID||m.id||m.Title));
+      const allDone = stage.milestones.every(m=>achieved.has(m.id));
+
+      if(allDone && stageIndex < MILESTONE_STAGES.length-1){
+        // Stage complete — show celebration then load next stage
+        const el = document.getElementById('milestone-list');
+        el.innerHTML = `
+          <div style="text-align:center;padding:40px 20px;animation:fadeIn .5s ease;">
+            <div style="font-size:56px;margin-bottom:16px;">🏆</div>
+            <div style="font-family:var(--fh);font-size:32px;color:var(--lime);margin-bottom:8px;">STAGE ${stage.stage} COMPLETE!</div>
+            <div style="font-size:14px;color:var(--t2);margin-bottom:24px;">${currentClient.Name?currentClient.Name.split(' ')[0]:'Client'} has completed all ${stage.label} milestones. Loading next stage...</div>
+            <div class="spinner" style="margin:0 auto;width:24px;height:24px;"></div>
+          </div>`;
+        setTimeout(()=> loadAdminMilestones(), 2500);
+      } else {
+        loadAdminMilestones();
+      }
+    }, 650);
+  }, 2500);
 }
 
 // ── DOCUMENTS ─────────────────────────────────────────────────
