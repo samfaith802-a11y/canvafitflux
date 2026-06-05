@@ -810,26 +810,12 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
           </div>
           <div class="perf-form">
             <div style="display:flex;gap:12px;margin-bottom:14px;">
-              <div class="form-group" style="flex:1;">
-                <div class="perf-input-label">Period Type</div>
-                <select class="grade-select" id="p-periodtype">
-                  <option value="weekly">Weekly</option>
-                  <option value="monthly">Monthly</option>
-                </select>
-              </div>
+         <input type="hidden" id="p-periodtype" value="monthly"/>
               <div class="form-group" style="flex:1;">
                 <div class="perf-input-label">Period (e.g. Week 12 or May 2026)</div>
-                <input class="perf-input" id="p-period" placeholder="Week 12"/>
+                <input class="perf-input" id="p-period" placeholder="e.g. May 2026"/>
               </div>
-              <div class="form-group" style="flex:1;">
-                <div class="perf-input-label">Grade</div>
-                <select class="grade-select" id="p-grade">
-                  <option value="A+">A+</option><option value="A">A</option><option value="A-">A-</option>
-                  <option value="B+">B+</option><option value="B">B</option><option value="B-">B-</option>
-                  <option value="C+">C+</option><option value="C">C</option><option value="C-">C-</option>
-                  <option value="—">—</option>
-                </select>
-              </div>
+             
             </div>
             <div class="perf-grid">
               <div class="perf-input-group"><div class="perf-input-label">Followers</div><input class="perf-input" id="p-followers" type="number" placeholder="0"/></div>
@@ -846,7 +832,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
               <div class="perf-input-label">Performance Note</div>
               <textarea class="form-textarea" id="p-note" placeholder="Brief performance summary for the client..." style="min-height:70px;"></textarea>
             </div>
-            <button class="form-submit" onclick="savePerformance()">SAVE PERFORMANCE DATA</button>
+           <button class="form-submit" id="perf-save-btn" onclick="savePerformance(this)">SAVE PERFORMANCE DATA</button>
           </div>
         </div>
 
