@@ -1605,7 +1605,7 @@ function addDeliverableCard(){
       <div class="form-grid">
         <div class="form-group">
           <div class="form-label">Deliverable Name *</div>
-          <input class="form-input" id="name-${id}" placeholder="e.g. Week 3 Reel — Transformation"/>
+         <input class="form-input" id="name-${id}" placeholder="e.g. Week 3 Reel — Transformation" autocomplete="off"/>
         </div>
         <div class="form-group">
           <div class="form-label">Upload Date</div>
@@ -1952,9 +1952,18 @@ function toggleContentMonth(id){
 
 async function clearContentMonth(year, month){
   if(!confirm(`Delete all content from ${month} ${year}? This cannot be undone.`)) return;
-  toast('Clearing content...');
-  // For now just reload — full delete requires Apps Script update
-  toast('Feature coming soon — delete from Google Sheet manually for now');
+  toast('Deleting...');
+  const result = await apiPost('deleteContent', {
+    token: currentClient.Token,
+    month: month,
+    year: year.toString()
+  });
+  if(result && result.status === 'deleted'){
+    toast(`✅ Deleted ${result.count} content item${result.count!==1?'s':''} from ${month} ${year}`);
+    loadAdminContent();
+  } else {
+    toast('❌ Delete failed','error');
+  }
 }
 
 function buildAdminContentCard(c){
@@ -2001,12 +2010,49 @@ function buildAdminContentCard(c){
         <button onclick="sendAdminContentReply('${c.Token}','${c.Title}','${c.Platform}','${uid}')" style="background:var(--lime);border:none;color:#080c08;font-family:var(--fb);font-size:12px;font-weight:700;padding:8px 16px;border-radius:7px;cursor:pointer;">Reply →</button>
       </div>
     </div>
-    <div class="cai-actions" style="margin-top:8px;display:flex;gap:8px;">
+  <div class="cai-actions" style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
       ${c.Status!=='published'?`<button class="btn-sm btn-sm-red" onclick="setContentPublished('${c.Token}','${c.Title}','${c.Platform}')">🚀 Mark Published</button>`:''}
+      <button class="btn-sm" style="background:rgba(77,157,255,0.1);border-color:rgba(77,157,255,0.25);color:var(--blue);" onclick="showReschedule('${c.ID||c.Title}','${c.Token}')">📅 Reschedule</button>
+      <button class="btn-sm" style="background:rgba(255,77,77,0.1);border-color:rgba(255,77,77,0.2);color:var(--red);" onclick="deleteContentItem('${c.ID||c.Title}','${c.Token}')">🗑 Delete</button>
+    </div>
+    <div id="reschedule-${c.ID||c.Title}" style="display:none;margin-top:8px;display:none;align-items:center;gap:8px;">
+      <input type="date" id="newdate-${c.ID||c.Title}" class="form-input" style="flex:1;padding:7px 12px;font-size:12px;" value="${c.ScheduledDate||''}"/>
+      <button onclick="saveReschedule('${c.ID||c.Title}','${c.Token}')" style="background:var(--lime);border:none;color:#080c08;font-family:var(--fb);font-size:12px;font-weight:700;padding:7px 14px;border-radius:7px;cursor:pointer;">Save</button>
+      <button onclick="document.getElementById('reschedule-${c.ID||c.Title}').style.display='none'" style="background:none;border:1px solid var(--bdr);color:var(--t3);font-size:12px;padding:7px 14px;border-radius:7px;cursor:pointer;">Cancel</button>
     </div>
   </div>`;
 }
-async function setContentWaiting(token, title, platform){
+
+  function showReschedule(id, token){
+  const el = document.getElementById('reschedule-'+id);
+  if(!el) return;
+  el.style.display = el.style.display==='none' ? 'flex' : 'none';
+}
+
+async function saveReschedule(id, token){
+  const newDate = document.getElementById('newdate-'+id)?.value;
+  if(!newDate){ toast('Please pick a date','error'); return; }
+  const result = await apiPost('rescheduleContent', {token, id, newDate});
+  if(result && result.status==='rescheduled'){
+    toast('✅ Content rescheduled');
+    document.getElementById('reschedule-'+id).style.display='none';
+    loadAdminContent();
+  } else {
+    toast('❌ Reschedule failed','error');
+  }
+}
+
+async function deleteContentItem(id, token){
+  if(!confirm('Delete this content item? This cannot be undone.')) return;
+  const result = await apiPost('deleteContent', {token, id});
+  if(result && result.status==='deleted'){
+    toast('✅ Content deleted');
+    loadAdminContent();
+  } else {
+    toast('❌ Delete failed','error');
+  }
+}  
+  async function setContentWaiting(token, title, platform){
   await apiPost('updateContentStatus',{token, contentTitle:title, platform, status:'waiting'});
   await sendTelegramAdmin('👁 CONTENT SENT FOR APPROVAL\n\nClient: '+(currentClient.Name||'—')+'\nContent: '+title+'\nPlatform: '+platform+'\n\nClient will now see Approve/Decline buttons.');
   toast('✅ Content sent for client approval');
