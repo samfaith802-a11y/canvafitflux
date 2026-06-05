@@ -3027,6 +3027,31 @@ const MILESTONE_STAGES = [
     { id:'s6_goto',         icon:'🏙', name:'Go-To Coach in City',          desc:'Undisputed number one fitness coach in the city' }
   ]}
 ];
+function getStage(stageIdx){
+  if(stageIdx < MILESTONE_STAGES.length) return MILESTONE_STAGES[stageIdx];
+  
+  // Generate dynamic stage beyond stage 6
+  const n = stageIdx + 1;
+  const followers = Math.round((n * 2000) / 1000) * 1000;
+  const revenue = n * 2;
+  const reviews = n * 50;
+  const months = Math.round(n * 3);
+  
+  return {
+    stage: n,
+    label: n <= 9 ? 'Elite' : n <= 12 ? 'Legend' : 'Icon',
+    milestones: [
+      { id:`s${n}_followers`,  icon:'👑', name:`${followers.toLocaleString()} Followers`,        desc:`Hit ${followers.toLocaleString()} followers on primary platform` },
+      { id:`s${n}_revenue`,    icon:'💰', name:`£${revenue}k Month from Social`,                  desc:`Generated £${revenue},000 in a single month from social leads` },
+      { id:`s${n}_booked`,     icon:'📅', name:'Fully Booked Every Month',                        desc:'Consistently at 100% capacity month after month' },
+      { id:`s${n}_reviews`,    icon:'⭐', name:`${reviews} Google Reviews`,                       desc:`${reviews} five-star Google reviews accumulated` },
+      { id:`s${n}_months`,     icon:'🗓', name:`${months} Months Complete`,                       desc:`${months} months of elite consistent content` },
+      { id:`s${n}_referrals`,  icon:'🔁', name:'Referral Machine Active',                         desc:'Majority of new clients coming from referrals and social' },
+      { id:`s${n}_brand`,      icon:'🏆', name:'Regional Brand Recognition',                      desc:'Known beyond just local area — regional presence building' },
+      { id:`s${n}_income`,     icon:'💎', name:'Multiple Income Streams',                         desc:'Online coaching, merchandise, or courses added to business' }
+    ]
+  };
+}
 
 let milestoneState = {};
 
@@ -3044,7 +3069,7 @@ async function loadAdminMilestones(){
 
   // Current stage index (0-based)
   const currentStageIdx = Math.min(Math.floor(totalAchieved/8), MILESTONE_STAGES.length-1);
-  const currentStage = MILESTONE_STAGES[currentStageIdx];
+  const currentStage = getStage(currentStageIdx);
 
   // Count achieved in current stage
   const stageAchieved = currentStage.milestones.filter(m=>achieved.has(m.id)).length;
@@ -3079,7 +3104,7 @@ async function loadAdminMilestones(){
 async function toggleMilestone(id, cbEl, stageIdx){
   if(!currentClient) return;
   const stageIndex = parseInt(stageIdx);
-  const stage = MILESTONE_STAGES[stageIndex];
+  const stage = getStage(stageIndex);
   const m = stage.milestones.find(x=>x.id===id);
   if(!m) return;
 
@@ -3108,7 +3133,7 @@ async function toggleMilestone(id, cbEl, stageIdx){
       const achieved = new Set((data&&data.milestones?data.milestones:[]).map(m=>m.ID||m.id||m.Title));
       const allDone = stage.milestones.every(m=>achieved.has(m.id));
 
-      if(allDone && stageIndex < MILESTONE_STAGES.length-1){
+     if(allDone){
         // Stage complete — show celebration then load next stage
         const el = document.getElementById('milestone-list');
         el.innerHTML = `
