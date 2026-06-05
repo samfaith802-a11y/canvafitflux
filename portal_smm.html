@@ -2273,16 +2273,16 @@ async function loadMilestones(){
     return !seen.includes(id);
   });
 
-  if(newlyAchieved.length){
-    // Fire confetti for each new milestone
+if(newlyAchieved.length){
     newlyAchieved.forEach((m,i)=>{
-      setTimeout(()=> showMilestoneConfetti(m), i * 800);
+      setTimeout(()=> showMilestoneConfetti(m), i * 1200);
     });
-    // Mark all as seen
-    const allIds = milestones.map(m=>m.ID||m.id||m.Title);
-    localStorage.setItem(seenKey, JSON.stringify(allIds));
+    // Mark seen after last celebration fires
+    setTimeout(()=>{
+      const allIds = milestones.map(m=>m.ID||m.id||m.Title);
+      localStorage.setItem(seenKey, JSON.stringify(allIds));
+    }, newlyAchieved.length * 1200 + 1000);
   } else {
-    // Mark all current as seen (first load)
     const allIds = milestones.map(m=>m.ID||m.id||m.Title);
     localStorage.setItem(seenKey, JSON.stringify(allIds));
   }
