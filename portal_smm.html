@@ -1219,6 +1219,7 @@ loadMilestones();
   loadSubmittedPlatforms();
 setInterval(async ()=>{
   await initGrowthJourney();
+  await loadContent();
 }, 30000);
   if(saved && saved.notes) document.getElementById('notes-area').value = saved.notes;
 }
@@ -1521,10 +1522,15 @@ async function loadContent(){
   if(!data || !data.content){ showEmptyApproval(); return; }
   contentData = data.content;
   updateNextCallout(contentData);
-  const now = new Date();
-  const thisWeekStart = new Date(now); thisWeekStart.setDate(now.getDate() - now.getDay());
-  const thisWeekEnd   = new Date(thisWeekStart); thisWeekEnd.setDate(thisWeekStart.getDate() + 7);
-  const lastWeekStart = new Date(thisWeekStart); lastWeekStart.setDate(thisWeekStart.getDate() - 7);
+ const now = new Date();
+const dayOfWeek = (now.getDay() + 6) % 7; // Monday = 0
+const thisWeekStart = new Date(now);
+thisWeekStart.setDate(now.getDate() - dayOfWeek);
+thisWeekStart.setHours(0,0,0,0);
+const thisWeekEnd = new Date(thisWeekStart);
+thisWeekEnd.setDate(thisWeekStart.getDate() + 7);
+const lastWeekStart = new Date(thisWeekStart);
+lastWeekStart.setDate(thisWeekStart.getDate() - 7);
   renderWeek('this',  contentData.filter(c=>{ const d=new Date(c.ScheduledDate||c.CreatedAt); return d>=thisWeekStart && d<thisWeekEnd; }));
   renderWeek('last',  contentData.filter(c=>{ const d=new Date(c.ScheduledDate||c.CreatedAt); return d>=lastWeekStart && d<thisWeekStart; }));
   renderWeek('upcoming', contentData.filter(c=>{ const d=new Date(c.ScheduledDate||c.CreatedAt); return d>=thisWeekEnd; }));
@@ -1594,23 +1600,30 @@ function buildApprovalCard(c, i){
     'Revision':'<span class="tag tag-r">✏️ Revision</span>'
   };
   const st = statusMap[c.Status] || '<span class="tag tag-a">⏳ Pending</span>';
-  const mh = c.MediaURL ? '<div class="aitem-media">'+(c.MediaType==='video'?'<div class="aitem-thumb"><video src="'+c.MediaURL+'" controls style="width:100%;height:100%;object-fit:cover;border-radius:10px;"></video></div>':'<div class="aitem-thumb"><img src="'+c.MediaURL+'" alt="content" style="width:100%;height:100%;object-fit:cover;border-radius:10px;" onclick="openMedia(\''+c.MediaURL+'\')" /></div>')+'</div>' : '';
-
   const cardId = 'card-'+(c.ID||i);
-  const chatId = 'chat-'+cardId;
   const inputId = 'input-'+cardId;
+  const bodyId = 'body-'+cardId;
 
-  const waitingNudge = c.Status==='waiting' ? `
-    <div style="margin:10px 0;padding:10px 14px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;font-size:12px;color:var(--amber);">
-      👁 Please review this content and drop your feedback in the chat below before it goes live.
-    </div>` : '';
+  // Media — split comma-separated URLs
+  const mediaURLs = (c.MediaURL||'').split(',').filter(Boolean);
+  const mediaHtml = mediaURLs.length ? `<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+    ${mediaURLs.map(url=>{
+      const isVideo = url.match(/\.(mp4|mov|webm)/i);
+      return isVideo
+        ? `<video src="${url}" controls style="width:100%;max-height:300px;border-radius:10px;border:1px solid var(--bdr);display:block;" preload="metadata"></video>`
+        : `<img src="${url}" style="width:90px;height:90px;object-fit:cover;border-radius:10px;border:1px solid var(--bdr);cursor:pointer;" onclick="openMedia('${url}')"/>`;
+    }).join('')}
+  </div>` : '';
 
+  // Action buttons — only show when status is waiting
   const actionBtns = c.Status==='waiting' ? `
     <div style="display:flex;gap:8px;margin:12px 0;" id="action-${cardId}">
       <button class="btn-approve" onclick="approveContent('${c.Title}','${c.Platform}','${cardId}')">✅ Approve</button>
-      <button class="btn-revision" onclick="initDecline('${c.Title}','${c.Platform}','${cardId}','${inputId}')">❌ Decline</button>
+      <button onclick="showChatForAction('${cardId}','minor')" style="background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);color:var(--amber);font-family:var(--fb);font-size:12px;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer;">✏️ Approve with Minor Correction</button>
+      <button class="btn-revision" onclick="showChatForAction('${cardId}','decline')">❌ Decline</button>
     </div>` : '';
 
+  // Chat — only shown after action chosen
   const chatMsgs = (c.ChatMessages||[]).map(m=>`
     <div class="comment-msg" style="background:${m.author==='FitFlux'?'rgba(204,255,0,0.06)':'rgba(255,255,255,0.04)'};">
       <div class="comment-author" style="color:${m.author==='FitFlux'?'var(--gold)':'var(--blue)'};">${m.author||'Client'}</div>
@@ -1618,32 +1631,34 @@ function buildApprovalCard(c, i){
       <div class="comment-time">${m.time||''}</div>
     </div>`).join('');
 
-  const newReplyBadge = c.HasNewReply ? `<div style="display:inline-flex;align-items:center;gap:5px;background:rgba(255,85,85,0.15);border:1px solid rgba(255,85,85,0.3);border-radius:20px;padding:3px 10px;font-size:11px;color:var(--red);font-weight:700;margin-bottom:8px;">💬 New reply from FitFlux</div>` : '';
+  const hasMsgs = (c.ChatMessages||[]).length > 0;
 
   return `<div class="aitem ${sc}" id="${cardId}">
-    <div class="aitem-header">
+    <div class="aitem-header" onclick="toggleContentCard('${bodyId}')" style="cursor:pointer;">
       <span class="aitem-platform">${c.Platform||'Post'}</span>
       <span class="aitem-title">${c.Title||'Content'}</span>
       <span class="aitem-date">${c.ScheduledDate||''}</span>
       ${st}
+      <span id="toggle-icon-${bodyId}" style="color:var(--t3);font-size:12px;margin-left:4px;">▼</span>
     </div>
-    <div class="aitem-body">
-      ${mh}
+    <div id="${bodyId}" class="aitem-body" style="display:none;">
+      ${mediaHtml}
       <div class="aitem-caption">${(c.Caption||'').replace(/</g,'&lt;')}</div>
-      ${waitingNudge}
       ${actionBtns}
+
+      ${hasMsgs || c.Status==='waiting' ? `
       <div style="margin-top:14px;">
         <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">💬 Chat</div>
-        ${newReplyBadge}
-        <div id="${chatId}" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;max-height:200px;overflow-y:auto;">${chatMsgs}</div>
-        <div class="comment-box">
-          <textarea class="comment-input" id="${inputId}" placeholder="Type your feedback or question..."></textarea>
+        <div id="chat-${cardId}" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;max-height:200px;overflow-y:auto;">${chatMsgs}</div>
+        <div class="comment-box" id="chatbox-${cardId}" style="display:none;">
+          <div id="chat-prompt-${cardId}" style="font-size:12px;color:var(--amber);padding:8px 12px;border-bottom:1px solid var(--bdr);">Please explain your feedback below:</div>
+          <textarea class="comment-input" id="${inputId}" placeholder="Type your feedback..."></textarea>
           <div class="comment-footer">
-            <span class="comment-hint">Your message goes directly to your FitFlux team.</span>
-            <button class="btn-send" onclick="sendContentChat('${c.Title}','${c.Platform}','${cardId}','${inputId}')">Send →</button>
+            <span class="comment-hint">Goes directly to your FitFlux team.</span>
+            <button class="btn-send" id="chat-send-${cardId}" onclick="">Send →</button>
           </div>
         </div>
-      </div>
+      </div>` : ''}
     </div>
   </div>`;
 }
@@ -1656,7 +1671,57 @@ function toggleComment(boxId){
   const box = document.getElementById(boxId);
   if(box) box.style.display = box.style.display==='none'?'block':'none';
 }
+function toggleContentCard(bodyId){
+  const body = document.getElementById(bodyId);
+  const icon = document.getElementById('toggle-icon-'+bodyId);
+  if(!body) return;
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  if(icon) icon.textContent = isOpen ? '▼' : '▲';
+}
 
+function showChatForAction(cardId, action){
+  const chatbox = document.getElementById('chatbox-'+cardId);
+  const prompt = document.getElementById('chat-prompt-'+cardId);
+  const sendBtn = document.getElementById('chat-send-'+cardId);
+  const inputId = 'input-'+cardId;
+  if(!chatbox) return;
+  chatbox.style.display = 'block';
+
+  // Find the content item to get title and platform
+  const card = document.getElementById(cardId);
+  const titleEl = card?.querySelector('.aitem-title');
+  const platformEl = card?.querySelector('.aitem-platform');
+  const title = titleEl?.textContent || '';
+  const platform = platformEl?.textContent || '';
+
+  if(action === 'minor'){
+    prompt.textContent = '✏️ What minor correction is needed?';
+    sendBtn.onclick = async function(){
+      const input = document.getElementById(inputId);
+      const text = input?.value.trim();
+      if(!text){ input?.focus(); return; }
+      await apiPost('approveContent', {token: window.FF_TOKEN||urlToken, contentTitle: title, platform});
+      const time = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+      await apiPost('addContentChat', {token: window.FF_TOKEN||urlToken, contentTitle: title, platform, text: '✏️ Approved with correction: '+text, author: window.FF_CLIENT.name||'Client', time});
+      await sendTelegram('✏️ APPROVED WITH MINOR CORRECTION\n\nClient: '+(window.FF_CLIENT.name||'—')+'\nContent: '+title+'\nNote: '+text);
+      if(input) input.value='';
+      await loadContent();
+    };
+  } else {
+    prompt.textContent = '❌ Why are you declining this content?';
+    sendBtn.onclick = async function(){
+      const input = document.getElementById(inputId);
+      const text = input?.value.trim();
+      if(!text){ input?.focus(); return; }
+      await apiPost('requestRevision', {token: window.FF_TOKEN||urlToken, contentTitle: title, platform, note: text});
+      await apiPost('updateContentStatus', {token: window.FF_TOKEN||urlToken, contentTitle: title, platform, status: 'declined'});
+      await sendTelegram('❌ CONTENT DECLINED\n\nClient: '+(window.FF_CLIENT.name||'—')+'\nContent: '+title+'\nReason: '+text);
+      if(input) input.value='';
+      await loadContent();
+    };
+  }
+}
 async function approveContent(title, platform, cardId){
   await apiPost('approveContent', {token:window.FF_TOKEN || urlToken, contentTitle:title, platform});
   await sendTelegram('✅ CONTENT APPROVED\n\nClient: '+(window.FF_CLIENT.name||'—')+'\nContent: '+title+'\nPlatform: '+platform);
