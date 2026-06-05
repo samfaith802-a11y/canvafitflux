@@ -345,6 +345,9 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
 .flow-arrow{color:var(--gold);font-size:14px;opacity:.4;}
 
 /* LOADING */
+/* CONFETTI */
+@keyframes confettiFall{0%{transform:translateY(-100px) rotate(0deg);opacity:1;}100%{transform:translateY(100vh) rotate(720deg);opacity:0;}}
+.confetti-piece{position:fixed;width:10px;height:10px;top:-20px;z-index:99999;animation:confettiFall linear forwards;pointer-events:none;}
 .loading{display:flex;align-items:center;gap:10px;padding:20px;color:var(--t3);font-size:13px;}
 .spinner{width:18px;height:18px;border:2px solid var(--bdr);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;flex-shrink:0;}
 @keyframes spin{to{transform:rotate(360deg);}}
@@ -2261,10 +2264,34 @@ async function loadMilestones(){
   document.getElementById('milestones-content').style.display='';
   const milestones = (data && data.milestones) ? data.milestones : [];
   const el = document.getElementById('milestones-content');
+
+  // Check for newly achieved milestones to celebrate
+  const seenKey = 'ff_seen_milestones_'+(window.FF_TOKEN||urlToken).slice(-8);
+  const seen = JSON.parse(localStorage.getItem(seenKey)||'[]');
+  const newlyAchieved = milestones.filter(m=>{
+    const id = m.ID||m.id||m.Title;
+    return !seen.includes(id);
+  });
+
+  if(newlyAchieved.length){
+    // Fire confetti for each new milestone
+    newlyAchieved.forEach((m,i)=>{
+      setTimeout(()=> showMilestoneConfetti(m), i * 800);
+    });
+    // Mark all as seen
+    const allIds = milestones.map(m=>m.ID||m.id||m.Title);
+    localStorage.setItem(seenKey, JSON.stringify(allIds));
+  } else {
+    // Mark all current as seen (first load)
+    const allIds = milestones.map(m=>m.ID||m.id||m.Title);
+    localStorage.setItem(seenKey, JSON.stringify(allIds));
+  }
+
   if(!milestones.length){
-    el.innerHTML='<div style="text-align:center;padding:40px 20px;"><div style="font-size:40px;margin-bottom:12px;opacity:.3;">🏆</div><div style="font-size:14px;font-weight:600;color:var(--t2);margin-bottom:6px;">No milestones yet</div><div style="font-size:12px;color:var(--t3);">Your FitFlux team will mark milestones as you hit them.</div></div>';
+    el.innerHTML='<div style="text-align:center;padding:40px 20px;"><div style="font-size:40px;margin-bottom:12px;opacity:.3;">🏆</div><div style="font-size:14px;font-weight:600;color:var(--t2);margin-bottom:6px;">No milestones yet</div><div style="font-size:12px;color:var(--t3);">Your FitFlux team will mark milestones as you hit them. Every achievement will appear here and you\'ll be notified by email.</div></div>';
     return;
   }
+
   el.innerHTML = milestones.map(m=>`
     <div style="background:linear-gradient(135deg,rgba(126,200,69,0.08),rgba(126,200,69,0.02));border:1px solid var(--gold-bdr);border-radius:14px;padding:22px 24px;margin-bottom:12px;display:flex;align-items:center;gap:18px;">
       <div style="font-size:36px;flex-shrink:0;">${m.Icon||'🏆'}</div>
@@ -2275,6 +2302,43 @@ async function loadMilestones(){
       </div>
       <div style="background:rgba(61,214,140,0.1);border:1px solid rgba(61,214,140,0.2);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:700;color:var(--green);white-space:nowrap;">✓ Achieved</div>
     </div>`).join('');
+}
+
+function showMilestoneConfetti(m){
+  // Confetti burst
+  const colors = ['#CCFF00','#5fa832','#ffffff','#3dd68c','#f59e0b'];
+  for(let i=0;i<60;i++){
+    const piece = document.createElement('div');
+    piece.className = 'confetti-piece';
+    piece.style.left = Math.random()*100+'vw';
+    piece.style.background = colors[Math.floor(Math.random()*colors.length)];
+    piece.style.width = (Math.random()*8+4)+'px';
+    piece.style.height = (Math.random()*8+4)+'px';
+    piece.style.borderRadius = Math.random()>0.5?'50%':'2px';
+    piece.style.animationDuration = (Math.random()*2+2)+'s';
+    piece.style.animationDelay = (Math.random()*0.5)+'s';
+    document.body.appendChild(piece);
+    setTimeout(()=>piece.remove(), 4000);
+  }
+
+  // Celebration modal
+  const modal = document.createElement('div');
+  modal.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:99998;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px);';
+  modal.innerHTML=`
+    <div style="background:#0d1f0a;border:1.5px solid rgba(204,255,0,0.4);border-radius:20px;padding:44px 40px;max-width:420px;width:100%;text-align:center;animation:slideUp .4s ease;">
+      <div style="font-size:56px;margin-bottom:16px;">${m.Icon||'🏆'}</div>
+      <div style="font-size:10px;font-weight:700;color:rgba(204,255,0,0.5);letter-spacing:.2em;text-transform:uppercase;margin-bottom:10px;">Milestone Achieved</div>
+      <div style="font-family:'Syne',sans-serif;font-size:24px;font-weight:800;color:#CCFF00;margin-bottom:10px;line-height:1.3;">${m.Title||'Achievement Unlocked'}</div>
+      <div style="font-size:13px;color:rgba(255,255,255,0.55);line-height:1.8;margin-bottom:28px;">${m.Description||'Your hard work is paying off. Keep going.'}</div>
+      <div style="background:rgba(204,255,0,0.06);border:1px solid rgba(204,255,0,0.15);border-radius:12px;padding:14px 18px;margin-bottom:28px;font-size:13px;color:rgba(204,255,0,0.8);line-height:1.7;">
+        🎉 Congratulations ${(window.FF_CLIENT.name||'').split(' ')[0]}! This is a real result from your consistency and effort. Your FitFlux team is proud of what we're building together.
+      </div>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="width:100%;background:#CCFF00;color:#0D1F00;border:none;border-radius:10px;padding:14px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.06em;">Let's Keep Going →</button>
+    </div>`;
+  document.body.appendChild(modal);
+
+  // Auto dismiss after 8 seconds
+  setTimeout(()=>{ if(document.body.contains(modal)) modal.remove(); }, 8000);
 }
 async function loadPayments(){
   document.getElementById('payments-loading').style.display='flex';
