@@ -2092,13 +2092,23 @@ function selectPerfPlatform(p, btn){
   btn.classList.add('active');
 }
 
-async function savePerformance(){
+async function savePerformance(btn){
   if(!currentClient) return;
+  if(!btn) btn = document.getElementById('perf-save-btn');
+
+  const period = document.getElementById('p-period').value.trim();
+  if(!period){ toast('Enter the month period e.g. May 2026','error'); return; }
+
+  btn.textContent = 'Saving...';
+  btn.style.transform = 'scale(0.97)';
+  btn.style.opacity = '0.8';
+  btn.disabled = true;
+
   const body = {
     token: currentClient.Token,
     platform: currentPerfPlatform,
-    periodType: document.getElementById('p-periodtype').value,
-    period: document.getElementById('p-period').value.trim(),
+    periodType: 'monthly',
+    period,
     followers: document.getElementById('p-followers').value||0,
     reach: document.getElementById('p-reach').value||0,
     engagement: document.getElementById('p-engagement').value||0,
@@ -2108,13 +2118,29 @@ async function savePerformance(){
     videoPercent: document.getElementById('p-video').value||0,
     graphicPercent: document.getElementById('p-graphic').value||0,
     storyPercent: document.getElementById('p-story').value||0,
-    grade: document.getElementById('p-grade').value,
     note: document.getElementById('p-note').value.trim()
   };
-  if(!body.period){ toast('Period is required (e.g. Week 12)','error'); return; }
+
   await apiPost('updatePerformance', body);
-  toast('✅ Performance data saved — client dashboard updated');
-  ['p-followers','p-reach','p-engagement','p-posts','p-visits','p-enquiries','p-video','p-graphic','p-story','p-period','p-note'].forEach(id=>{ document.getElementById(id).value=''; });
+
+  btn.textContent = '✅ Saved!';
+  btn.style.transform = '';
+  btn.style.opacity = '';
+  btn.style.background = 'rgba(61,214,140,0.3)';
+
+  setTimeout(()=>{
+    btn.textContent = 'SAVE PERFORMANCE DATA';
+    btn.style.background = '';
+    btn.disabled = false;
+  }, 2500);
+
+  ['p-followers','p-reach','p-engagement','p-posts','p-visits','p-enquiries',
+   'p-video','p-graphic','p-story','p-period','p-note'].forEach(id=>{
+    const el = document.getElementById(id);
+    if(el) el.value = '';
+  });
+
+  toast('✅ Performance saved — client portal updated + email sent');
 }
 
 // ── DELIVERABLES ─────────────────────────────────────────────
