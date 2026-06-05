@@ -724,7 +724,6 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
           <button class="dtab" onclick="switchDetailTab('roadmap',this)">Roadmap</button>
           <button class="dtab" onclick="switchDetailTab('content',this)">Content</button>
           <button class="dtab" onclick="switchDetailTab('performance',this)">Performance</button>
-          <button class="dtab" onclick="switchDetailTab('deliverables',this)">Deliverables</button>
           <button class="dtab" onclick="switchDetailTab('milestones',this)">Milestones 🏆</button>
           <button class="dtab" onclick="switchDetailTab('documents',this)">Documents</button>
 <button class="dtab" onclick="switchDetailTab('credentials',this)">🔒 Credentials</button>
@@ -760,16 +759,16 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
           <button class="rm-save-btn" onclick="saveRoadmap()">SAVE ROADMAP CHANGES</button>
         </div>
 
-       <!-- CONTENT TAB -->
+<!-- CONTENT TAB -->
 <div class="detail-tab-content" id="dtab-content">
 
   <!-- UNREAD MESSAGES BANNER -->
-  <div id="content-unread-banner" style="display:none;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;">
+  <div id="content-unread-banner" style="display:none;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:10px;padding:12px 16px;margin-bottom:16px;align-items:center;gap:10px;">
     <span style="font-size:16px;">💬</span>
     <span id="content-unread-text" style="font-size:13px;color:var(--amber);font-weight:600;"></span>
   </div>
 
-  <!-- BATCH UPLOAD SECTION -->
+  <!-- UPLOAD SECTION -->
   <div class="sec-head" style="margin-top:0;">
     <div class="sec-title">UPLOAD CONTENT</div>
     <div class="sec-line"></div>
@@ -783,12 +782,18 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     <button onclick="submitAllCards()" id="submit-all-btn" style="display:none;background:var(--lime);color:#080c08;border:none;border-radius:8px;padding:10px 24px;font-family:var(--fh);font-size:16px;letter-spacing:.06em;cursor:pointer;transition:all .2s;">SUBMIT ALL FOR APPROVAL</button>
   </div>
 
-  <!-- EXISTING CONTENT LIST -->
+  <!-- EXISTING CONTENT -->
   <div class="sec-head">
     <div class="sec-title">EXISTING CONTENT</div>
     <div class="sec-line"></div>
+    <div style="display:flex;gap:6px;">
+      <button class="tl-filter active" onclick="setContentTimeFilter('all',this)">All</button>
+      <button class="tl-filter" onclick="setContentTimeFilter('year',this)">This Year</button>
+      <button class="tl-filter" onclick="setContentTimeFilter('month',this)">This Month</button>
+      <button class="tl-filter" onclick="setContentTimeFilter('week',this)">This Week</button>
+    </div>
   </div>
-  <div class="content-admin-list" id="content-admin-list">
+  <div id="content-admin-list">
     <div class="loading"><div class="spinner"></div>Loading...</div>
   </div>
 </div>
@@ -1575,9 +1580,11 @@ async function saveRoadmap(){
 }
 
 // ── CONTENT ──────────────────────────────────────────────────
-// ── DELIVERABLE CARDS SYSTEM ──────────────────────────────
+// ── DELIVERABLE CARDS ────────────────────────────────────────
 let cardCount = 0;
+let contentTimeFilter = 'all';
 const PLATFORMS = ['Instagram','TikTok','Facebook','YouTube','LinkedIn','Twitter/X','Pinterest','Snapchat'];
+const MEDIA_TYPES = ['Image / Graphic','Video / Reel','PDF / Document','Carousel','Story'];
 
 function addDeliverableCard(){
   cardCount++;
@@ -1594,7 +1601,7 @@ function addDeliverableCard(){
 
       <!-- FILE UPLOAD ZONE -->
       <div class="form-group form-full" style="margin-bottom:14px;">
-        <div class="form-label">📁 Files (drag & drop or browse — multiple allowed)</div>
+        <div class="form-label">📁 Files — drag & drop or browse (multiple allowed)</div>
         <div id="dropzone-${id}" style="border:1.5px dashed rgba(204,255,0,0.25);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;background:rgba(204,255,0,0.02);"
           ondragover="event.preventDefault();this.style.borderColor='var(--lime)';this.style.background='rgba(204,255,0,0.06)'"
           ondragleave="this.style.borderColor='rgba(204,255,0,0.25)';this.style.background='rgba(204,255,0,0.02)'"
@@ -1608,31 +1615,30 @@ function addDeliverableCard(){
         <div id="filelist-${id}" style="display:flex;flex-direction:column;gap:6px;margin-top:10px;"></div>
       </div>
 
-      <!-- FIELDS GRID -->
+      <!-- FIELDS -->
       <div class="form-grid">
         <div class="form-group">
           <div class="form-label">Deliverable Name *</div>
           <input class="form-input" id="name-${id}" placeholder="e.g. Week 3 Reel — Transformation"/>
         </div>
         <div class="form-group">
-          <div class="form-label">Media Type *</div>
-          <select class="form-select" id="mediatype-${id}">
-            <option value="image">Image / Graphic</option>
-            <option value="video">Video / Reel</option>
-            <option value="pdf">PDF / Document</option>
-          </select>
+          <div class="form-label">Upload Date</div>
+          <input class="form-input" id="uploaddate-${id}" type="date"/>
         </div>
         <div class="form-group">
-          <div class="form-label">Scheduled Date</div>
+          <div class="form-label">Scheduled Publish Date</div>
           <input class="form-input" id="date-${id}" type="date"/>
         </div>
-        <div class="form-group">
-          <div class="form-label">Status</div>
-          <select class="form-select" id="status-${id}">
-            <option value="Pending">⏳ Pending Review</option>
-            <option value="waiting">👁 Send for Client Approval</option>
-            <option value="progress">🔄 In Progress</option>
-          </select>
+      </div>
+
+      <!-- MEDIA TYPE MULTI-SELECT -->
+      <div class="form-group form-full" style="margin-bottom:14px;">
+        <div class="form-label">Media Type * (select all that apply)</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;">
+          ${MEDIA_TYPES.map(t=>`
+            <label id="mt-label-${id}-${t.replace(/[\s\/]/g,'')}" style="display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--bdr3);border-radius:6px;padding:6px 12px;cursor:pointer;font-size:12px;color:var(--t2);transition:all .15s;">
+              <input type="checkbox" value="${t}" class="mt-check-${id}" onchange="updateMediaTypeDisplay('${id}')" style="cursor:pointer;"/> ${t}
+            </label>`).join('')}
         </div>
       </div>
 
@@ -1640,8 +1646,8 @@ function addDeliverableCard(){
       <div class="form-group form-full" style="margin-bottom:14px;">
         <div class="form-label">Platform *</div>
         <div style="display:flex;gap:6px;margin-bottom:10px;">
-          <button id="mode-single-${id}" onclick="setPlatformMode('${id}','single')" style="padding:6px 14px;border-radius:6px;font-family:var(--fb);font-size:12px;font-weight:600;cursor:pointer;background:var(--lime-dim);border:1px solid var(--lime);color:var(--lime);transition:all .15s;">Single Platform</button>
-          <button id="mode-multi-${id}" onclick="setPlatformMode('${id}','multi')" style="padding:6px 14px;border-radius:6px;font-family:var(--fb);font-size:12px;font-weight:600;cursor:pointer;background:var(--bg3);border:1px solid var(--bdr3);color:var(--t3);transition:all .15s;">Multi-Platform</button>
+          <button id="mode-single-${id}" onclick="setPlatformMode('${id}','single')" style="padding:6px 14px;border-radius:6px;font-family:var(--fb);font-size:12px;font-weight:600;cursor:pointer;background:var(--lime-dim);border:1px solid var(--lime);color:var(--lime);">Single</button>
+          <button id="mode-multi-${id}" onclick="setPlatformMode('${id}','multi')" style="padding:6px 14px;border-radius:6px;font-family:var(--fb);font-size:12px;font-weight:600;cursor:pointer;background:var(--bg3);border:1px solid var(--bdr3);color:var(--t3);">Multi-Platform</button>
         </div>
         <div id="platform-single-${id}">
           <select class="form-select" id="platform-select-${id}">
@@ -1651,7 +1657,7 @@ function addDeliverableCard(){
         <div id="platform-multi-${id}" style="display:none;">
           <div style="display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px;">
             ${PLATFORMS.map(p=>`
-              <label style="display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--bdr3);border-radius:6px;padding:6px 10px;cursor:pointer;font-size:12px;color:var(--t2);transition:all .15s;">
+              <label style="display:flex;align-items:center;gap:6px;background:var(--bg3);border:1px solid var(--bdr3);border-radius:6px;padding:6px 10px;cursor:pointer;font-size:12px;color:var(--t2);">
                 <input type="checkbox" value="${p}" onchange="updatePlatformTags('${id}')" style="cursor:pointer;"/> ${p}
               </label>`).join('')}
           </div>
@@ -1665,16 +1671,29 @@ function addDeliverableCard(){
         <textarea class="form-textarea" id="caption-${id}" placeholder="Write the full caption here..."></textarea>
       </div>
 
-      <!-- CARD STATUS -->
       <div id="cardstatus-${id}" style="margin-top:10px;font-size:12px;color:var(--t3);"></div>
     </div>`;
 
   document.getElementById('deliverable-cards').appendChild(card);
   document.getElementById('submit-all-btn').style.display = '';
-  
-  // Store card data
   if(!window.cardFiles) window.cardFiles = {};
   window.cardFiles[id] = [];
+}
+
+function updateMediaTypeDisplay(id){
+  const checked = Array.from(document.querySelectorAll(`.mt-check-${id}:checked`)).map(c=>c.value);
+  document.querySelectorAll(`[id^="mt-label-${id}-"]`).forEach(label=>{
+    const val = label.querySelector('input').value;
+    if(checked.includes(val)){
+      label.style.background='var(--lime-dim)';
+      label.style.borderColor='var(--lime)';
+      label.style.color='var(--lime)';
+    } else {
+      label.style.background='var(--bg3)';
+      label.style.borderColor='var(--bdr3)';
+      label.style.color='var(--t2)';
+    }
+  });
 }
 
 function removeCard(id){
@@ -1690,16 +1709,14 @@ function setPlatformMode(cardId, mode){
   const multiBtn = document.getElementById('mode-multi-'+cardId);
   const singleDiv = document.getElementById('platform-single-'+cardId);
   const multiDiv = document.getElementById('platform-multi-'+cardId);
-  if(mode === 'single'){
-    singleBtn.style.cssText = 'padding:6px 14px;border-radius:6px;font-family:var(--fb);font-size:12px;font-weight:600;cursor:pointer;background:var(--lime-dim);border:1px solid var(--lime);color:var(--lime);transition:all .15s;';
-    multiBtn.style.cssText = 'padding:6px 14px;border-radius:6px;font-family:var(--fb);font-size:12px;font-weight:600;cursor:pointer;background:var(--bg3);border:1px solid var(--bdr3);color:var(--t3);transition:all .15s;';
-    singleDiv.style.display = '';
-    multiDiv.style.display = 'none';
+  if(mode==='single'){
+    singleBtn.style.cssText='padding:6px 14px;border-radius:6px;font-family:var(--fb);font-size:12px;font-weight:600;cursor:pointer;background:var(--lime-dim);border:1px solid var(--lime);color:var(--lime);';
+    multiBtn.style.cssText='padding:6px 14px;border-radius:6px;font-family:var(--fb);font-size:12px;font-weight:600;cursor:pointer;background:var(--bg3);border:1px solid var(--bdr3);color:var(--t3);';
+    singleDiv.style.display=''; multiDiv.style.display='none';
   } else {
-    multiBtn.style.cssText = 'padding:6px 14px;border-radius:6px;font-family:var(--fb);font-size:12px;font-weight:600;cursor:pointer;background:var(--lime-dim);border:1px solid var(--lime);color:var(--lime);transition:all .15s;';
-    singleBtn.style.cssText = 'padding:6px 14px;border-radius:6px;font-family:var(--fb);font-size:12px;font-weight:600;cursor:pointer;background:var(--bg3);border:1px solid var(--bdr3);color:var(--t3);transition:all .15s;';
-    singleDiv.style.display = 'none';
-    multiDiv.style.display = '';
+    multiBtn.style.cssText='padding:6px 14px;border-radius:6px;font-family:var(--fb);font-size:12px;font-weight:600;cursor:pointer;background:var(--lime-dim);border:1px solid var(--lime);color:var(--lime);';
+    singleBtn.style.cssText='padding:6px 14px;border-radius:6px;font-family:var(--fb);font-size:12px;font-weight:600;cursor:pointer;background:var(--bg3);border:1px solid var(--bdr3);color:var(--t3);';
+    singleDiv.style.display='none'; multiDiv.style.display='';
   }
 }
 
@@ -1711,38 +1728,54 @@ function updatePlatformTags(cardId){
   ).join('');
 }
 
+function getCardPlatforms(cardId){
+  const singleDiv = document.getElementById('platform-single-'+cardId);
+  if(singleDiv && singleDiv.style.display!=='none'){
+    return [document.getElementById('platform-select-'+cardId).value];
+  }
+  const checkboxes = document.querySelectorAll(`#platform-multi-${cardId} input[type=checkbox]:checked`);
+  return Array.from(checkboxes).map(cb=>cb.value);
+}
+
+function getCardMediaTypes(cardId){
+  const checked = Array.from(document.querySelectorAll(`.mt-check-${cardId}:checked`)).map(c=>c.value);
+  return checked.length ? checked.join(', ') : 'Image / Graphic';
+}
+
 function handleCardDrop(event, cardId){
   event.preventDefault();
   const dz = document.getElementById('dropzone-'+cardId);
-  dz.style.borderColor = 'rgba(204,255,0,0.25)';
-  dz.style.background = 'rgba(204,255,0,0.02)';
+  dz.style.borderColor='rgba(204,255,0,0.25)';
+  dz.style.background='rgba(204,255,0,0.02)';
   handleCardFiles(event.dataTransfer.files, cardId);
 }
 
 function handleCardFiles(files, cardId){
-  if(!window.cardFiles) window.cardFiles = {};
-  if(!window.cardFiles[cardId]) window.cardFiles[cardId] = [];
+  if(!window.cardFiles) window.cardFiles={};
+  if(!window.cardFiles[cardId]) window.cardFiles[cardId]=[];
   Array.from(files).forEach(file=>{
     const fileId = cardId+'-'+Date.now()+'-'+Math.random().toString(36).slice(2);
-    window.cardFiles[cardId].push({ fileId, file, status:'pending', url:'' });
-    renderFileItem(cardId, fileId, file.name, 'pending');
+    window.cardFiles[cardId].push({fileId, file, status:'pending', url:''});
+    renderFileItem(cardId, fileId, file.name, 'uploading');
     uploadFileToR2(cardId, fileId, file);
   });
 }
 
-function renderFileItem(cardId, fileId, fileName, status, url=''){
+function renderFileItem(cardId, fileId, fileName, status){
   const list = document.getElementById('filelist-'+cardId);
-  let existing = document.getElementById('fileitem-'+fileId);
+  if(!list) return;
+  const existing = document.getElementById('fileitem-'+fileId);
   const icon = status==='done'?'✅':status==='uploading'?'⬆️':status==='error'?'❌':'📎';
   const color = status==='done'?'var(--green)':status==='error'?'var(--red)':'var(--t3)';
+  const retryBtn = status==='error' ? `<button onclick="retryFileUpload('${cardId}','${fileId}')" style="background:var(--lime-dim);border:1px solid var(--lime-bdr);color:var(--lime);border-radius:5px;padding:3px 8px;font-size:10px;font-weight:700;cursor:pointer;margin-right:4px;">↺ Retry</button>` : '';
   const html = `<div id="fileitem-${fileId}" style="display:flex;align-items:center;gap:10px;background:rgba(204,255,0,0.04);border:1px solid var(--bdr3);border-radius:8px;padding:8px 12px;">
     <span style="font-size:14px;">${icon}</span>
     <span style="flex:1;font-size:12px;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${fileName}</span>
     <span style="font-size:11px;color:${color};">${status==='done'?'Uploaded':status==='uploading'?'Uploading...':status==='error'?'Failed':''}</span>
-    ${status==='done'?'':''}
+    ${retryBtn}
     <button onclick="removeFileFromCard('${cardId}','${fileId}')" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:14px;padding:0;" onmouseover="this.style.color='var(--red)'" onmouseout="this.style.color='var(--t3)'">×</button>
   </div>`;
-  if(existing){ existing.outerHTML = html; } else { list.insertAdjacentHTML('beforeend', html); }
+  if(existing){ existing.outerHTML=html; } else if(list){ list.insertAdjacentHTML('beforeend',html); }
 }
 
 function removeFileFromCard(cardId, fileId){
@@ -1753,45 +1786,39 @@ function removeFileFromCard(cardId, fileId){
   if(el) el.remove();
 }
 
-async function uploadFileToR2(cardId, fileId, file){
-  renderFileItem(cardId, fileId, file.name, 'uploading');
-  try {
-    // Get presigned URL
-    const presignRes = await fetch('https://canvafitflux.vercel.app/api/upload', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ fileName: file.name, fileType: file.type })
-    });
-    const presignData = await presignRes.json();
-    if(!presignData.presignedUrl) throw new Error(presignData.error || 'No presigned URL');
-
-    // Upload directly to R2
-    const uploadRes = await fetch(presignData.presignedUrl, {
-      method: 'PUT',
-      headers: { 'Content-Type': file.type },
-      body: file
-    });
-    if(!uploadRes.ok) throw new Error('Upload failed: ' + uploadRes.status);
-
-    // Update card file record
-    const fileRecord = window.cardFiles[cardId].find(f=>f.fileId===fileId);
-    if(fileRecord){ fileRecord.status='done'; fileRecord.url=presignData.publicUrl; }
-    renderFileItem(cardId, fileId, file.name, 'done', presignData.publicUrl);
-
-  } catch(err){
-    const fileRecord = window.cardFiles[cardId]?.find(f=>f.fileId===fileId);
-    if(fileRecord) fileRecord.status='error';
-    renderFileItem(cardId, fileId, file.name, 'error');
-  }
+async function retryFileUpload(cardId, fileId){
+  const record = window.cardFiles?.[cardId]?.find(f=>f.fileId===fileId);
+  if(!record) return;
+  record.status = 'pending';
+  renderFileItem(cardId, fileId, record.file.name, 'uploading');
+  await uploadFileToR2(cardId, fileId, record.file);
 }
 
-function getCardPlatforms(cardId){
-  const singleDiv = document.getElementById('platform-single-'+cardId);
-  if(singleDiv && singleDiv.style.display !== 'none'){
-    return [document.getElementById('platform-select-'+cardId).value];
+async function uploadFileToR2(cardId, fileId, file){
+  try {
+    const presignRes = await fetch('https://canvafitflux.vercel.app/api/upload', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({fileName: file.name, fileType: file.type})
+    });
+    const presignData = await presignRes.json();
+    if(!presignData.presignedUrl) throw new Error(presignData.error||'No presigned URL');
+
+    const uploadRes = await fetch(presignData.presignedUrl, {
+      method:'PUT',
+      headers:{'Content-Type': file.type},
+      body: file
+    });
+    if(!uploadRes.ok) throw new Error('Upload failed: '+uploadRes.status);
+
+    const record = window.cardFiles?.[cardId]?.find(f=>f.fileId===fileId);
+    if(record){ record.status='done'; record.url=presignData.publicUrl; }
+    renderFileItem(cardId, fileId, file.name, 'done');
+  } catch(err){
+    const record = window.cardFiles?.[cardId]?.find(f=>f.fileId===fileId);
+    if(record) record.status='error';
+    renderFileItem(cardId, fileId, file.name, 'error');
   }
-  const checkboxes = document.querySelectorAll(`#platform-multi-${cardId} input[type=checkbox]:checked`);
-  return Array.from(checkboxes).map(cb=>cb.value);
 }
 
 async function submitAllCards(){
@@ -1799,152 +1826,199 @@ async function submitAllCards(){
   const cards = Array.from(cardsEl.children);
   if(!cards.length){ toast('No cards to submit','error'); return; }
 
-  // Validate all cards
   for(const card of cards){
     const id = card.id;
     const name = document.getElementById('name-'+id)?.value.trim();
     const platforms = getCardPlatforms(id);
-    const files = window.cardFiles?.[id] || [];
-    const hasUploadedFile = files.some(f=>f.status==='done');
-    const hasFailed = files.some(f=>f.status==='error');
+    const files = window.cardFiles?.[id]||[];
     const hasUploading = files.some(f=>f.status==='uploading'||f.status==='pending');
+    const hasFailed = files.some(f=>f.status==='error');
 
-    if(!name){
-      toast('Please fill in the Deliverable Name for all cards','error');
-      document.getElementById('name-'+id)?.focus();
-      return;
-    }
-    if(!platforms.length){
-      toast('Please select at least one platform for all cards','error');
-      return;
-    }
-    if(hasFailed){
-      toast('Some files failed to upload — retry or remove them','error');
-      return;
-    }
-    if(hasUploading){
-  toast('Please wait — files are still uploading','error');
-  return;
-}
+    if(!name){ toast('Please fill in Deliverable Name for all cards','error'); document.getElementById('name-'+id)?.focus(); return; }
+    if(!platforms.length){ toast('Please select at least one platform','error'); return; }
+    if(hasUploading){ toast('Please wait — files are still uploading','error'); return; }
+    if(hasFailed){ toast('Some files failed — retry or remove them','error'); return; }
   }
 
   const btn = document.getElementById('submit-all-btn');
-  btn.textContent = 'SUBMITTING...';
-  btn.disabled = true;
+  btn.textContent='SUBMITTING...'; btn.disabled=true;
 
-  // Submit each card
-  let successCount = 0;
   for(const card of cards){
     const id = card.id;
     const name = document.getElementById('name-'+id)?.value.trim();
-    const mediatype = document.getElementById('mediatype-'+id)?.value;
+    const mediatype = getCardMediaTypes(id);
     const date = document.getElementById('date-'+id)?.value;
-    const status = document.getElementById('status-'+id)?.value;
+    const uploaddate = document.getElementById('uploaddate-'+id)?.value;
     const caption = document.getElementById('caption-'+id)?.value.trim();
     const platforms = getCardPlatforms(id);
-    const files = window.cardFiles?.[id] || [];
+    const files = window.cardFiles?.[id]||[];
     const mediaURLs = files.filter(f=>f.status==='done').map(f=>f.url);
 
-    // Submit one row per platform
-    for(const platform of platforms){
-      const body = {
-        token: currentClient.Token,
-        platform,
-        title: name,
-        caption,
-        mediaURL: mediaURLs.join(','),
-        mediaType: mediatype,
-        scheduledDate: date,
-        status
-      };
-      await apiPost('addContent', body);
-      successCount++;
-    }
+    // ONE row with all platforms comma-separated
+    await apiPost('addContent', {
+      token: currentClient.Token,
+      platform: platforms.join(', '),
+      title: name,
+      caption,
+      mediaURL: mediaURLs.join(','),
+      mediaType: mediatype,
+      scheduledDate: date,
+      uploadDate: uploaddate,
+      status: 'waiting'
+    });
   }
 
-  toast(`✅ ${successCount} content piece${successCount!==1?'s':''} submitted for approval`);
-  
-  // Clear all cards
-  cardsEl.innerHTML = '';
-  window.cardFiles = {};
-  cardCount = 0;
-  btn.textContent = 'SUBMIT ALL FOR APPROVAL';
-  btn.disabled = false;
-  btn.style.display = 'none';
-  
+  toast(`✅ ${cards.length} deliverable${cards.length!==1?'s':''} submitted — client notified by email`);
+  cardsEl.innerHTML='';
+  window.cardFiles={};
+  cardCount=0;
+  btn.textContent='SUBMIT ALL FOR APPROVAL';
+  btn.disabled=false;
+  btn.style.display='none';
+  loadAdminContent();
+}
+
+function setContentTimeFilter(mode, btn){
+  contentTimeFilter = mode;
+  document.querySelectorAll('#dtab-content .tl-filter').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
   loadAdminContent();
 }
 
 async function loadAdminContent(){
   if(!currentClient) return;
   const el = document.getElementById('content-admin-list');
-  el.innerHTML = '<div class="loading"><div class="spinner"></div>Loading...</div>';
+  el.innerHTML='<div class="loading"><div class="spinner"></div>Loading...</div>';
   const data = await apiGet('getContent', currentClient.Token);
   const content = (data&&data.content) ? data.content : [];
 
-  // Check for unread messages
-  const unreadItems = content.filter(c=>(c.ChatMessages||[]).some(m=>m.author!=='FitFlux'));
+  // Unread messages banner
+  const unreadItems = content.filter(c=>(c.ChatMessages||[]).some(m=>m.author!=='FitFlux'&&!m.read));
   const banner = document.getElementById('content-unread-banner');
   const bannerText = document.getElementById('content-unread-text');
-  if(unreadItems.length && banner && bannerText){
-    banner.style.display = 'flex';
-    bannerText.textContent = `💬 ${unreadItems.length} content post${unreadItems.length!==1?'s have':' has'} unread client messages`;
-  } else if(banner){
-    banner.style.display = 'none';
-  }
+  if(unreadItems.length && banner){
+    banner.style.display='flex';
+    bannerText.textContent=`💬 ${unreadItems.length} content post${unreadItems.length!==1?'s have':' has'} unread client messages — scroll down to view`;
+  } else if(banner){ banner.style.display='none'; }
 
   if(!content.length){
     el.innerHTML='<div class="empty-state"><div class="empty-icon">📝</div><div class="empty-text">No content yet.</div></div>';
     return;
   }
 
-  el.innerHTML = content.map(c=>{
-    const statusClass = c.Status==='Approved'?'cai-approved':c.Status==='Revision'||c.Status==='declined'?'cai-revision':'cai-pending';
-    const statusLabel = c.Status==='Approved'?'✅ Approved':c.Status==='Revision'?'✏️ Revision':c.Status==='waiting'?'👁 Awaiting Approval':c.Status==='published'?'🚀 Published':'⏳ Pending';
-    const hasUnread = (c.ChatMessages||[]).some(m=>m.author!=='FitFlux');
-    
-    // Media preview
-    const mediaURLs = (c.MediaURL||'').split(',').filter(Boolean);
-    const mediaHtml = mediaURLs.length ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
-      ${mediaURLs.map(url=>{
-        const isVideo = url.includes('.mp4')||url.includes('.mov')||url.includes('.webm');
-        return isVideo
-          ? `<video src="${url}" style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid var(--bdr3);" onclick="window.open('${url}')"></video>`
-          : `<img src="${url}" style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:1px solid var(--bdr3);cursor:pointer;" onclick="window.open('${url}')"/>`;
-      }).join('')}
-    </div>` : '';
+  // Filter by time
+  const now = new Date();
+  const thisYear = now.getFullYear().toString();
+  const thisMonth = now.toLocaleString('default',{month:'long'});
+  const weekStart = new Date(now); weekStart.setDate(now.getDate()-((now.getDay()+6)%7)); weekStart.setHours(0,0,0,0);
+  const weekEnd = new Date(weekStart); weekEnd.setDate(weekStart.getDate()+7);
 
-    return `<div class="content-admin-item" style="${hasUnread?'border-color:rgba(245,158,11,0.4);':''}">
-      <div class="cai-header">
-        <span class="cai-platform">${c.Platform||'Post'}</span>
-        <span class="cai-title">${c.Title||'Content'}</span>
-        <span style="font-size:11px;color:var(--t3);">${c.ScheduledDate||''}</span>
-        <span class="cai-status-badge ${statusClass}">${statusLabel}</span>
-        ${hasUnread?'<span style="background:rgba(245,158,11,0.2);color:var(--amber);font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;">💬 New Message</span>':''}
-      </div>
-      ${mediaHtml}
-      <div class="cai-caption">${(c.Caption||'').substring(0,200)}${c.Caption&&c.Caption.length>200?'...':''}</div>
-      ${c.RevisionNote?`<div style="font-size:11px;color:var(--amber);margin-bottom:8px;">Revision note: ${c.RevisionNote}</div>`:''}
-      <div style="margin-top:10px;">
-        <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;">💬 Chat</div>
-        <div id="admin-chat-${c.ID||c.Title}" style="max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:8px;">
-          ${(c.ChatMessages||[]).map(m=>`<div style="background:${m.author==='FitFlux'?'rgba(204,255,0,0.06)':'rgba(255,255,255,0.04)'};border-radius:7px;padding:8px 10px;${m.author!=='FitFlux'?'border-left:2px solid var(--amber);':''}">
-            <div style="font-size:10px;font-weight:700;color:${m.author==='FitFlux'?'var(--lime)':'var(--amber)'};margin-bottom:3px;">${m.author||'Client'}</div>
-            <div style="font-size:12px;color:var(--t2);">${m.text||''}</div>
-            <div style="font-size:10px;color:var(--t3);margin-top:3px;">${m.time||''}</div>
-          </div>`).join('')}
-        </div>
-        <div style="display:flex;gap:8px;">
-          <input class="form-input" id="admin-reply-${c.ID||c.Title}" placeholder="Reply to client..." style="flex:1;padding:8px 12px;font-size:12px;"/>
-          <button onclick="sendAdminContentReply('${c.Token}','${c.Title}','${c.Platform}','${c.ID||c.Title}')" style="background:var(--lime);border:none;color:#080c08;font-family:var(--fb);font-size:12px;font-weight:700;padding:8px 16px;border-radius:7px;cursor:pointer;">Reply →</button>
-        </div>
-      </div>
-      <div class="cai-actions" style="margin-top:8px;display:flex;gap:8px;">
-        <button class="btn-sm btn-sm-green" onclick="setContentWaiting('${c.Token}','${c.Title}','${c.Platform}')">👁 Send for Approval</button>
-        <button class="btn-sm btn-sm-red" onclick="setContentPublished('${c.Token}','${c.Title}','${c.Platform}')">🚀 Mark Published</button>
-      </div>
+  let filtered = content;
+  if(contentTimeFilter==='year') filtered = content.filter(c=>{ const d=new Date(c.ScheduledDate||c.CreatedAt); return d.getFullYear().toString()===thisYear; });
+  if(contentTimeFilter==='month') filtered = content.filter(c=>{ const d=new Date(c.ScheduledDate||c.CreatedAt); return d.getFullYear().toString()===thisYear && d.toLocaleString('default',{month:'long'})===thisMonth; });
+  if(contentTimeFilter==='week') filtered = content.filter(c=>{ const d=new Date(c.ScheduledDate||c.CreatedAt); return d>=weekStart&&d<weekEnd; });
+
+  // Group by year → month
+  const grouped={};
+  filtered.forEach(c=>{
+    const d=new Date(c.ScheduledDate||c.CreatedAt||'');
+    const yr=isNaN(d)?'Unknown':d.getFullYear().toString();
+    const mo=isNaN(d)?'Unknown':d.toLocaleString('default',{month:'long'});
+    if(!grouped[yr]) grouped[yr]={};
+    if(!grouped[yr][mo]) grouped[yr][mo]=[];
+    grouped[yr][mo].push(c);
+  });
+
+  const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const years=Object.keys(grouped).sort((a,b)=>b-a);
+
+  el.innerHTML = years.map(yr=>{
+    const months=Object.keys(grouped[yr]).sort((a,b)=>MONTHS.indexOf(b)-MONTHS.indexOf(a));
+    return `<div style="margin-bottom:20px;">
+      <div style="font-family:var(--fh);font-size:20px;color:var(--lime);margin-bottom:12px;">${yr}</div>
+      ${months.map(mo=>{
+        const items=grouped[yr][mo];
+        const monthId='month-'+yr+'-'+mo.replace(/\s/g,'');
+        return `<div style="margin-bottom:16px;">
+          <div onclick="toggleContentMonth('${monthId}')" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg3);border-radius:8px;cursor:pointer;margin-bottom:8px;">
+            <span id="arr-${monthId}" style="font-size:9px;color:var(--t3);transition:transform .2s;">▶</span>
+            <span style="font-size:13px;font-weight:600;color:var(--t1);">${mo}</span>
+            <span style="font-size:11px;color:var(--t3);">(${items.length})</span>
+            <button onclick="event.stopPropagation();clearContentMonth('${yr}','${mo}')" style="margin-left:auto;background:rgba(255,77,77,0.1);border:1px solid rgba(255,77,77,0.2);color:var(--red);border-radius:5px;padding:3px 10px;font-size:10px;font-weight:700;cursor:pointer;">Clear</button>
+          </div>
+          <div id="${monthId}" style="display:none;flex-direction:column;gap:8px;">
+            ${items.map(c=>buildAdminContentCard(c)).join('')}
+          </div>
+        </div>`;
+      }).join('')}
     </div>`;
   }).join('');
+}
+
+function toggleContentMonth(id){
+  const el=document.getElementById(id);
+  const arr=document.getElementById('arr-'+id);
+  if(!el) return;
+  const isOpen=el.style.display==='flex';
+  el.style.display=isOpen?'none':'flex';
+  if(arr) arr.style.transform=isOpen?'':'rotate(90deg)';
+}
+
+async function clearContentMonth(year, month){
+  if(!confirm(`Delete all content from ${month} ${year}? This cannot be undone.`)) return;
+  toast('Clearing content...');
+  // For now just reload — full delete requires Apps Script update
+  toast('Feature coming soon — delete from Google Sheet manually for now');
+}
+
+function buildAdminContentCard(c){
+  const statusClass=c.Status==='Approved'?'cai-approved':c.Status==='Revision'||c.Status==='declined'?'cai-revision':'cai-pending';
+  const statusLabel=c.Status==='Approved'?'✅ Approved':c.Status==='Revision'?'✏️ Revision':c.Status==='waiting'?'👁 Awaiting Approval':c.Status==='published'?'🚀 Published':'⏳ Pending';
+  const hasUnread=(c.ChatMessages||[]).some(m=>m.author!=='FitFlux');
+
+  // Media preview
+  const mediaURLs=(c.MediaURL||'').split(',').filter(Boolean);
+  const mediaHtml=mediaURLs.length?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+    ${mediaURLs.map(url=>{
+      const isVideo=url.match(/\.(mp4|mov|webm)/i);
+      return isVideo
+        ? `<video src="${url}" controls style="width:120px;height:90px;object-fit:cover;border-radius:8px;border:1px solid var(--bdr3);"></video>`
+        : `<img src="${url}" style="width:90px;height:90px;object-fit:cover;border-radius:8px;border:1px solid var(--bdr3);cursor:pointer;" onclick="window.open('${url}','_blank')"/>`;
+    }).join('')}
+  </div>`:'';
+
+  const chatMsgs=(c.ChatMessages||[]).map(m=>`
+    <div style="background:${m.author==='FitFlux'?'rgba(204,255,0,0.06)':'rgba(255,255,255,0.04)'};border-radius:7px;padding:8px 10px;${m.author!=='FitFlux'?'border-left:2px solid var(--amber);':''}">
+      <div style="font-size:10px;font-weight:700;color:${m.author==='FitFlux'?'var(--lime)':'var(--amber)'};margin-bottom:3px;">${m.author||'Client'}</div>
+      <div style="font-size:12px;color:var(--t2);">${m.text||''}</div>
+      <div style="font-size:10px;color:var(--t3);margin-top:3px;">${m.time||''}</div>
+    </div>`).join('');
+
+  const uid=c.ID||c.Title;
+
+  return `<div class="content-admin-item" style="${hasUnread?'border-color:rgba(245,158,11,0.4);':''}">
+    <div class="cai-header">
+      <span class="cai-platform">${c.Platform||'Post'}</span>
+      <span class="cai-title">${c.Title||'Content'}</span>
+      <span style="font-size:11px;color:var(--t3);">${c.ScheduledDate||''}</span>
+      <span class="cai-status-badge ${statusClass}">${statusLabel}</span>
+      ${hasUnread?'<span style="background:rgba(245,158,11,0.2);color:var(--amber);font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;">💬 New Message</span>':''}
+    </div>
+    ${mediaHtml}
+    <div class="cai-caption">${(c.Caption||'').substring(0,200)}${c.Caption&&c.Caption.length>200?'...':''}</div>
+    ${c.RevisionNote?`<div style="font-size:11px;color:var(--amber);margin-bottom:8px;">Revision: ${c.RevisionNote}</div>`:''}
+    <div style="margin-top:10px;">
+      <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;">💬 Chat</div>
+      <div id="admin-chat-${uid}" style="max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:8px;">${chatMsgs}</div>
+      <div style="display:flex;gap:8px;">
+        <input class="form-input" id="admin-reply-${uid}" placeholder="Reply to client..." style="flex:1;padding:8px 12px;font-size:12px;"/>
+        <button onclick="sendAdminContentReply('${c.Token}','${c.Title}','${c.Platform}','${uid}')" style="background:var(--lime);border:none;color:#080c08;font-family:var(--fb);font-size:12px;font-weight:700;padding:8px 16px;border-radius:7px;cursor:pointer;">Reply →</button>
+      </div>
+    </div>
+    <div class="cai-actions" style="margin-top:8px;display:flex;gap:8px;">
+      ${c.Status!=='published'?`<button class="btn-sm btn-sm-red" onclick="setContentPublished('${c.Token}','${c.Title}','${c.Platform}')">🚀 Mark Published</button>`:''}
+    </div>
+  </div>`;
 }
 async function setContentWaiting(token, title, platform){
   await apiPost('updateContentStatus',{token, contentTitle:title, platform, status:'waiting'});
