@@ -841,10 +841,10 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
       <div class="callout-text">Content is grouped by week then by day. Approve or decline each piece — nothing goes live without your sign-off.</div>
     </div>
   </div>
-  <div class="approval-tabs">
-    <div class="atab active" onclick="switchWeek('this',this)">This Week</div>
-    <div class="atab" onclick="switchWeek('last',this)">Last Week</div>
-    <div class="atab" onclick="switchWeek('upcoming',this)">Upcoming</div>
+ <div class="approval-tabs">
+    <div class="atab active" onclick="switchWeek('this',this)">This Week <span id="count-this" style="background:rgba(126,200,69,0.2);color:var(--gold);font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;margin-left:4px;display:none;">0</span></div>
+    <div class="atab" onclick="switchWeek('next',this)">Next Week <span id="count-next" style="background:rgba(126,200,69,0.2);color:var(--gold);font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;margin-left:4px;display:none;">0</span></div>
+    <div class="atab" onclick="switchWeek('upcoming',this)">Upcoming <span id="count-upcoming" style="background:rgba(126,200,69,0.2);color:var(--gold);font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;margin-left:4px;display:none;">0</span></div>
   </div>
   <div id="week-loading" class="loading"><div class="spinner"></div>Loading content...</div>
 <div id="week-this" class="approval-week">
@@ -876,7 +876,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
       </div>
     </div>
   </div>
-  <div id="week-last" class="approval-week"></div>
+  <div id="week-next" class="approval-week"></div>
   <div id="week-upcoming" class="approval-week"></div>
 
   <div class="dvd"></div>
@@ -1222,7 +1222,7 @@ loadMilestones();
   loadSubmittedPlatforms();
 setInterval(async ()=>{
   await initGrowthJourney();
-  await loadContent();
+  await loadContent(true);
 }, 30000);
   if(saved && saved.notes) document.getElementById('notes-area').value = saved.notes;
 }
@@ -1468,7 +1468,8 @@ function switchWeek(w, el){
   document.querySelectorAll('.atab').forEach(t=>t.classList.remove('active'));
   document.querySelectorAll('.approval-week').forEach(aw=>aw.classList.remove('active'));
   el.classList.add('active');
-  document.getElementById('week-'+w).classList.add('active');
+  const weekEl = document.getElementById('week-'+w);
+  if(weekEl) weekEl.classList.add('active');
 }
 
 /* ── API ── */
@@ -1518,28 +1519,69 @@ async function apiPost(action, body){
     text.textContent = 'You have content ready for your review. Head to Content Approval now — nothing goes live without your sign-off.';
   }
 }
-async function loadContent(){
-  document.getElementById('week-loading').style.display = 'flex';
+async function loadContent(silent=false){
+  if(!silent){
+    document.getElementById('week-loading').style.display = 'flex';
+  }
   const data = await apiGet('getContent', window.FF_TOKEN || urlToken);
-  document.getElementById('week-loading').style.display = 'none';
+  if(!silent){
+    document.getElementById('week-loading').style.display = 'none';
+  }
   if(!data || !data.content){ showEmptyApproval(); return; }
   contentData = data.content;
   updateNextCallout(contentData);
- const now = new Date();
-const dayOfWeek = (now.getDay() + 6) % 7; // Monday = 0
-const thisWeekStart = new Date(now);
-thisWeekStart.setDate(now.getDate() - dayOfWeek);
-thisWeekStart.setHours(0,0,0,0);
-const thisWeekEnd = new Date(thisWeekStart);
-thisWeekEnd.setDate(thisWeekStart.getDate() + 7);
-const lastWeekStart = new Date(thisWeekStart);
-lastWeekStart.setDate(thisWeekStart.getDate() - 7);
-  renderWeek('this',  contentData.filter(c=>{ const d=new Date(c.ScheduledDate||c.CreatedAt); return d>=thisWeekStart && d<thisWeekEnd; }));
-  renderWeek('last',  contentData.filter(c=>{ const d=new Date(c.ScheduledDate||c.CreatedAt); return d>=lastWeekStart && d<thisWeekStart; }));
-  renderWeek('upcoming', contentData.filter(c=>{ const d=new Date(c.ScheduledDate||c.CreatedAt); return d>=thisWeekEnd; }));
-  const pending = contentData.filter(c=>c.Status==='Pending').length;
+
+  const now = new Date();
+  const dayOfWeek = (now.getDay()+6)%7;
+  const thisWeekStart = new Date(now);
+  thisWeekStart.setDate(now.getDate()-dayOfWeek);
+  thisWeekStart.setHours(0,0,0,0);
+  const thisWeekEnd = new Date(thisWeekStart);
+  thisWeekEnd.setDate(thisWeekStart.getDate()+7);
+  const nextWeekStart = new Date(thisWeekEnd);
+  const nextWeekEnd = new Date(nextWeekStart);
+  nextWeekEnd.setDate(nextWeekStart.getDate()+7);
+
+  const thisItems = contentData.filter(c=>{ const d=new Date(c.ScheduledDate||c.CreatedAt); return d>=thisWeekStart&&d<thisWeekEnd; });
+  const nextItems = contentData.filter(c=>{ const d=new Date(c.ScheduledDate||c.CreatedAt); return d>=nextWeekStart&&d<nextWeekEnd; });
+  const upcomingItems = contentData.filter(c=>{ const d=new Date(c.ScheduledDate||c.CreatedAt); return d>=nextWeekEnd; });
+
+  // Update count badges
+  const updateBadge = (id, count) => {
+    const el = document.getElementById('count-'+id);
+    if(!el) return;
+    if(count>0){ el.textContent=count; el.style.display=''; }
+    else el.style.display='none';
+  };
+  updateBadge('this', thisItems.length);
+  updateBadge('next', nextItems.length);
+  updateBadge('upcoming', upcomingItems.length);
+
+  // Track which cards are open before re-render
+  const openCards = new Set();
+  document.querySelectorAll('[id^="body-card-"]').forEach(el=>{
+    if(el.style.display!=='none') openCards.add(el.id);
+  });
+
+  // Only re-render if not silent or if content changed
+  if(!silent || JSON.stringify(contentData) !== window._lastContentData){
+    window._lastContentData = JSON.stringify(contentData);
+    renderWeek('this', thisItems);
+    renderWeek('next', nextItems);
+    renderWeek('upcoming', upcomingItems);
+
+    // Restore open cards
+    openCards.forEach(bodyId=>{
+      const el = document.getElementById(bodyId);
+      const icon = document.getElementById('toggle-icon-'+bodyId);
+      if(el){ el.style.display='block'; if(icon) icon.textContent='▲'; }
+    });
+  }
+
+  const pending = contentData.filter(c=>c.Status==='Pending'||c.Status==='waiting').length;
   const badge = document.getElementById('pending-badge');
-  if(pending > 0){ badge.textContent = pending; badge.style.display = ''; }
+  if(pending>0){ badge.textContent=pending; badge.style.display=''; }
+  else badge.style.display='none';
 }
 
 function renderWeek(week, items){
@@ -1640,7 +1682,7 @@ function buildApprovalCard(c, i){
     <div class="aitem-header" onclick="toggleContentCard('${bodyId}')" style="cursor:pointer;">
       <span class="aitem-platform">${c.Platform||'Post'}</span>
       <span class="aitem-title">${c.Title||'Content'}</span>
-      <span class="aitem-date">${c.ScheduledDate||''}</span>
+      <span class="aitem-date">${c.ScheduledDate ? new Date(c.ScheduledDate).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : ''}</span>
       ${st}
       <span id="toggle-icon-${bodyId}" style="color:var(--t3);font-size:12px;margin-left:4px;">▼</span>
     </div>
@@ -1667,7 +1709,10 @@ function buildApprovalCard(c, i){
 }
 
 function showEmptyApproval(){
-  ['this','last','upcoming'].forEach(w=>{ document.getElementById('week-'+w).innerHTML='<div class="approval-empty"><div class="approval-empty-icon">&#x1F4ED;</div><div style="font-size:14px;font-weight:600;color:var(--t2);margin-bottom:6px;">No content yet</div><div style="font-size:12px;color:var(--t3);">Your FitFlux team will upload content here for your review.</div></div>'; });
+  ['this','next','upcoming'].forEach(w=>{
+    const el = document.getElementById('week-'+w);
+    if(el) el.innerHTML='<div class="approval-empty"><div class="approval-empty-icon">📭</div><div style="font-size:14px;font-weight:600;color:var(--t2);margin-bottom:6px;">No content yet</div><div style="font-size:12px;color:var(--t3);">Your FitFlux team will upload content here for your review.</div></div>';
+  });
 }
 
 function toggleComment(boxId){
@@ -1726,9 +1771,13 @@ function showChatForAction(cardId, action){
   }
 }
 async function approveContent(title, platform, cardId){
-  await apiPost('approveContent', {token:window.FF_TOKEN || urlToken, contentTitle:title, platform});
-  await sendTelegram('✅ CONTENT APPROVED\n\nClient: '+(window.FF_CLIENT.name||'—')+'\nContent: '+title+'\nPlatform: '+platform);
-  await loadContent();
+  const result = await apiPost('approveContent', {token:window.FF_TOKEN || urlToken, contentTitle:title, platform});
+  if(result && (result.status==='approved'||result.status==='updated')){
+    await sendTelegram('✅ CONTENT APPROVED\n\nClient: '+(window.FF_CLIENT.name||'—')+'\nContent: '+title+'\nPlatform: '+platform);
+    await loadContent();
+  } else {
+    await loadContent();
+  }
 }
 
 function initDecline(title, platform, cardId, inputId){
