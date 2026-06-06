@@ -810,7 +810,14 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
           </div>
           <div class="perf-form">
             <div style="display:flex;gap:12px;margin-bottom:14px;">
-         <input type="hidden" id="p-periodtype" value="monthly"/>
+         <div class="form-group" style="flex:1;">
+  <div class="perf-input-label">Report Type</div>
+  <select class="grade-select" id="p-periodtype" onchange="updatePeriodLabel(this)">
+    <option value="weekly">Weekly</option>
+    <option value="monthly">Monthly ✉️</option>
+  </select>
+  <div style="font-size:10px;color:var(--t3);margin-top:4px;">Monthly sends client email automatically</div>
+</div>
               <div class="form-group" style="flex:1;">
                 <div class="perf-input-label">Period (e.g. Week 12 or May 2026)</div>
                 <input class="perf-input" id="p-period" placeholder="e.g. May 2026"/>
