@@ -3198,7 +3198,7 @@ async function toggleMilestone(id, cbEl, stageIdx){
           </div>`;
         setTimeout(()=> loadAdminMilestones(), 2500);
       } else {
-        loadAdminMilestones();
+        // Don't reload — just leave the list as is
       }
     }, 650);
   }, 2500);
