@@ -505,6 +505,11 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
           <span class="nav-icon">✅</span> Content Queue
         </button>
       </div>
+      <div class="sb-section-lbl">Messages</div>
+<button class="nav-item" onclick="openInbox()">
+  <span class="nav-icon">💬</span> Client Messages
+  <span class="nav-badge" id="inbox-badge" style="display:none;">0</span>
+</button>
       <div class="sb-footer">
         <button class="sb-logout" onclick="adminLogout()">🔒 Lock Admin</button>
       </div>
@@ -1169,6 +1174,7 @@ async function loadDashboard(){
 
   buildTaskSummary();
   renderRetainerTracker(allClients);
+  loadInbox();
 }
 
 function buildClientRow(c){
@@ -1615,10 +1621,6 @@ function addDeliverableCard(){
          <input class="form-input" id="name-${id}" placeholder="e.g. Week 3 Reel — Transformation" autocomplete="off"/>
         </div>
         <div class="form-group">
-          <div class="form-label">Upload Date</div>
-          <input class="form-input" id="uploaddate-${id}" type="date"/>
-        </div>
-        <div class="form-group">
           <div class="form-label">Scheduled Publish Date</div>
           <input class="form-input" id="date-${id}" type="date"/>
         </div>
@@ -1924,7 +1926,12 @@ async function loadAdminContent(){
 
   const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
   const years=Object.keys(grouped).sort((a,b)=>b-a);
-
+// Add select all controls
+const selectBar = `<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:10px 14px;background:var(--bg3);border-radius:8px;">
+  <input type="checkbox" id="select-all-content" onchange="toggleSelectAll(this)" style="cursor:pointer;width:16px;height:16px;"/>
+  <label for="select-all-content" style="font-size:12px;color:var(--t2);cursor:pointer;">Select All</label>
+  <button onclick="deleteSelected()" style="margin-left:auto;background:rgba(255,77,77,0.1);border:1px solid rgba(255,77,77,0.2);color:var(--red);border-radius:6px;padding:6px 14px;font-family:var(--fb);font-size:12px;font-weight:700;cursor:pointer;" id="delete-selected-btn" style="display:none;">🗑 Delete Selected</button>
+</div>`;
   el.innerHTML = years.map(yr=>{
     const months=Object.keys(grouped[yr]).sort((a,b)=>MONTHS.indexOf(b)-MONTHS.indexOf(a));
     return `<div style="margin-bottom:20px;">
@@ -1998,7 +2005,11 @@ function buildAdminContentCard(c){
 
   const uid=c.ID||c.Title;
 
-  return `<div class="content-admin-item" style="${hasUnread?'border-color:rgba(245,158,11,0.4);':''}">
+ return `<div class="content-admin-item" style="${hasUnread?'border-color:rgba(245,158,11,0.4);':''}">
+    <div style="display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--bdr3);">
+      <input type="checkbox" class="content-select-cb" data-id="${c.ID||c.Title}" data-token="${c.Token||currentClient?.Token}" style="cursor:pointer;width:16px;height:16px;" onchange="updateDeleteBtn()"/>
+      <span style="font-size:11px;color:var(--t3);">Select</span>
+    </div>
     <div class="cai-header">
       <span class="cai-platform">${c.Platform||'Post'}</span>
       <span class="cai-title">${c.Title||'Content'}</span>
@@ -2059,6 +2070,33 @@ async function deleteContentItem(id, token){
     toast('❌ Delete failed','error');
   }
 }  
+  function toggleSelectAll(cb){
+  document.querySelectorAll('.content-select-cb').forEach(el=>el.checked=cb.checked);
+  updateDeleteBtn();
+}
+
+function updateDeleteBtn(){
+  const selected = document.querySelectorAll('.content-select-cb:checked').length;
+  const btn = document.getElementById('delete-selected-btn');
+  if(btn) btn.textContent = selected > 0 ? `🗑 Delete Selected (${selected})` : '🗑 Delete Selected';
+}
+
+async function deleteSelected(){
+  const selected = Array.from(document.querySelectorAll('.content-select-cb:checked'));
+  if(!selected.length){ toast('No items selected','error'); return; }
+  if(!confirm(`Delete ${selected.length} selected item${selected.length!==1?'s':''}? This cannot be undone.`)) return;
+  
+  toast('Deleting...');
+  let deleted = 0;
+  for(const cb of selected){
+    const id = cb.getAttribute('data-id');
+    const token = cb.getAttribute('data-token');
+    const result = await apiPost('deleteContent', {token, id});
+    if(result && result.status==='deleted') deleted++;
+  }
+  toast(`✅ Deleted ${deleted} item${deleted!==1?'s':''}`);
+  loadAdminContent();
+}
   async function setContentWaiting(token, title, platform){
   await apiPost('updateContentStatus',{token, contentTitle:title, platform, status:'waiting'});
   await sendTelegramAdmin('👁 CONTENT SENT FOR APPROVAL\n\nClient: '+(currentClient.Name||'—')+'\nContent: '+title+'\nPlatform: '+platform+'\n\nClient will now see Approve/Decline buttons.');
@@ -3324,7 +3362,82 @@ async function addAdminDocument(){
   document.getElementById('doc-link').value='';
   loadAdminDocuments();
 }
+let inboxMessages = [];
 
+async function loadInbox(){
+  if(!allClients.length) return;
+  inboxMessages = [];
+  
+  await Promise.all(allClients.map(async c=>{
+    const data = await apiGet('getContent', c.Token);
+    if(data && data.content){
+      data.content.forEach(post=>{
+        (post.ChatMessages||[]).forEach(m=>{
+          if(m.author !== 'FitFlux'){
+            inboxMessages.push({
+              clientName: c.Name,
+              clientToken: c.Token,
+              contentTitle: post.Title,
+              platform: post.Platform,
+              message: m.text,
+              time: m.time,
+              author: m.author
+            });
+          }
+        });
+      });
+    }
+  }));
+
+  const badge = document.getElementById('inbox-badge');
+  if(inboxMessages.length > 0){
+    badge.textContent = inboxMessages.length;
+    badge.style.display = '';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function openInbox(){
+  // Show all pages hidden, show inbox modal
+  const existing = document.getElementById('inbox-modal');
+  if(existing) existing.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'inbox-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:1000;display:flex;align-items:center;justify-content:center;';
+  
+  const msgs = inboxMessages.length ? inboxMessages.map(m=>`
+    <div style="background:var(--bg3);border:1px solid var(--bdr3);border-radius:10px;padding:14px 16px;cursor:pointer;transition:border-color .15s;" onclick="goToClientMessage('${m.clientToken}');document.getElementById('inbox-modal').remove();" onmouseover="this.style.borderColor='var(--lime)'" onmouseout="this.style.borderColor='var(--bdr3)'">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+        <span style="font-size:12px;font-weight:700;color:var(--lime);">${m.clientName||'—'}</span>
+        <span style="font-size:11px;color:var(--t3);">→</span>
+        <span style="font-size:11px;color:var(--t3);">${m.contentTitle||'—'} · ${m.platform||'—'}</span>
+        <span style="margin-left:auto;font-size:10px;color:var(--t3);">${m.time||''}</span>
+      </div>
+      <div style="font-size:13px;color:var(--t2);">${m.message||''}</div>
+    </div>`).join('') 
+  : '<div style="text-align:center;padding:40px;color:var(--t3);">No unread messages</div>';
+
+  modal.innerHTML = `
+    <div style="background:var(--bg2);border:1px solid var(--bdr2);border-radius:16px;width:560px;max-width:95vw;max-height:80vh;overflow-y:auto;padding:28px 32px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
+        <div style="font-family:var(--fh);font-size:22px;color:var(--lime);">💬 CLIENT MESSAGES</div>
+        <button onclick="document.getElementById('inbox-modal').remove()" style="background:none;border:none;color:var(--t3);font-size:22px;cursor:pointer;">×</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:10px;">${msgs}</div>
+    </div>`;
+  
+  modal.onclick = e=>{ if(e.target===modal) modal.remove(); };
+  document.body.appendChild(modal);
+}
+
+async function goToClientMessage(token){
+  const client = allClients.find(c=>c.Token===token);
+  if(!client) return;
+  await openClient(token);
+  switchDetailTab('content', document.querySelector('.dtab:nth-child(4)'));
+}
 </script>
 </body>
 </html>
