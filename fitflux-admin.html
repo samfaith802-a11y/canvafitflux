@@ -3346,7 +3346,11 @@ async function loadAdminCredentials(){
         <div style="font-size:14px;font-weight:700;color:var(--lime);">${c.Platform||'Unknown Platform'}</div>
         <div style="margin-left:auto;font-size:11px;color:var(--t3);">${c.Timestamp||'—'}</div>
       </div>
-      <button onclick="decryptCred('${c.EncryptedData}','${c.IV}','cred-out-${c.Platform}')"
+    <button 
+  data-enc="${c.EncryptedData}" 
+  data-iv="${c.IV}" 
+  data-out="cred-out-${c.Platform}"
+  onclick="decryptCred(this.dataset.enc, this.dataset.iv, this.dataset.out)"
         style="background:var(--lime-dim);border:1px solid var(--lime-bdr);color:var(--lime);border-radius:7px;padding:8px 18px;font-family:var(--fb);font-size:12px;font-weight:700;cursor:pointer;margin-bottom:10px;">
         👁 Decrypt & View
       </button>
