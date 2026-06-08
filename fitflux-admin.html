@@ -2182,6 +2182,11 @@ function selectPerfPlatform(p, btn){
   document.querySelectorAll('.pptab').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
 }
+function updatePeriodLabel(sel){
+  const input = document.getElementById('p-period');
+  if(!input) return;
+  input.placeholder = sel.value==='monthly' ? 'e.g. May 2026' : 'e.g. Week 10';
+}
 
 async function savePerformance(btn){
   if(!currentClient) return;
