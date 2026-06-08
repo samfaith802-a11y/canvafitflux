@@ -1793,6 +1793,7 @@ function showChatForAction(cardId, action){
       if(!text){ input?.focus(); return; }
       await apiPost('approveContent', {token: window.FF_TOKEN||urlToken, contentTitle: title, platform});
       const time = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+      console.log('Chat token:', window.FF_TOKEN||urlToken, 'title:', title);
       await apiPost('addContentChat', {token: window.FF_TOKEN||urlToken, contentTitle: title, platform, text: '✏️ Approved with correction: '+text, author: window.FF_CLIENT.name||'Client', time});
       await sendTelegram('✏️ APPROVED WITH MINOR CORRECTION\n\nClient: '+(window.FF_CLIENT.name||'—')+'\nContent: '+title+'\nNote: '+text);
       if(input) input.value='';
