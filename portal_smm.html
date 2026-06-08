@@ -1637,30 +1637,34 @@ function buildApprovalCard(c, i){
   const cardId = 'card-'+(c.ID||i);
   const inputId = 'input-'+cardId;
   const bodyId = 'body-'+cardId;
+  const titleEncoded = encodeURIComponent(c.Title||'');
+  const platformEncoded = encodeURIComponent(c.Platform||'');
 
   // Format date
   const dateStr = c.ScheduledDate ? new Date(c.ScheduledDate).toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}) : '';
 
   // Media
   const mediaURLs = (c.MediaURL||'').split(',').filter(Boolean);
-  const mediaHtml = mediaURLs.length ? `<div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px;">
+  const mediaHtml = mediaURLs.length ? `<div style="margin-bottom:14px;">
     ${mediaURLs.map(url=>{
       const isVideo = url.match(/\.(mp4|mov|webm)/i);
-      return isVideo
-        ? `<video src="${url}" controls style="width:100%;max-height:320px;border-radius:10px;border:1px solid var(--bdr);display:block;" preload="metadata"></video>`
-        : `<img src="${url}" style="width:90px;height:90px;object-fit:cover;border-radius:10px;border:1px solid var(--bdr);cursor:pointer;" onclick="openMedia('${url}')"/>`;
+      const isPDF = url.match(/\.pdf/i);
+      if(isVideo) return `<video src="${url}" controls style="width:100%;max-height:320px;border-radius:10px;border:1px solid var(--bdr);display:block;" preload="metadata"></video>`;
+      if(isPDF) return `<div style="margin-bottom:10px;">
+        <iframe src="${url}" style="width:100%;height:400px;border:none;border-radius:10px;border:1px solid var(--bdr);" loading="lazy"></iframe>
+        <a href="${url}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;color:var(--blue);">📄 Open PDF in new tab →</a>
+      </div>`;
+      return `<img src="${url}" style="width:90px;height:90px;object-fit:cover;border-radius:10px;border:1px solid var(--bdr);cursor:pointer;margin-right:6px;" onclick="openMedia('${url}')"/>`;
     }).join('')}
   </div>` : '';
 
-  // Action buttons
-const actionBtns = c.Status==='waiting' ? `
-    <div style="display:flex;gap:8px;margin:12px 0;flex-wrap:wrap;" id="action-${cardId}" data-title="${encodeURIComponent(c.Title||'')}" data-platform="${encodeURIComponent(c.Platform||'')}">
-     <button class="btn-approve" id="btn-approve-${cardId}" onclick="handleApprove(this)">✅ Approve</button>
-<button id="btn-minor-${cardId}" onclick="showChatForAction('${cardId}','minor',this)" ...
-<button class="btn-revision" id="btn-decline-${cardId}" onclick="showChatForAction('${cardId}','decline',this)">
+  const actionBtns = c.Status==='waiting' ? `
+    <div style="display:flex;gap:8px;margin:12px 0;flex-wrap:wrap;">
+      <button class="btn-approve" onclick="handleApprove('${titleEncoded}','${platformEncoded}',this)">✅ Approve</button>
+      <button onclick="showChatForAction('${cardId}','minor','${titleEncoded}','${platformEncoded}',this)" style="background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);color:var(--amber);font-family:var(--fb);font-size:12px;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer;transition:all .15s;">✏️ Approve with Minor Correction</button>
+      <button class="btn-revision" onclick="showChatForAction('${cardId}','decline','${titleEncoded}','${platformEncoded}',this)">❌ Decline</button>
     </div>` : '';
 
-  // Chat messages
   const chatMsgs = (c.ChatMessages||[]).map(m=>`
     <div class="comment-msg" style="background:${m.author==='FitFlux'?'rgba(204,255,0,0.06)':'rgba(255,255,255,0.04)'};">
       <div class="comment-author" style="color:${m.author==='FitFlux'?'var(--gold)':'var(--blue)'};">${m.author||'Client'}</div>
@@ -1683,8 +1687,8 @@ const actionBtns = c.Status==='waiting' ? `
       ${mediaHtml}
       ${c.Caption?`<div style="font-size:11px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;">CAPTION</div><div class="aitem-caption">${c.Caption.replace(/</g,'&lt;')}</div>`:''}
       ${actionBtns}
+      ${hasMsgs||c.Status==='waiting'?`
       <div style="margin-top:14px;">
-        ${hasMsgs||c.Status==='waiting'?`
         <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">💬 Chat</div>
         <div id="chat-${cardId}" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;max-height:200px;overflow-y:auto;">${chatMsgs}</div>
         <div class="comment-box" id="chatbox-${cardId}" style="display:none;">
@@ -1694,8 +1698,8 @@ const actionBtns = c.Status==='waiting' ? `
             <span class="comment-hint">Goes directly to your FitFlux team.</span>
             <button class="btn-send" id="chat-send-${cardId}">Send →</button>
           </div>
-        </div>`:''}
-      </div>
+        </div>
+      </div>`:''}
     </div>
   </div>`;
 }
@@ -1718,32 +1722,28 @@ function toggleContentCard(bodyId){
   body.style.display = isOpen ? 'none' : 'block';
   if(icon) icon.textContent = isOpen ? '▼' : '▲';
 }
-async function handleApprove(btn){
-  const actionDiv = btn.closest('[data-title]');
-  const title = decodeURIComponent(actionDiv?.getAttribute('data-title')||'');
-  const platform = decodeURIComponent(actionDiv?.getAttribute('data-platform')||'');
-  const cardId = actionDiv?.id?.replace('action-','');
-  btn.textContent='⏳ Approving...'; btn.disabled=true; btn.style.opacity='0.7';
-  await apiPost('approveContent', {token:window.FF_TOKEN||urlToken, contentTitle:title, platform});
+async function handleApprove(titleEncoded, platformEncoded, btn){
+  const title = decodeURIComponent(titleEncoded);
+  const platform = decodeURIComponent(platformEncoded);
+  btn.textContent='⏳ Approving...'; btn.disabled=true;
+  btn.style.transform='scale(0.95)'; btn.style.opacity='0.7';
+  const result = await apiPost('approveContent', {token:window.FF_TOKEN||urlToken, contentTitle:title, platform});
   await sendTelegram('✅ CONTENT APPROVED\n\nClient: '+(window.FF_CLIENT.name||'—')+'\nContent: '+title+'\nPlatform: '+platform);
   await loadContent(true);
 }
 
-function showChatForAction(cardId, action, btn){
-  const actionDiv = btn.closest('[data-title]');
-  const title = decodeURIComponent(actionDiv?.getAttribute('data-title')||'');
-  const platform = decodeURIComponent(actionDiv?.getAttribute('data-platform')||'');
-  
+function showChatForAction(cardId, action, titleEncoded, platformEncoded, btn){
+  const title = decodeURIComponent(titleEncoded);
+  const platform = decodeURIComponent(platformEncoded);
+
   const chatbox = document.getElementById('chatbox-'+cardId);
   const prompt = document.getElementById('chat-prompt-'+cardId);
   const sendBtn = document.getElementById('chat-send-'+cardId);
   const inputId = 'input-'+cardId;
   if(!chatbox) return;
 
-  // Button press effect
-  btn.style.transform='scale(0.95)';
-  btn.style.opacity='0.7';
-  setTimeout(()=>{ btn.style.transform=''; btn.style.opacity=''; }, 200);
+  btn.style.transform='scale(0.95)'; btn.style.opacity='0.7';
+  setTimeout(()=>{ btn.style.transform=''; btn.style.opacity=''; },200);
 
   chatbox.style.display='block';
 
@@ -1757,7 +1757,14 @@ function showChatForAction(cardId, action, btn){
       sendBtn.style.transform='scale(0.95)';
       const time = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
       await apiPost('approveContent', {token:window.FF_TOKEN||urlToken, contentTitle:title, platform});
-      await apiPost('addContentChat', {token:window.FF_TOKEN||urlToken, contentTitle:title, platform, text:'✏️ Approved with correction: '+text, author:window.FF_CLIENT.name||'Client', time});
+      await apiPost('addContentChat', {
+        token:window.FF_TOKEN||urlToken,
+        contentTitle:title,
+        platform,
+        text:'✏️ Approved with correction: '+text,
+        author:window.FF_CLIENT.name||'Client',
+        time
+      });
       await sendTelegram('✏️ APPROVED WITH MINOR CORRECTION\n\nClient: '+(window.FF_CLIENT.name||'—')+'\nContent: '+title+'\nNote: '+text);
       if(input) input.value='';
       sendBtn.textContent='Send →'; sendBtn.disabled=false; sendBtn.style.transform='';
@@ -1774,7 +1781,14 @@ function showChatForAction(cardId, action, btn){
       const time = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
       await apiPost('requestRevision', {token:window.FF_TOKEN||urlToken, contentTitle:title, platform, note:text});
       await apiPost('updateContentStatus', {token:window.FF_TOKEN||urlToken, contentTitle:title, platform, status:'declined'});
-      await apiPost('addContentChat', {token:window.FF_TOKEN||urlToken, contentTitle:title, platform, text:'❌ Declined: '+text, author:window.FF_CLIENT.name||'Client', time});
+      await apiPost('addContentChat', {
+        token:window.FF_TOKEN||urlToken,
+        contentTitle:title,
+        platform,
+        text:'❌ Declined: '+text,
+        author:window.FF_CLIENT.name||'Client',
+        time
+      });
       await sendTelegram('❌ CONTENT DECLINED\n\nClient: '+(window.FF_CLIENT.name||'—')+'\nContent: '+title+'\nReason: '+text);
       if(input) input.value='';
       sendBtn.textContent='Send →'; sendBtn.disabled=false; sendBtn.style.transform='';
@@ -2757,6 +2771,10 @@ async function sendDelivChat(id, name){
   if(input) input.value = '';
   await loadDeliverables();
 }
+  window.addEventListener('online', async ()=>{
+  await loadContent(true);
+  await initGrowthJourney();
+});
 </script>
 </body>
 </html>
