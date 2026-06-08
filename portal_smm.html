@@ -2497,15 +2497,7 @@ async function loadMilestones(){
     localStorage.setItem(seenKey, JSON.stringify(allSeen));
   }
 
-  if(!achievedInStage.length){
-    el.innerHTML=`
-      <div style="text-align:center;padding:40px 20px;">
-        <div style="font-size:40px;margin-bottom:12px;opacity:.3;">🏆</div>
-        <div style="font-size:14px;font-weight:600;color:var(--t2);margin-bottom:6px;">No milestones yet</div>
-        <div style="font-size:12px;color:var(--t3);line-height:1.7;">Your FitFlux team will mark milestones as you hit them.<br>Every achievement appears here and you'll be notified by email.</div>
-      </div>`;
-    return;
-  }
+ if(!achievedInStage.length){
 
   // Progress bar for current stage
   const pct = Math.round((doneCount / 8) * 100);
