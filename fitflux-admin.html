@@ -3473,15 +3473,6 @@ async function loadInbox(){
   }
 }
 
-  const badge = document.getElementById('inbox-badge');
-  if(inboxMessages.length > 0){
-    badge.textContent = inboxMessages.length;
-    badge.style.display = '';
-  } else {
-    badge.style.display = 'none';
-  }
-}
-
 function openInbox(){
   // Show all pages hidden, show inbox modal
   const existing = document.getElementById('inbox-modal');
