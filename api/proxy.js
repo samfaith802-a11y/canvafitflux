@@ -17,18 +17,23 @@ module.exports = async (req, res) => {
     if (req.method === 'GET') {
       const params = new URLSearchParams(req.query).toString();
       const url = SCRIPT_URL + (params ? '?' + params : '');
-      const response = await fetch(url);
-      const data = await response.json();
+    const response = await fetch(url, { redirect: 'follow' });
+const text = await response.text();
+let data;
+try { data = JSON.parse(text); } catch(e) { data = { error: 'Invalid response', raw: text.slice(0, 200) }; }
       res.status(200).json(data);
  
     } else if (req.method === 'POST') {
       const body = req.body;
-      const response = await fetch(SCRIPT_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(body)
-      });
-      const data = await response.json();
+    const response = await fetch(SCRIPT_URL, {
+  method: 'POST',
+  headers: { 'Content-Type': 'application/json' },
+  body: JSON.stringify(body),
+  redirect: 'follow'
+});
+const text = await response.text();
+let data;
+try { data = JSON.parse(text); } catch(e) { data = { error: 'Invalid response', raw: text.slice(0, 200) }; }
       res.status(200).json(data);
     }
   } catch (err) {
