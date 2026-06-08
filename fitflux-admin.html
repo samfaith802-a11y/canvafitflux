@@ -3152,7 +3152,12 @@ async function loadAdminMilestones(){
   el.innerHTML = '<div class="loading"><div class="spinner"></div>Loading milestones...</div>';
 
   const data = await apiGet('getMilestones', currentClient.Token);
-  const achieved = new Set((data&&data.milestones ? data.milestones : []).map(m=>m.ID||m.id||m.Title));
+const MILESTONE_NAME_TO_ID = {};
+MILESTONE_STAGES.forEach(s=>s.milestones.forEach(m=>{ MILESTONE_NAME_TO_ID[m.name]=m.id; }));
+const achievedIds = new Set((data&&data.milestones ? data.milestones : []).map(m=>{
+  return MILESTONE_NAME_TO_ID[m.Title||m.ID||m.id] || m.ID || m.id || m.Title;
+}));
+const achieved = achievedIds;
 
   // Count total achieved to determine current stage
   let totalAchieved = 0;
