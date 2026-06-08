@@ -3202,43 +3202,76 @@ async function toggleMilestone(id, cbEl, stageIdx){
   const itemEl = document.getElementById('ms-'+id);
   const date = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
 
-  // Animate — celebrate then fade out
-  itemEl.style.background = 'rgba(204,255,0,0.1)';
-  itemEl.style.borderColor = 'rgba(204,255,0,0.4)';
+  // Immediately mark as checked visually — don't wait for sheet
   cbEl.classList.add('achieved');
-  itemEl.querySelector('.milestone-info').insertAdjacentHTML('afterend','<div class="milestone-celebrate">🎉</div>');
+  itemEl.style.background = 'rgba(204,255,0,0.08)';
+  itemEl.style.borderColor = 'rgba(204,255,0,0.4)';
+
+  // Update the stage counter immediately
+  const currentDone = document.querySelectorAll('.milestone-item.achieved').length + 1;
+  const stageProgressEl = document.querySelector('[id^="stage-progress-"]');
+  if(stageProgressEl) stageProgressEl.textContent = currentDone+'/8 completed · '+(8-currentDone)+' remaining';
+
+  // Add celebrate emoji
+  if(!itemEl.querySelector('.milestone-celebrate')){
+    itemEl.insertAdjacentHTML('beforeend','<div class="milestone-celebrate">🎉</div>');
+  }
+  itemEl.classList.add('achieved');
 
   // Save to sheet + send email
-  await apiPost('saveMilestone',{ token: currentClient.Token, id, achieved:'true', date, title: m.name, icon: m.icon, desc: m.desc });
+  await apiPost('saveMilestone',{
+    token: currentClient.Token,
+    id,
+    achieved:'true',
+    date,
+    title: m.name,
+    icon: m.icon,
+    desc: m.desc
+  });
   toast('🏆 '+m.name+' — email sent to client!');
 
-  // Fade out after 2.5 seconds
+  // Fade out and collapse after 2.5 seconds
   setTimeout(()=>{
-    itemEl.style.transition = 'all 0.6s';
+    itemEl.style.transition = 'all 0.5s ease';
     itemEl.style.opacity = '0';
-    itemEl.style.transform = 'translateX(30px)';
+    itemEl.style.maxHeight = itemEl.offsetHeight+'px';
 
-    setTimeout(async()=>{
-      // Check if all 8 in stage are now done
-      const data = await apiGet('getMilestones', currentClient.Token);
-      const achieved = new Set((data&&data.milestones?data.milestones:[]).map(m=>m.ID||m.id||m.Title));
-      const allDone = stage.milestones.every(m=>achieved.has(m.id));
+    setTimeout(()=>{
+      itemEl.style.maxHeight = '0';
+      itemEl.style.padding = '0';
+      itemEl.style.margin = '0';
+      itemEl.style.border = 'none';
+      itemEl.style.overflow = 'hidden';
 
-     if(allDone){
-        // Stage complete — show celebration then load next stage
-        const el = document.getElementById('milestone-list');
-        el.innerHTML = `
-          <div style="text-align:center;padding:40px 20px;animation:fadeIn .5s ease;">
-            <div style="font-size:56px;margin-bottom:16px;">🏆</div>
-            <div style="font-family:var(--fh);font-size:32px;color:var(--lime);margin-bottom:8px;">STAGE ${stage.stage} COMPLETE!</div>
-            <div style="font-size:14px;color:var(--t2);margin-bottom:24px;">${currentClient.Name?currentClient.Name.split(' ')[0]:'Client'} has completed all ${stage.label} milestones. Loading next stage...</div>
-            <div class="spinner" style="margin:0 auto;width:24px;height:24px;"></div>
-          </div>`;
-        setTimeout(()=> loadAdminMilestones(), 2500);
-      } else {
-        // Don't reload — just leave the list as is
-      }
-    }, 650);
+      setTimeout(async()=>{
+        // Update stage counter after collapse
+        const milestoneEls = document.querySelectorAll('.milestone-item');
+        const visibleDone = [...milestoneEls].filter(el=>el.classList.contains('achieved')&&el.style.opacity!=='0').length;
+        const hiddenDone = [...milestoneEls].filter(el=>el.classList.contains('achieved')).length;
+
+        // Update progress display
+        const progressEl = document.getElementById('stage-progress-'+stageIndex);
+        if(progressEl){
+          progressEl.textContent = hiddenDone+'/8 completed · '+(8-hiddenDone)+' remaining';
+        }
+        // Update progress bar
+        const barEl = document.getElementById('stage-bar-'+stageIndex);
+        if(barEl) barEl.style.width = Math.round((hiddenDone/8)*100)+'%';
+
+        // Check if all 8 done
+        if(hiddenDone >= 8){
+          const el = document.getElementById('milestone-list');
+          el.innerHTML = `
+            <div style="text-align:center;padding:40px 20px;animation:fadeIn .5s ease;">
+              <div style="font-size:56px;margin-bottom:16px;">🏆</div>
+              <div style="font-family:var(--fh);font-size:32px;color:var(--lime);margin-bottom:8px;">STAGE ${stage.stage} COMPLETE!</div>
+              <div style="font-size:14px;color:var(--t2);margin-bottom:24px;">${currentClient.Name?currentClient.Name.split(' ')[0]:'Client'} has completed all ${stage.label} milestones. Loading next stage...</div>
+              <div class="spinner" style="margin:0 auto;width:24px;height:24px;"></div>
+            </div>`;
+          setTimeout(()=> loadAdminMilestones(), 2500);
+        }
+      }, 520);
+    }, 100);
   }, 2500);
 }
 
