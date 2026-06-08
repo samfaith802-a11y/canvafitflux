@@ -2497,9 +2497,7 @@ async function loadMilestones(){
     localStorage.setItem(seenKey, JSON.stringify(allSeen));
   }
 
- if(!achievedInStage.length){
-
-  // Progress bar for current stage
+// Progress bar for current stage
   const pct = Math.round((doneCount / 8) * 100);
   el.innerHTML = `
     <div style="background:rgba(204,255,0,0.04);border:1px solid rgba(204,255,0,0.15);border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:14px;">
@@ -2511,7 +2509,13 @@ async function loadMilestones(){
       </div>
       <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--gold);flex-shrink:0;">${doneCount}/8</div>
     </div>
-    ${achievedInStage.map(m=>`
+    ${achievedInStage.length === 0 ? `
+      <div style="text-align:center;padding:20px;">
+        <div style="font-size:36px;margin-bottom:12px;opacity:.3;">🏆</div>
+        <div style="font-size:14px;font-weight:600;color:var(--t2);margin-bottom:6px;">No milestones yet</div>
+        <div style="font-size:12px;color:var(--t3);line-height:1.7;">Your FitFlux team will mark milestones as you hit them.</div>
+      </div>` :
+    achievedInStage.map(m=>`
       <div style="background:linear-gradient(135deg,rgba(126,200,69,0.08),rgba(126,200,69,0.02));border:1px solid var(--gold-bdr);border-radius:14px;padding:22px 24px;margin-bottom:12px;display:flex;align-items:center;gap:18px;">
         <div style="font-size:36px;flex-shrink:0;">${m.Icon||'🏆'}</div>
         <div style="flex:1;">
