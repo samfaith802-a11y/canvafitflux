@@ -3170,11 +3170,11 @@ async function loadAdminMilestones(){
       <div style="font-family:var(--fh);font-size:28px;color:var(--lime);">STAGE ${currentStage.stage}</div>
       <div>
         <div style="font-size:13px;font-weight:700;color:var(--t1);">${currentStage.label}</div>
-        <div style="font-size:11px;color:var(--t3);">${stageAchieved}/8 completed · ${8-stageAchieved} remaining</div>
+        <div style="font-size:11px;color:var(--t3);" id="stage-progress-${currentStageIdx}">${stageAchieved}/8 completed · ${8-stageAchieved} remaining</div>
       </div>
       <div style="margin-left:auto;width:120px;">
         <div style="height:5px;background:var(--bg3);border-radius:3px;overflow:hidden;">
-          <div style="width:${Math.round((stageAchieved/8)*100)}%;height:100%;background:var(--lime);border-radius:3px;transition:width .4s;"></div>
+          <div id="stage-bar-${currentStageIdx}" style="width:${Math.round((stageAchieved/8)*100)}%;height:100%;background:var(--lime);border-radius:3px;transition:width .4s;"></div>
         </div>
       </div>
     </div>
