@@ -3410,27 +3410,68 @@ let inboxMessages = [];
 async function loadInbox(){
   if(!allClients.length) return;
   inboxMessages = [];
-  
+
   await Promise.all(allClients.map(async c=>{
-    const data = await apiGet('getContent', c.Token);
-    if(data && data.content){
-      data.content.forEach(post=>{
+    // Content chat messages
+    const contentData = await apiGet('getContent', c.Token);
+    if(contentData && contentData.content){
+      contentData.content.forEach(post=>{
         (post.ChatMessages||[]).forEach(m=>{
           if(m.author !== 'FitFlux'){
             inboxMessages.push({
+              type: 'content',
               clientName: c.Name,
               clientToken: c.Token,
-              contentTitle: post.Title,
-              platform: post.Platform,
+              subject: post.Title+' · '+post.Platform,
               message: m.text,
-              time: m.time,
-              author: m.author
+              time: m.time
             });
           }
         });
       });
     }
+
+    // Deliverable chat messages
+    const delivData = await apiGet('getDeliverables', c.Token);
+    if(delivData && delivData.deliverables){
+      delivData.deliverables.forEach(d=>{
+        (d.ChatMessages||[]).forEach(m=>{
+          if(m.author !== 'FitFlux'){
+            inboxMessages.push({
+              type: 'deliverable',
+              clientName: c.Name,
+              clientToken: c.Token,
+              subject: 'Deliverable: '+(d.Name||d.name||'—'),
+              message: m.text,
+              time: m.time
+            });
+          }
+        });
+      });
+    }
+
+    // Credential submissions
+    const credData = await apiGet('getCredentials', c.Token);
+    if(credData && credData.credentials && credData.credentials.length){
+      inboxMessages.push({
+        type: 'credentials',
+        clientName: c.Name,
+        clientToken: c.Token,
+        subject: 'Secure Credentials Submitted',
+        message: credData.credentials.length+' platform'+(credData.credentials.length!==1?'s':'')+' submitted — click to decrypt',
+        time: credData.credentials[0].Timestamp||''
+      });
+    }
   }));
+
+  const badge = document.getElementById('inbox-badge');
+  if(inboxMessages.length > 0){
+    badge.textContent = inboxMessages.length;
+    badge.style.display = '';
+  } else {
+    badge.style.display = 'none';
+  }
+}
 
   const badge = document.getElementById('inbox-badge');
   if(inboxMessages.length > 0){
@@ -3450,17 +3491,18 @@ function openInbox(){
   modal.id = 'inbox-modal';
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:1000;display:flex;align-items:center;justify-content:center;';
   
-  const msgs = inboxMessages.length ? inboxMessages.map(m=>`
-    <div style="background:var(--bg3);border:1px solid var(--bdr3);border-radius:10px;padding:14px 16px;cursor:pointer;transition:border-color .15s;" onclick="goToClientMessage('${m.clientToken}');document.getElementById('inbox-modal').remove();" onmouseover="this.style.borderColor='var(--lime)'" onmouseout="this.style.borderColor='var(--bdr3)'">
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-        <span style="font-size:12px;font-weight:700;color:var(--lime);">${m.clientName||'—'}</span>
-        <span style="font-size:11px;color:var(--t3);">→</span>
-        <span style="font-size:11px;color:var(--t3);">${m.contentTitle||'—'} · ${m.platform||'—'}</span>
-        <span style="margin-left:auto;font-size:10px;color:var(--t3);">${m.time||''}</span>
-      </div>
-      <div style="font-size:13px;color:var(--t2);">${m.message||''}</div>
-    </div>`).join('') 
-  : '<div style="text-align:center;padding:40px;color:var(--t3);">No unread messages</div>';
+ const typeIcon = {content:'💬', deliverable:'📦', credentials:'🔒'};
+const msgs = inboxMessages.length ? inboxMessages.map(m=>`
+  <div style="background:var(--bg3);border:1px solid var(--bdr3);border-radius:10px;padding:14px 16px;cursor:pointer;transition:border-color .15s;" onclick="goToClientMessage('${m.clientToken}','${m.type}');document.getElementById('inbox-modal').remove();" onmouseover="this.style.borderColor='var(--lime)'" onmouseout="this.style.borderColor='var(--bdr3)'">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+      <span style="font-size:14px;">${typeIcon[m.type]||'💬'}</span>
+      <span style="font-size:12px;font-weight:700;color:var(--lime);">${m.clientName||'—'}</span>
+      <span style="font-size:11px;color:var(--t3);">${m.subject||'—'}</span>
+      <span style="margin-left:auto;font-size:10px;color:var(--t3);">${m.time||''}</span>
+    </div>
+    <div style="font-size:13px;color:var(--t2);">${m.message||''}</div>
+  </div>`).join('')
+: '<div style="text-align:center;padding:40px;color:var(--t3);">No messages</div>';
 
   modal.innerHTML = `
     <div style="background:var(--bg2);border:1px solid var(--bdr2);border-radius:16px;width:560px;max-width:95vw;max-height:80vh;overflow-y:auto;padding:28px 32px;">
@@ -3475,11 +3517,15 @@ function openInbox(){
   document.body.appendChild(modal);
 }
 
-async function goToClientMessage(token){
-  const client = allClients.find(c=>c.Token===token);
-  if(!client) return;
+async function goToClientMessage(token, type){
   await openClient(token);
-  switchDetailTab('content', document.querySelector('.dtab:nth-child(4)'));
+  if(type==='credentials'){
+    switchDetailTab('credentials', document.querySelector('.dtab:last-child'));
+  } else if(type==='deliverable'){
+    switchDetailTab('deliverables', document.querySelector('.dtab:nth-child(7)'));
+  } else {
+    switchDetailTab('content', document.querySelector('.dtab:nth-child(4)'));
+  }
 }
 </script>
 </body>
