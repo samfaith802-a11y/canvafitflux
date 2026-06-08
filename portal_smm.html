@@ -1224,10 +1224,12 @@ loadMilestones();
   const saved = await apiGet('getNotes', activeToken);
   checkRenewalReminder();
   loadSubmittedPlatforms();
-setInterval(async ()=>{
-  await initGrowthJourney();
-  await loadContent(true);
-}, 30000);
+// Silent refresh when client returns to browser tab
+document.addEventListener('visibilitychange', async ()=>{
+  if(document.visibilityState === 'visible'){
+    await loadContent(true);
+  }
+});
   if(saved && saved.notes) document.getElementById('notes-area').value = saved.notes;
 }
 
@@ -1303,10 +1305,14 @@ function nav(el, page){
     const top = target.getBoundingClientRect().top + window.scrollY - 64;
     window.scrollTo({top, behavior:'smooth'});
   }
-  // Auto-close sidebar on mobile after nav
   if(window.innerWidth <= 900){
     document.querySelector('.sb').classList.remove('open');
     document.getElementById('sb-overlay').classList.remove('show');
+  }
+  // Silent refresh when navigating to content approval
+  const dataTarget = el.getAttribute('data-target');
+  if(dataTarget === 'approvals'){
+    loadContent(true);
   }
 }
 
