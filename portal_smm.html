@@ -1653,11 +1653,11 @@ function buildApprovalCard(c, i){
   </div>` : '';
 
   // Action buttons
-  const actionBtns = c.Status==='waiting' ? `
-    <div style="display:flex;gap:8px;margin:12px 0;flex-wrap:wrap;" id="action-${cardId}">
-      <button class="btn-approve" id="btn-approve-${cardId}" onclick="handleApprove('${c.Title}','${c.Platform}','${cardId}')">✅ Approve</button>
-      <button id="btn-minor-${cardId}" onclick="showChatForAction('${cardId}','minor','${c.Title}','${c.Platform}')" style="background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);color:var(--amber);font-family:var(--fb);font-size:12px;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer;transition:all .15s;">✏️ Approve with Minor Correction</button>
-      <button class="btn-revision" id="btn-decline-${cardId}" onclick="showChatForAction('${cardId}','decline','${c.Title}','${c.Platform}')">❌ Decline</button>
+const actionBtns = c.Status==='waiting' ? `
+    <div style="display:flex;gap:8px;margin:12px 0;flex-wrap:wrap;" id="action-${cardId}" data-title="${encodeURIComponent(c.Title||'')}" data-platform="${encodeURIComponent(c.Platform||'')}">
+     <button class="btn-approve" id="btn-approve-${cardId}" onclick="handleApprove(this)">✅ Approve</button>
+<button id="btn-minor-${cardId}" onclick="showChatForAction('${cardId}','minor',this)" ...
+<button class="btn-revision" id="btn-decline-${cardId}" onclick="showChatForAction('${cardId}','decline',this)">
     </div>` : '';
 
   // Chat messages
@@ -1718,15 +1718,22 @@ function toggleContentCard(bodyId){
   body.style.display = isOpen ? 'none' : 'block';
   if(icon) icon.textContent = isOpen ? '▼' : '▲';
 }
-async function handleApprove(title, platform, cardId){
-  const btn = document.getElementById('btn-approve-'+cardId);
-  if(btn){ btn.textContent='⏳ Approving...'; btn.disabled=true; btn.style.opacity='0.7'; }
-  const result = await apiPost('approveContent', {token:window.FF_TOKEN||urlToken, contentTitle:title, platform});
+async function handleApprove(btn){
+  const actionDiv = btn.closest('[data-title]');
+  const title = decodeURIComponent(actionDiv?.getAttribute('data-title')||'');
+  const platform = decodeURIComponent(actionDiv?.getAttribute('data-platform')||'');
+  const cardId = actionDiv?.id?.replace('action-','');
+  btn.textContent='⏳ Approving...'; btn.disabled=true; btn.style.opacity='0.7';
+  await apiPost('approveContent', {token:window.FF_TOKEN||urlToken, contentTitle:title, platform});
   await sendTelegram('✅ CONTENT APPROVED\n\nClient: '+(window.FF_CLIENT.name||'—')+'\nContent: '+title+'\nPlatform: '+platform);
   await loadContent(true);
 }
 
-function showChatForAction(cardId, action, title, platform){
+function showChatForAction(cardId, action, btn){
+  const actionDiv = btn.closest('[data-title]');
+  const title = decodeURIComponent(actionDiv?.getAttribute('data-title')||'');
+  const platform = decodeURIComponent(actionDiv?.getAttribute('data-platform')||'');
+  
   const chatbox = document.getElementById('chatbox-'+cardId);
   const prompt = document.getElementById('chat-prompt-'+cardId);
   const sendBtn = document.getElementById('chat-send-'+cardId);
@@ -1734,11 +1741,12 @@ function showChatForAction(cardId, action, title, platform){
   if(!chatbox) return;
 
   // Button press effect
-  const btnId = action==='minor' ? 'btn-minor-'+cardId : 'btn-decline-'+cardId;
-  const btn = document.getElementById(btnId);
-  if(btn){ btn.style.transform='scale(0.96)'; btn.style.opacity='0.8'; setTimeout(()=>{ btn.style.transform=''; btn.style.opacity=''; },200); }
+  btn.style.transform='scale(0.95)';
+  btn.style.opacity='0.7';
+  setTimeout(()=>{ btn.style.transform=''; btn.style.opacity=''; }, 200);
 
   chatbox.style.display='block';
+
   if(action==='minor'){
     prompt.textContent='✏️ What minor correction is needed?';
     sendBtn.onclick = async function(){
@@ -1746,11 +1754,13 @@ function showChatForAction(cardId, action, title, platform){
       const text = input?.value.trim();
       if(!text){ input?.focus(); return; }
       sendBtn.textContent='Sending...'; sendBtn.disabled=true;
+      sendBtn.style.transform='scale(0.95)';
       const time = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
       await apiPost('approveContent', {token:window.FF_TOKEN||urlToken, contentTitle:title, platform});
       await apiPost('addContentChat', {token:window.FF_TOKEN||urlToken, contentTitle:title, platform, text:'✏️ Approved with correction: '+text, author:window.FF_CLIENT.name||'Client', time});
       await sendTelegram('✏️ APPROVED WITH MINOR CORRECTION\n\nClient: '+(window.FF_CLIENT.name||'—')+'\nContent: '+title+'\nNote: '+text);
       if(input) input.value='';
+      sendBtn.textContent='Send →'; sendBtn.disabled=false; sendBtn.style.transform='';
       await loadContent(true);
     };
   } else {
@@ -1760,12 +1770,14 @@ function showChatForAction(cardId, action, title, platform){
       const text = input?.value.trim();
       if(!text){ input?.focus(); return; }
       sendBtn.textContent='Sending...'; sendBtn.disabled=true;
+      sendBtn.style.transform='scale(0.95)';
       const time = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
       await apiPost('requestRevision', {token:window.FF_TOKEN||urlToken, contentTitle:title, platform, note:text});
       await apiPost('updateContentStatus', {token:window.FF_TOKEN||urlToken, contentTitle:title, platform, status:'declined'});
       await apiPost('addContentChat', {token:window.FF_TOKEN||urlToken, contentTitle:title, platform, text:'❌ Declined: '+text, author:window.FF_CLIENT.name||'Client', time});
       await sendTelegram('❌ CONTENT DECLINED\n\nClient: '+(window.FF_CLIENT.name||'—')+'\nContent: '+title+'\nReason: '+text);
       if(input) input.value='';
+      sendBtn.textContent='Send →'; sendBtn.disabled=false; sendBtn.style.transform='';
       await loadContent(true);
     };
   }
