@@ -2452,48 +2452,84 @@ async function loadMilestones(){
   const data = await apiGet('getMilestones', window.FF_TOKEN || urlToken);
   document.getElementById('milestones-loading').style.display='none';
   document.getElementById('milestones-content').style.display='';
-  const milestones = (data && data.milestones) ? data.milestones : [];
+  const allMilestones = (data && data.milestones) ? data.milestones : [];
   const el = document.getElementById('milestones-content');
 
-  // Check for newly achieved milestones to celebrate
+  // All stage milestone names flat
+  const STAGE_NAMES = [
+    ['First 150 Followers','First Inbound Enquiry','First Content Batch Approved','Month 1 Complete','Profile Fully Optimised','Territory Locked','First Performance Report','Content Pillars Established'],
+    ['600 Followers','First Sale from Social','Month 3 Complete','First Viral Post','Engagement Above 6%','10 Enquiries in One Month','Month 4 Complete','Recognised Voice in Niche'],
+    ['1,500 Followers','£1.5k Month from Social','Territory Dominated','First Referral Client','Featured by Another Account','6 Months Complete','5 Repeat Clients from Social','Category Status Achieved'],
+    ['2,500 Followers','£3k Month from Social','8 Referral Clients','Booked 3 Weeks Ahead','15 Google Reviews','9 Months Complete','25 Enquiries in One Month','Second Territory Interest'],
+    ['4,000 Followers','£4k Month from Social','Waiting List Created','12 Months Complete','15 Repeat Clients','Brand Partnership','Featured in Local Press','75 Google Reviews'],
+    ['6,000 Followers','£6k Month from Social','Fully Booked','Team Member Hired','150 Google Reviews','18 Months Complete','Second Location Interest','Go-To Coach in City']
+  ];
+
+  const achievedTitles = new Set(allMilestones.map(m=>m.Title));
+
+  // Find current stage — first stage that isn't fully complete
+  let currentStageIdx = 0;
+  for(let i = 0; i < STAGE_NAMES.length; i++){
+    const allDone = STAGE_NAMES[i].every(name => achievedTitles.has(name));
+    if(!allDone){ currentStageIdx = i; break; }
+    if(i === STAGE_NAMES.length - 1) currentStageIdx = i; // all stages done, stay on last
+  }
+
+  const currentStageMilestones = STAGE_NAMES[currentStageIdx];
+  const achievedInStage = allMilestones.filter(m => currentStageMilestones.includes(m.Title));
+  const doneCount = achievedInStage.length;
+
+  // Confetti check — newly achieved in current stage
   const seenKey = 'ff_seen_milestones_'+(window.FF_TOKEN||urlToken).slice(-8);
   const seen = JSON.parse(localStorage.getItem(seenKey)||'[]');
-  const newlyAchieved = milestones.filter(m=>{
-    const id = m.ID||m.id||m.Title;
-    return !seen.includes(id);
-  });
+  const newlyAchieved = achievedInStage.filter(m => !seen.includes(m.Title));
 
-if(newlyAchieved.length){
+  if(newlyAchieved.length){
     newlyAchieved.forEach((m,i)=>{
       setTimeout(()=> showMilestoneConfetti(m), i * 1200);
     });
-    // Mark seen after last celebration fires
     setTimeout(()=>{
-      const allIds = milestones.map(m=>m.ID||m.id||m.Title);
-      localStorage.setItem(seenKey, JSON.stringify(allIds));
+      const allSeen = achievedInStage.map(m=>m.Title);
+      localStorage.setItem(seenKey, JSON.stringify(allSeen));
     }, newlyAchieved.length * 1200 + 1000);
   } else {
-    const allIds = milestones.map(m=>m.ID||m.id||m.Title);
-    localStorage.setItem(seenKey, JSON.stringify(allIds));
+    const allSeen = achievedInStage.map(m=>m.Title);
+    localStorage.setItem(seenKey, JSON.stringify(allSeen));
   }
 
-  if(!milestones.length){
-    el.innerHTML='<div style="text-align:center;padding:40px 20px;"><div style="font-size:40px;margin-bottom:12px;opacity:.3;">🏆</div><div style="font-size:14px;font-weight:600;color:var(--t2);margin-bottom:6px;">No milestones yet</div><div style="font-size:12px;color:var(--t3);">Your FitFlux team will mark milestones as you hit them. Every achievement will appear here and you\'ll be notified by email.</div></div>';
+  if(!achievedInStage.length){
+    el.innerHTML=`
+      <div style="text-align:center;padding:40px 20px;">
+        <div style="font-size:40px;margin-bottom:12px;opacity:.3;">🏆</div>
+        <div style="font-size:14px;font-weight:600;color:var(--t2);margin-bottom:6px;">No milestones yet</div>
+        <div style="font-size:12px;color:var(--t3);line-height:1.7;">Your FitFlux team will mark milestones as you hit them.<br>Every achievement appears here and you'll be notified by email.</div>
+      </div>`;
     return;
   }
 
-  el.innerHTML = milestones.map(m=>`
-    <div style="background:linear-gradient(135deg,rgba(126,200,69,0.08),rgba(126,200,69,0.02));border:1px solid var(--gold-bdr);border-radius:14px;padding:22px 24px;margin-bottom:12px;display:flex;align-items:center;gap:18px;">
-      <div style="font-size:36px;flex-shrink:0;">${m.Icon||'🏆'}</div>
+  // Progress bar for current stage
+  const pct = Math.round((doneCount / 8) * 100);
+  el.innerHTML = `
+    <div style="background:rgba(204,255,0,0.04);border:1px solid rgba(204,255,0,0.15);border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:14px;">
       <div style="flex:1;">
-        <div style="font-size:14px;font-weight:700;color:var(--gold);margin-bottom:4px;">${m.Title||'Milestone Achieved'}</div>
-        <div style="font-size:12px;color:var(--t2);line-height:1.6;margin-bottom:6px;">${m.Description||''}</div>
-        <div style="font-size:11px;color:var(--t3);">📅 ${m.AchievedDate||m.Date||'—'}</div>
+        <div style="font-size:10px;font-weight:700;color:rgba(204,255,0,0.5);letter-spacing:.12em;text-transform:uppercase;margin-bottom:6px;">Current Progress</div>
+        <div style="height:6px;background:rgba(255,255,255,0.06);border-radius:3px;overflow:hidden;">
+          <div style="width:${pct}%;height:100%;background:linear-gradient(90deg,#CCFF00,#5fa832);border-radius:3px;transition:width .4s;"></div>
+        </div>
       </div>
-      <div style="background:rgba(61,214,140,0.1);border:1px solid rgba(61,214,140,0.2);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:700;color:var(--green);white-space:nowrap;">✓ Achieved</div>
-    </div>`).join('');
+      <div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:var(--gold);flex-shrink:0;">${doneCount}/8</div>
+    </div>
+    ${achievedInStage.map(m=>`
+      <div style="background:linear-gradient(135deg,rgba(126,200,69,0.08),rgba(126,200,69,0.02));border:1px solid var(--gold-bdr);border-radius:14px;padding:22px 24px;margin-bottom:12px;display:flex;align-items:center;gap:18px;">
+        <div style="font-size:36px;flex-shrink:0;">${m.Icon||'🏆'}</div>
+        <div style="flex:1;">
+          <div style="font-size:14px;font-weight:700;color:var(--gold);margin-bottom:4px;">${m.Title||'Milestone Achieved'}</div>
+          <div style="font-size:12px;color:var(--t2);line-height:1.6;margin-bottom:6px;">${m.Description||''}</div>
+          <div style="font-size:11px;color:var(--t3);">📅 ${m.AchievedDate||'—'}</div>
+        </div>
+        <div style="background:rgba(61,214,140,0.1);border:1px solid rgba(61,214,140,0.2);border-radius:20px;padding:4px 12px;font-size:10px;font-weight:700;color:var(--green);white-space:nowrap;">✓ Achieved</div>
+      </div>`).join('')}`;
 }
-
 function showMilestoneConfetti(m){
   // Confetti burst
   const colors = ['#CCFF00','#5fa832','#ffffff','#3dd68c','#f59e0b'];
