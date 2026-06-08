@@ -2497,8 +2497,7 @@ async function loadMilestones(){
     localStorage.setItem(seenKey, JSON.stringify(allSeen));
   }
 
-// Progress bar for current stage
-  const pct = Math.round((doneCount / 8) * 100);
+const pct = Math.round((doneCount / 8) * 100);
   el.innerHTML = `
     <div style="background:rgba(204,255,0,0.04);border:1px solid rgba(204,255,0,0.15);border-radius:12px;padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:14px;">
       <div style="flex:1;">
