@@ -1637,8 +1637,9 @@ function buildApprovalCard(c, i){
   const cardId = 'card-'+(c.ID||i);
   const inputId = 'input-'+cardId;
   const bodyId = 'body-'+cardId;
-  const titleEncoded = encodeURIComponent(c.Title||'');
-  const platformEncoded = encodeURIComponent(c.Platform||'');
+const titleEncoded = encodeURIComponent(c.Title||'');
+const platformEncoded = encodeURIComponent(c.Platform||'');
+const contentId = c.ID || '';
 
   // Format date
   const dateStr = c.ScheduledDate ? new Date(c.ScheduledDate).toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}) : '';
@@ -1660,9 +1661,9 @@ function buildApprovalCard(c, i){
 
   const actionBtns = c.Status==='waiting' ? `
     <div style="display:flex;gap:8px;margin:12px 0;flex-wrap:wrap;">
-      <button class="btn-approve" onclick="handleApprove('${titleEncoded}','${platformEncoded}',this)">✅ Approve</button>
-      <button onclick="showChatForAction('${cardId}','minor','${titleEncoded}','${platformEncoded}',this)" style="background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);color:var(--amber);font-family:var(--fb);font-size:12px;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer;transition:all .15s;">✏️ Approve with Minor Correction</button>
-      <button class="btn-revision" onclick="showChatForAction('${cardId}','decline','${titleEncoded}','${platformEncoded}',this)">❌ Decline</button>
+  <button class="btn-approve" onclick="handleApprove('${titleEncoded}','${platformEncoded}','${contentId}',this)">✅ Approve</button>
+<button onclick="showChatForAction('${cardId}','minor','${titleEncoded}','${platformEncoded}','${contentId}',this)" style="background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);color:var(--amber);font-family:var(--fb);font-size:12px;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer;transition:all .15s;">✏️ Approve with Minor Correction</button>
+<button class="btn-revision" onclick="showChatForAction('${cardId}','decline','${titleEncoded}','${platformEncoded}','${contentId}',this)">❌ Decline</button>
     </div>` : '';
 
   const chatMsgs = (c.ChatMessages||[]).map(m=>`
@@ -1732,7 +1733,7 @@ async function handleApprove(titleEncoded, platformEncoded, btn){
   await loadContent(true);
 }
 
-function showChatForAction(cardId, action, titleEncoded, platformEncoded, btn){
+function showChatForAction(cardId, action, titleEncoded, platformEncoded, contentId, btn){
   const title = decodeURIComponent(titleEncoded);
   const platform = decodeURIComponent(platformEncoded);
 
@@ -1757,14 +1758,15 @@ function showChatForAction(cardId, action, titleEncoded, platformEncoded, btn){
       sendBtn.style.transform='scale(0.95)';
       const time = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
       await apiPost('approveContent', {token:window.FF_TOKEN||urlToken, contentTitle:title, platform});
-      await apiPost('addContentChat', {
-        token:window.FF_TOKEN||urlToken,
-        contentTitle:title,
-        platform,
-        text:'✏️ Approved with correction: '+text,
-        author:window.FF_CLIENT.name||'Client',
-        time
-      });
+  await apiPost('addContentChat', {
+  token:window.FF_TOKEN||urlToken,
+  contentTitle:title,
+  contentId: contentId,
+  platform,
+  text:'✏️ Approved with correction: '+text,
+  author:window.FF_CLIENT.name||'Client',
+  time
+});
       await sendTelegram('✏️ APPROVED WITH MINOR CORRECTION\n\nClient: '+(window.FF_CLIENT.name||'—')+'\nContent: '+title+'\nNote: '+text);
       if(input) input.value='';
       sendBtn.textContent='Send →'; sendBtn.disabled=false; sendBtn.style.transform='';
