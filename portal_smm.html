@@ -1627,26 +1627,35 @@ function renderWeek(week, items){
   el.innerHTML = html;
 }
 function buildApprovalCard(c, i){
-  const sc = c.Status==='Approved'?'status-approved':c.Status==='Revision'||c.Status==='declined'?'status-revision':'status-pending';
+  const sc = c.Status==='Approved'||c.Status==='approved_minor'?'status-approved':c.Status==='Revision'||c.Status==='declined'?'status-revision':'status-pending';
   const statusMap = {
     'Pending':'<span class="tag tag-a">⏳ Pending</span>',
-    'progress':'<span class="tag tag-b">🔄 In Progress</span>',
     'waiting':'<span class="tag tag-y">👁 Waiting for Approval</span>',
     'Approved':'<span class="tag tag-g">✅ Approved</span>',
+    'approved_minor':'<span class="tag tag-g" style="background:rgba(245,158,11,0.15);color:var(--amber);">✅ Approved with Minor Correction</span>',
     'declined':'<span class="tag tag-r">❌ Declined</span>',
     'published':'<span class="tag tag-p">🚀 Published</span>',
-    'Revision':'<span class="tag tag-r">✏️ Revision</span>'
+    'Revision':'<span class="tag tag-r">✏️ Needs Revision</span>'
   };
   const st = statusMap[c.Status] || '<span class="tag tag-a">⏳ Pending</span>';
   const cardId = 'card-'+(c.ID||i);
   const inputId = 'input-'+cardId;
   const bodyId = 'body-'+cardId;
-const titleEncoded = encodeURIComponent(c.Title||'');
-const platformEncoded = encodeURIComponent(c.Platform||'');
-const contentId = c.ID || '';
+  const titleEncoded = encodeURIComponent(c.Title||'');
+  const platformEncoded = encodeURIComponent(c.Platform||'');
+  const contentId = c.ID||'';
 
-  // Format date
-  const dateStr = c.ScheduledDate ? new Date(c.ScheduledDate).toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}) : '';
+  // Format date and time
+  let dateStr = '';
+  let isLocked = false;
+  if(c.ScheduledDate){
+    const scheduled = new Date(c.ScheduledDate);
+    const now = new Date();
+    const daysUntil = Math.ceil((scheduled-now)/(1000*60*60*24));
+    isLocked = daysUntil <= 3;
+    dateStr = scheduled.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}) + 
+              ' at ' + scheduled.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  }
 
   // Media
   const mediaURLs = (c.MediaURL||'').split(',').filter(Boolean);
@@ -1655,19 +1664,34 @@ const contentId = c.ID || '';
       const isVideo = url.match(/\.(mp4|mov|webm)/i);
       const isPDF = url.match(/\.pdf/i);
       if(isVideo) return `<video src="${url}" controls style="width:100%;max-height:320px;border-radius:10px;border:1px solid var(--bdr);display:block;" preload="metadata"></video>`;
-      if(isPDF) return `<div style="margin-bottom:10px;">
-        <iframe src="${url}" style="width:100%;height:400px;border:none;border-radius:10px;border:1px solid var(--bdr);" loading="lazy"></iframe>
-        <a href="${url}" target="_blank" style="display:inline-flex;align-items:center;gap:6px;margin-top:6px;font-size:12px;color:var(--blue);">📄 Open PDF in new tab →</a>
-      </div>`;
+      if(isPDF) return `<div style="margin-bottom:8px;"><iframe src="${url}" style="width:100%;height:400px;border:none;border-radius:10px;border:1px solid var(--bdr);" loading="lazy"></iframe><a href="${url}" target="_blank" style="font-size:12px;color:var(--blue);display:block;margin-top:4px;">📄 Open PDF →</a></div>`;
       return `<img src="${url}" style="width:90px;height:90px;object-fit:cover;border-radius:10px;border:1px solid var(--bdr);cursor:pointer;margin-right:6px;" onclick="openMedia('${url}')"/>`;
     }).join('')}
   </div>` : '';
 
-  const actionBtns = c.Status==='waiting' ? `
+  // Action buttons
+  const canChange = !isLocked && (c.Status==='waiting'||c.Status==='Approved'||c.Status==='approved_minor'||c.Status==='declined');
+  const lockedMsg = isLocked ? `<div style="background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--red);margin:10px 0;">🔒 Content is locked — less than 3 days until scheduled post. No changes can be made.</div>` : '';
+
+  const actionBtns = c.Status==='waiting' && !isLocked ? `
     <div style="display:flex;gap:8px;margin:12px 0;flex-wrap:wrap;">
-  <button class="btn-approve" onclick="handleApprove('${titleEncoded}','${platformEncoded}','${contentId}',this)">✅ Approve</button>
-<button onclick="showChatForAction('${cardId}','minor','${titleEncoded}','${platformEncoded}','${contentId}',this)" style="background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);color:var(--amber);font-family:var(--fb);font-size:12px;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer;transition:all .15s;">✏️ Approve with Minor Correction</button>
-<button class="btn-revision" onclick="showChatForAction('${cardId}','decline','${titleEncoded}','${platformEncoded}','${contentId}',this)">❌ Decline</button>
+      <button class="btn-approve" onclick="handleApprove('${titleEncoded}','${platformEncoded}','${contentId}',this)">✅ Approve</button>
+      <button onclick="showChatForAction('${cardId}','minor','${titleEncoded}','${platformEncoded}','${contentId}',this)" style="background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);color:var(--amber);font-family:var(--fb);font-size:12px;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer;transition:all .15s;">✏️ Approve with Minor Correction</button>
+      <button class="btn-revision" onclick="showChatForAction('${cardId}','decline','${titleEncoded}','${platformEncoded}','${contentId}',this)">❌ Decline</button>
+    </div>` : '';
+
+  // Change mind button for already actioned content
+  const changeMindBtn = (c.Status==='Approved'||c.Status==='approved_minor'||c.Status==='declined') && !isLocked ? `
+    <div style="margin:10px 0;">
+      <button onclick="showChangeMind('${cardId}','${titleEncoded}','${platformEncoded}','${contentId}')" style="background:rgba(255,255,255,0.04);border:1px solid var(--bdr);color:var(--t3);font-family:var(--fb);font-size:11px;padding:6px 14px;border-radius:7px;cursor:pointer;">↩ Change my decision</button>
+    </div>
+    <div id="changemind-${cardId}" style="display:none;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);border-radius:10px;padding:14px;margin-top:8px;">
+      <div style="font-size:12px;color:var(--amber);font-weight:600;margin-bottom:10px;">You can change your decision until 3 days before the scheduled post date.</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="btn-approve" onclick="handleApprove('${titleEncoded}','${platformEncoded}','${contentId}',this)">✅ Approve</button>
+        <button onclick="showChatForAction('${cardId}','minor','${titleEncoded}','${platformEncoded}','${contentId}',this)" style="background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);color:var(--amber);font-family:var(--fb);font-size:12px;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer;">✏️ Approve with Minor Correction</button>
+        <button class="btn-revision" onclick="showChatForAction('${cardId}','decline','${titleEncoded}','${platformEncoded}','${contentId}',this)">❌ Decline</button>
+      </div>
     </div>` : '';
 
   const chatMsgs = (c.ChatMessages||[]).map(m=>`
@@ -1680,31 +1704,34 @@ const contentId = c.ID || '';
   const hasMsgs = (c.ChatMessages||[]).length > 0;
 
   return `<div class="aitem ${sc}" id="${cardId}">
-    <div class="aitem-header" onclick="toggleContentCard('${bodyId}')" style="cursor:pointer;user-select:none;">
-      <span class="aitem-platform">${c.Platform||'Post'}</span>
-      ${c.MediaType?`<span style="font-size:10px;background:rgba(77,157,255,0.12);color:var(--blue);padding:2px 8px;border-radius:4px;font-weight:600;">${c.MediaType}</span>`:''}
-      <span class="aitem-title">${c.Title||'Content'}</span>
-      <span class="aitem-date">📅 ${dateStr}</span>
+    <div onclick="toggleContentCard('${bodyId}')" style="cursor:pointer;user-select:none;padding:14px 18px;border-bottom:1px solid var(--bdr);display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
       ${st}
-      <span id="toggle-icon-${bodyId}" style="color:var(--t3);font-size:12px;margin-left:auto;">▼</span>
+      <span style="font-family:var(--fh);font-size:15px;font-weight:700;color:var(--t1);flex:1;">${c.Title||'Content'}</span>
+      <span id="toggle-icon-${bodyId}" style="color:var(--t3);font-size:12px;">▼</span>
     </div>
     <div id="${bodyId}" class="aitem-body" style="display:none;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;padding:12px;background:rgba(0,0,0,0.15);border-radius:8px;">
+        <div><div style="font-size:9px;font-weight:700;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;">Platform Posted</div><div style="font-size:12px;color:var(--t1);font-weight:600;">${c.Platform||'—'}</div></div>
+        <div><div style="font-size:9px;font-weight:700;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;">Media Type</div><div style="font-size:12px;color:var(--t1);font-weight:600;">${c.MediaType||'—'}</div></div>
+        <div style="grid-column:1/-1;"><div style="font-size:9px;font-weight:700;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;">Scheduled Date & Time</div><div style="font-size:12px;color:var(--gold);font-weight:600;">📅 ${dateStr||'—'}</div></div>
+      </div>
       ${mediaHtml}
       ${c.Caption?`<div style="font-size:11px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;">CAPTION</div><div class="aitem-caption">${c.Caption.replace(/</g,'&lt;')}</div>`:''}
+      ${lockedMsg}
       ${actionBtns}
-      ${hasMsgs||c.Status==='waiting'?`
+      ${changeMindBtn}
       <div style="margin-top:14px;">
-        <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">💬 Chat</div>
-        <div id="chat-${cardId}" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;max-height:200px;overflow-y:auto;">${chatMsgs}</div>
-        <div class="comment-box" id="chatbox-${cardId}" style="display:none;">
-          <div id="chat-prompt-${cardId}" style="font-size:12px;color:var(--amber);padding:8px 12px;border-bottom:1px solid var(--bdr);font-weight:600;"></div>
-          <textarea class="comment-input" id="${inputId}" placeholder="Type your feedback..."></textarea>
+        <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">💬 Chat with FitFlux Team</div>
+        <div id="chat-${cardId}" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;max-height:400px;overflow-y:auto;">${chatMsgs}</div>
+        ${!isLocked ? `<div class="comment-box" id="chatbox-${cardId}">
+          <div id="chat-prompt-${cardId}" style="font-size:12px;color:var(--t3);padding:8px 12px;border-bottom:1px solid var(--bdr);display:${hasMsgs||c.Status==='waiting'?'block':'none'};">Send a message to your FitFlux team about this content:</div>
+          <textarea class="comment-input" id="${inputId}" placeholder="Type your message..."></textarea>
           <div class="comment-footer">
             <span class="comment-hint">Goes directly to your FitFlux team.</span>
-            <button class="btn-send" id="chat-send-${cardId}">Send →</button>
+            <button class="btn-send" id="chat-send-${cardId}" onclick="sendGeneralChat('${titleEncoded}','${platformEncoded}','${contentId}','${cardId}')">Send →</button>
           </div>
-        </div>
-      </div>`:''}
+        </div>` : ''}
+      </div>
     </div>
   </div>`;
 }
@@ -1718,6 +1745,36 @@ function showEmptyApproval(){
 function toggleComment(boxId){
   const box = document.getElementById(boxId);
   if(box) box.style.display = box.style.display==='none'?'block':'none';
+}
+  function showChangeMind(cardId, titleEncoded, platformEncoded, contentId){
+  const el = document.getElementById('changemind-'+cardId);
+  if(el) el.style.display = el.style.display==='none' ? 'block' : 'none';
+}
+
+async function sendGeneralChat(titleEncoded, platformEncoded, contentId, cardId){
+  const title = decodeURIComponent(titleEncoded);
+  const platform = decodeURIComponent(platformEncoded);
+  const sendBtn = document.getElementById('chat-send-'+cardId);
+  const inputId = 'input-'+cardId;
+  const input = document.getElementById(inputId);
+  const text = input?.value.trim();
+  if(!text){ input?.focus(); return; }
+  sendBtn.textContent='Sending...'; sendBtn.disabled=true;
+  sendBtn.style.transform='scale(0.95)';
+  const time = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  await apiPost('addContentChat',{
+    token:window.FF_TOKEN||urlToken,
+    contentTitle:title,
+    contentId,
+    platform,
+    text,
+    author:window.FF_CLIENT.name||'Client',
+    time
+  });
+  await sendTelegram('💬 CLIENT MESSAGE ON CONTENT\n\nClient: '+(window.FF_CLIENT.name||'—')+'\nContent: '+title+'\nMessage: '+text);
+  if(input) input.value='';
+  sendBtn.textContent='Send →'; sendBtn.disabled=false; sendBtn.style.transform='';
+  await loadContent(true);
 }
 function toggleContentCard(bodyId){
   const body = document.getElementById(bodyId);
@@ -1761,8 +1818,8 @@ function showChatForAction(cardId, action, titleEncoded, platformEncoded, conten
       sendBtn.textContent='Sending...'; sendBtn.disabled=true;
       sendBtn.style.transform='scale(0.95)';
       const time = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-      await apiPost('approveContent', {token:window.FF_TOKEN||urlToken, contentTitle:title, platform});
-  await apiPost('addContentChat', {
+     await apiPost('approveWithMinor', {token:window.FF_TOKEN||urlToken, contentTitle:title, contentId, platform});
+await apiPost('addContentChat', {
   token:window.FF_TOKEN||urlToken,
   contentTitle:title,
   contentId: contentId,
