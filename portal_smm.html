@@ -848,6 +848,9 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     <div class="atab active" onclick="switchWeek('this',this)">This Week <span id="count-this" style="background:rgba(126,200,69,0.2);color:var(--gold);font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;margin-left:4px;display:none;">0</span></div>
     <div class="atab" onclick="switchWeek('next',this)">Next Week <span id="count-next" style="background:rgba(126,200,69,0.2);color:var(--gold);font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;margin-left:4px;display:none;">0</span></div>
     <div class="atab" onclick="switchWeek('upcoming',this)">Upcoming <span id="count-upcoming" style="background:rgba(126,200,69,0.2);color:var(--gold);font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;margin-left:4px;display:none;">0</span></div>
+   <div class="atab" onclick="switchWeek('past',this)">Past Content 
+  <span id="count-past" style="background:rgba(126,200,69,0.2);color:var(--gold);font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;margin-left:4px;display:none;">0</span>
+</div>
   </div>
   <div id="week-loading" class="loading"><div class="spinner"></div>Loading content...</div>
 <div id="week-this" class="approval-week">
@@ -881,6 +884,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
   </div>
   <div id="week-next" class="approval-week"></div>
   <div id="week-upcoming" class="approval-week"></div>
+  <div id="week-past" class="approval-week"></div>
 
   <div class="dvd"></div>
 
@@ -1556,9 +1560,23 @@ async function loadContent(silent=false){
   const nextWeekEnd = new Date(nextWeekStart);
   nextWeekEnd.setDate(nextWeekStart.getDate()+7);
 
-  const thisItems = contentData.filter(c=>{ const d=new Date(c.ScheduledDate||c.CreatedAt); return d>=thisWeekStart&&d<thisWeekEnd; });
-  const nextItems = contentData.filter(c=>{ const d=new Date(c.ScheduledDate||c.CreatedAt); return d>=nextWeekStart&&d<nextWeekEnd; });
-  const upcomingItems = contentData.filter(c=>{ const d=new Date(c.ScheduledDate||c.CreatedAt); return d>=nextWeekEnd; });
+// Add this exclusion to all three existing filters:
+const thisItems = contentData.filter(c => {
+  const d = new Date(c.ScheduledDate||c.CreatedAt);
+  return d >= thisWeekStart && d < thisWeekEnd && c.Status !== 'published';
+});
+const nextItems = contentData.filter(c => {
+  const d = new Date(c.ScheduledDate||c.CreatedAt);
+  return d >= nextWeekStart && d < nextWeekEnd && c.Status !== 'published';
+});
+const upcomingItems = contentData.filter(c => {
+  const d = new Date(c.ScheduledDate||c.CreatedAt);
+  return d >= nextWeekEnd && c.Status !== 'published';
+});
+
+// Add this new one:
+const pastItems = contentData.filter(c => c.Status === 'published')
+  .sort((a,b) => new Date(b.ScheduledDate||b.CreatedAt) - new Date(a.ScheduledDate||a.CreatedAt));
 
   // Update count badges
   const updateBadge = (id, count) => {
@@ -1676,12 +1694,11 @@ function buildApprovalCard(c, i){
   const canChange = !isLocked && (c.Status==='waiting'||c.Status==='Approved'||c.Status==='approved_minor'||c.Status==='declined');
   const lockedMsg = isLocked ? `<div style="background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--red);margin:10px 0;">🔒 Content is locked — less than 3 days until scheduled post. No changes can be made.</div>` : '';
 
-const lockWarning = `<div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--amber);margin:10px 0;">⚠️ You can make changes to your approval until 3 days before the scheduled publish date. After that your decision is final.</div>`;
-
-const lockedMsg = isLocked ? `<div style="background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--red);margin:10px 0;">🔒 Your decision is now final — this content is scheduled to go live in less than 3 days and can no longer be changed.</div>` : '';
-
+const lockWarningHtml = isLocked 
+  ? `<div style="background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--red);margin:10px 0;">🔒 Your decision is now final — this content is scheduled to go live in less than 3 days and can no longer be changed.</div>`
+  : `<div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--amber);margin:10px 0;">⚠️ You can make changes until 3 days before the scheduled publish date.</div>`;
 const actionBtns = c.Status==='waiting' ? `
-    <div style="margin-bottom:8px;">${!isLocked ? lockWarning : lockedMsg}</div>
+    <div style="margin-bottom:8px;">${lockWarningHtml}</div>
     ${!isLocked ? `<div style="display:flex;gap:8px;margin:12px 0;flex-wrap:wrap;">
       <button class="btn-approve" onclick="handleApprove('${titleEncoded}','${platformEncoded}','${contentId}',this)">✅ Approve</button>
       <button onclick="showChatForAction('${cardId}','minor','${titleEncoded}','${platformEncoded}','${contentId}',this)" style="background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);color:var(--amber);font-family:var(--fb);font-size:12px;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer;transition:all .15s;">✏️ Approve with Minor Correction</button>
