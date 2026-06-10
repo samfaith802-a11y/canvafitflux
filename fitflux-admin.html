@@ -1620,10 +1620,10 @@ function addDeliverableCard(){
           <div class="form-label">Deliverable Name *</div>
          <input class="form-input" id="name-${id}" placeholder="e.g. Week 3 Reel — Transformation" autocomplete="off"/>
         </div>
-        <div class="form-group">
-          <div class="form-label">Scheduled Publish Date</div>
-          <input class="form-input" id="date-${id}" type="date"/>
-        </div>
+       <div class="form-group">
+  <div class="form-label">Scheduled Publish Date & Time</div>
+  <input class="form-input" id="date-${id}" type="datetime-local"/>
+</div>
       </div>
 
       <!-- MEDIA TYPE MULTI-SELECT -->
@@ -2028,16 +2028,26 @@ function buildAdminContentCard(c){
         <button onclick="sendAdminContentReply('${c.Token}','${c.Title}','${c.Platform}','${uid}')" style="background:var(--lime);border:none;color:#080c08;font-family:var(--fb);font-size:12px;font-weight:700;padding:8px 16px;border-radius:7px;cursor:pointer;">Reply →</button>
       </div>
     </div>
-  <div class="cai-actions" style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
-      ${c.Status!=='published'?`<button class="btn-sm btn-sm-red" onclick="setContentPublished('${c.Token}','${c.Title}','${c.Platform}')">🚀 Mark Published</button>`:''}
-      <button class="btn-sm" style="background:rgba(77,157,255,0.1);border-color:rgba(77,157,255,0.25);color:var(--blue);" onclick="showReschedule('${c.ID||c.Title}','${c.Token}')">📅 Reschedule</button>
-      <button class="btn-sm" style="background:rgba(255,77,77,0.1);border-color:rgba(255,77,77,0.2);color:var(--red);" onclick="deleteContentItem('${c.ID||c.Title}','${c.Token}')">🗑 Delete</button>
-    </div>
-    <div id="reschedule-${c.ID||c.Title}" style="display:none;margin-top:8px;display:none;align-items:center;gap:8px;">
-      <input type="date" id="newdate-${c.ID||c.Title}" class="form-input" style="flex:1;padding:7px 12px;font-size:12px;" value="${c.ScheduledDate||''}"/>
-      <button onclick="saveReschedule('${c.ID||c.Title}','${c.Token}')" style="background:var(--lime);border:none;color:#080c08;font-family:var(--fb);font-size:12px;font-weight:700;padding:7px 14px;border-radius:7px;cursor:pointer;">Save</button>
-      <button onclick="document.getElementById('reschedule-${c.ID||c.Title}').style.display='none'" style="background:none;border:1px solid var(--bdr);color:var(--t3);font-size:12px;padding:7px 14px;border-radius:7px;cursor:pointer;">Cancel</button>
-    </div>
+<div class="cai-actions" style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
+  ${c.Status!=='published'?`<button class="btn-sm btn-sm-red" onclick="setContentPublished('${c.Token}','${c.Title}','${c.Platform}')">🚀 Mark Published</button>`:''}
+  ${c.Status==='declined'||c.Status==='Revision'?`<button class="btn-sm" style="background:rgba(77,157,255,0.1);border-color:rgba(77,157,255,0.25);color:var(--blue);" onclick="showReupload('${c.ID||c.Title}','${c.Token}')">📤 Reupload Corrected Version</button>`:''}
+  <button class="btn-sm" style="background:rgba(77,157,255,0.1);border-color:rgba(77,157,255,0.25);color:var(--blue);" onclick="showReschedule('${c.ID||c.Title}','${c.Token}')">📅 Reschedule</button>
+  <button class="btn-sm" style="background:rgba(255,77,77,0.1);border-color:rgba(255,77,77,0.2);color:var(--red);" onclick="deleteContentItem('${c.ID||c.Title}','${c.Token}')">🗑 Delete</button>
+</div>
+<div id="reupload-${c.ID||c.Title}" style="display:none;margin-top:8px;flex-direction:column;gap:8px;">
+  <div style="font-size:12px;color:var(--amber);font-weight:600;">📤 Upload corrected version — replaces existing files</div>
+  <div id="reupload-filelist-${c.ID||c.Title}" style="display:flex;flex-direction:column;gap:6px;"></div>
+  <div style="border:1.5px dashed rgba(204,255,0,0.25);border-radius:8px;padding:14px;text-align:center;cursor:pointer;" onclick="document.getElementById('reupload-input-${c.ID||c.Title}').click()">
+    <div style="font-size:12px;color:var(--t2);">Drop new files or <span style="color:var(--lime);">browse</span></div>
+  </div>
+  <input type="file" id="reupload-input-${c.ID||c.Title}" multiple accept="image/*,video/*" style="display:none" onchange="handleReuploadFiles(this.files,'${c.ID||c.Title}','${c.Token}')"/>
+  <button onclick="submitReupload('${c.ID||c.Title}','${c.Token}')" style="background:var(--lime);border:none;color:#080c08;font-family:var(--fh);font-size:14px;padding:9px 20px;border-radius:7px;cursor:pointer;">Submit Corrected Version →</button>
+</div>
+<div id="reschedule-${c.ID||c.Title}" style="display:none;margin-top:8px;align-items:center;gap:8px;">
+  <input type="datetime-local" id="newdate-${c.ID||c.Title}" class="form-input" style="flex:1;padding:7px 12px;font-size:12px;" value="${c.ScheduledDate||''}"/>
+  <button onclick="saveReschedule('${c.ID||c.Title}','${c.Token}')" style="background:var(--lime);border:none;color:#080c08;font-family:var(--fb);font-size:12px;font-weight:700;padding:7px 14px;border-radius:7px;cursor:pointer;">Save</button>
+  <button onclick="document.getElementById('reschedule-${c.ID||c.Title}').style.display='none'" style="background:none;border:1px solid var(--bdr);color:var(--t3);font-size:12px;padding:7px 14px;border-radius:7px;cursor:pointer;">Cancel</button>
+</div>
   </div>`;
 }
 
@@ -2059,7 +2069,69 @@ async function saveReschedule(id, token){
     toast('❌ Reschedule failed','error');
   }
 }
+let reuploadFiles = {};
 
+function showReupload(id, token){
+  const el = document.getElementById('reupload-'+id);
+  if(!el) return;
+  el.style.display = el.style.display==='none'||!el.style.display ? 'flex' : 'none';
+}
+
+function handleReuploadFiles(files, id, token){
+  if(!reuploadFiles[id]) reuploadFiles[id] = [];
+  const list = document.getElementById('reupload-filelist-'+id);
+  Array.from(files).forEach(file=>{
+    const fileId = id+'-r-'+Date.now();
+    reuploadFiles[id].push({fileId, file, status:'pending', url:''});
+    const item = document.createElement('div');
+    item.id = 'rfi-'+fileId;
+    item.style.cssText='display:flex;align-items:center;gap:8px;background:rgba(204,255,0,0.04);border:1px solid var(--bdr3);border-radius:7px;padding:7px 12px;font-size:12px;';
+    item.innerHTML = `<span>⬆️</span><span style="flex:1;">${file.name}</span><span id="rfis-${fileId}" style="color:var(--t3);">Uploading...</span>`;
+    list.appendChild(item);
+    uploadReuploadFile(id, fileId, file);
+  });
+}
+
+async function uploadReuploadFile(id, fileId, file){
+  try{
+    const presignRes = await fetch('https://canvafitflux.vercel.app/api/upload',{
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({fileName:file.name, fileType:file.type})
+    });
+    const presignData = await presignRes.json();
+    if(!presignData.presignedUrl) throw new Error('No URL');
+    const uploadRes = await fetch(presignData.presignedUrl,{method:'PUT',headers:{'Content-Type':file.type},body:file});
+    if(!uploadRes.ok) throw new Error('Upload failed');
+    const record = reuploadFiles[id]?.find(f=>f.fileId===fileId);
+    if(record){ record.status='done'; record.url=presignData.publicUrl; }
+    const statusEl = document.getElementById('rfis-'+fileId);
+    if(statusEl){ statusEl.textContent='✅ Uploaded'; statusEl.style.color='var(--green)'; }
+  } catch(err){
+    const record = reuploadFiles[id]?.find(f=>f.fileId===fileId);
+    if(record) record.status='error';
+    const statusEl = document.getElementById('rfis-'+fileId);
+    if(statusEl){ statusEl.textContent='❌ Failed'; statusEl.style.color='var(--red)'; }
+  }
+}
+
+async function submitReupload(id, token){
+  const files = reuploadFiles[id]||[];
+  const hasUploading = files.some(f=>f.status==='pending'||f.status==='uploading');
+  const hasFailed = files.some(f=>f.status==='error');
+  if(hasUploading){ toast('Please wait — files still uploading','error'); return; }
+  if(hasFailed){ toast('Some files failed — retry or remove them','error'); return; }
+  const urls = files.filter(f=>f.status==='done').map(f=>f.url).join(',');
+  if(!urls){ toast('Please upload at least one file','error'); return; }
+  const result = await apiPost('reuploadContent',{token, id, mediaURL: urls});
+  if(result && result.status==='reuploaded'){
+    toast('✅ Corrected version uploaded — sent back for client approval');
+    reuploadFiles[id]=[];
+    document.getElementById('reupload-'+id).style.display='none';
+    loadAdminContent();
+  } else {
+    toast('❌ Reupload failed','error');
+  }
+}
 async function deleteContentItem(id, token){
   if(!confirm('Delete this content item? This cannot be undone.')) return;
   const result = await apiPost('deleteContent', {token, id});
