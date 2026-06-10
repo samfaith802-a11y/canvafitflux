@@ -1692,13 +1692,12 @@ function buildApprovalCard(c, i){
 
   // Action buttons
   const canChange = !isLocked && (c.Status==='waiting'||c.Status==='Approved'||c.Status==='approved_minor'||c.Status==='declined');
-  const lockedMsg = isLocked ? `<div style="background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--red);margin:10px 0;">🔒 Content is locked — less than 3 days until scheduled post. No changes can be made.</div>` : '';
+const lockWarning = `<div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--amber);margin:10px 0;">⚠️ You can make changes to your approval until 3 days before the scheduled publish date. After that your decision is final.</div>`;
 
-const lockWarningHtml = isLocked 
-  ? `<div style="background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--red);margin:10px 0;">🔒 Your decision is now final — this content is scheduled to go live in less than 3 days and can no longer be changed.</div>`
-  : `<div style="background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--amber);margin:10px 0;">⚠️ You can make changes until 3 days before the scheduled publish date.</div>`;
+const lockedMsg = isLocked ? `<div style="background:rgba(255,77,77,0.08);border:1px solid rgba(255,77,77,0.2);border-radius:8px;padding:10px 14px;font-size:12px;color:var(--red);margin:10px 0;">🔒 Your decision is now final — this content is scheduled to go live in less than 3 days and can no longer be changed.</div>` : '';
+
 const actionBtns = c.Status==='waiting' ? `
-    <div style="margin-bottom:8px;">${lockWarningHtml}</div>
+    <div style="margin-bottom:8px;">${!isLocked ? lockWarning : lockedMsg}</div>
     ${!isLocked ? `<div style="display:flex;gap:8px;margin:12px 0;flex-wrap:wrap;">
       <button class="btn-approve" onclick="handleApprove('${titleEncoded}','${platformEncoded}','${contentId}',this)">✅ Approve</button>
       <button onclick="showChatForAction('${cardId}','minor','${titleEncoded}','${platformEncoded}','${contentId}',this)" style="background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);color:var(--amber);font-family:var(--fb);font-size:12px;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer;transition:all .15s;">✏️ Approve with Minor Correction</button>
