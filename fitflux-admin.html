@@ -1175,6 +1175,23 @@ async function loadDashboard(){
   buildTaskSummary();
   renderRetainerTracker(allClients);
   loadInbox();
+  // Silent check for new client messages every 20 seconds
+if(!window._adminMsgRefresh){
+  window._adminMsgRefresh = setInterval(async()=>{
+    if(!currentClient) return;
+    const data = await apiGet('getContent', currentClient.Token);
+    if(!data || !data.content) return;
+    const unread = data.content.filter(c=>(c.ChatMessages||[]).some(m=>m.author!=='FitFlux'));
+    const badge = document.getElementById('inbox-badge');
+    if(unread.length){
+      if(badge){ badge.textContent=unread.length; badge.style.display=''; }
+      // If content tab is open refresh it silently
+      if(document.getElementById('dtab-content')?.classList.contains('active')){
+        loadAdminContent();
+      }
+    }
+  }, 20000);
+}
 }
 
 function buildClientRow(c){
