@@ -3331,31 +3331,29 @@ async function loadAdminCredentials(){
     return;
   }
 
-  el.innerHTML = `
-    <div style="background:rgba(61,214,140,0.06);border:1px solid rgba(61,214,140,0.2);border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;">
-      <div style="font-size:20px;">✅</div>
-      <div>
-        <div style="font-size:13px;font-weight:700;color:var(--green);">Credentials Received</div>
-        <div style="font-size:11px;color:var(--t3);">${data.credentials.length} account${data.credentials.length!==1?'s':''} submitted · Click Decrypt to view</div>
-      </div>
+el.innerHTML = `
+  <div style="background:rgba(61,214,140,0.06);border:1px solid rgba(61,214,140,0.2);border-radius:10px;padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:10px;">
+    <div style="font-size:20px;">✅</div>
+    <div>
+      <div style="font-size:13px;font-weight:700;color:var(--green);">Credentials Received</div>
+      <div style="font-size:11px;color:var(--t3);">${data.credentials.length} account${data.credentials.length!==1?'s':''} submitted · Click Decrypt to view</div>
     </div>
-    ${data.credentials.map(c=>`
-    <div style="background:var(--card);border:1px solid var(--bdr3);border-radius:12px;padding:18px 20px;margin-bottom:12px;">
-      <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
-        <div style="font-size:20px;">🔒</div>
-        <div style="font-size:14px;font-weight:700;color:var(--lime);">${c.Platform||'Unknown Platform'}</div>
-        <div style="margin-left:auto;font-size:11px;color:var(--t3);">${c.Timestamp||'—'}</div>
-      </div>
-    <button 
-  data-enc="${c.EncryptedData}" 
-  data-iv="${c.IV}" 
-  data-out="cred-out-${c.Platform}"
-  onclick="decryptCred(this.dataset.enc, this.dataset.iv, this.dataset.out)"
-        style="background:var(--lime-dim);border:1px solid var(--lime-bdr);color:var(--lime);border-radius:7px;padding:8px 18px;font-family:var(--fb);font-size:12px;font-weight:700;cursor:pointer;margin-bottom:10px;">
-        👁 Decrypt & View
-      </button>
-      <div id="cred-out-${c.Platform}" style="display:none;background:rgba(0,0,0,0.3);border:1px solid var(--bdr);border-radius:8px;padding:14px;font-family:var(--fm);font-size:13px;color:var(--t1);line-height:1.9;"></div>
-    </div>`).join('')}`;
+  </div>
+  ${data.credentials.map((c,idx)=>`
+  <div style="background:var(--card);border:1px solid var(--bdr3);border-radius:12px;padding:18px 20px;margin-bottom:12px;">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;">
+      <div style="font-size:20px;">🔒</div>
+      <div style="font-size:14px;font-weight:700;color:var(--lime);">${c.Platform||'Unknown Platform'}</div>
+      <div style="margin-left:auto;font-size:11px;color:var(--t3);">${c.Timestamp||'—'}</div>
+    </div>
+    <button onclick="decryptCredByIndex(${idx})" style="background:var(--lime-dim);border:1px solid var(--lime-bdr);color:var(--lime);border-radius:7px;padding:8px 18px;font-family:var(--fb);font-size:12px;font-weight:700;cursor:pointer;margin-bottom:10px;">
+      👁 Decrypt & View
+    </button>
+    <div id="cred-out-${idx}" style="display:none;background:rgba(0,0,0,0.3);border:1px solid var(--bdr);border-radius:8px;padding:14px;font-family:var(--fm);font-size:13px;color:var(--t1);line-height:1.9;"></div>
+  </div>`).join('')}`;
+
+// Store credentials data for decryption
+window._currentCredentials = data.credentials;
 }
 
 async function sendCredentialReminder(){
@@ -3367,7 +3365,33 @@ async function sendCredentialReminder(){
   toast('📨 Reminder sent to '+currentClient.Name);
   loadAdminCredentials();
 }
-
+async function decryptCredByIndex(idx){
+  const creds = window._currentCredentials;
+  if(!creds || !creds[idx]) return;
+  const c = creds[idx];
+  const outputId = 'cred-out-'+idx;
+  try {
+    const enc = new TextEncoder();
+    const keyMaterial = await crypto.subtle.importKey('raw', enc.encode('FitFluxSecureKey2024!!'), {name:'PBKDF2'}, false, ['deriveKey']);
+    const key = await crypto.subtle.deriveKey({name:'PBKDF2', salt:enc.encode('fitfluxsalt'), iterations:100000, hash:'SHA-256'}, keyMaterial, {name:'AES-GCM', length:256}, false, ['decrypt']);
+    const encrypted = Uint8Array.from(atob(c.EncryptedData), ch=>ch.charCodeAt(0));
+    const iv = Uint8Array.from(atob(c.IV), ch=>ch.charCodeAt(0));
+    const decrypted = await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, encrypted);
+    const result = JSON.parse(new TextDecoder().decode(decrypted));
+    const el = document.getElementById(outputId);
+    el.style.display = 'block';
+    el.innerHTML = `
+      <div>🏷 Platform: <strong style="color:var(--lime);">${result.platform||'—'}</strong></div>
+      <div>👤 Username: <strong style="color:var(--t1);">${result.username||'—'}</strong></div>
+      <div>🔑 Password: <strong style="color:var(--amber);">${result.password||'—'}</strong></div>
+      ${result.notes?`<div>📝 Notes: <span style="color:var(--t2);">${result.notes}</span></div>`:''}
+    `;
+  } catch(e){
+    const el = document.getElementById(outputId);
+    el.style.display = 'block';
+    el.innerHTML = '<span style="color:var(--red);">❌ Decryption failed — '+e.message+'</span>';
+  }
+}
 async function decryptCred(encryptedB64, ivB64, outputId){
   try {
     const enc = new TextEncoder();
