@@ -3370,22 +3370,36 @@ async function markLoginStatus(idx, status){
   const creds = window._currentCredentials;
   if(!creds || !creds[idx]) return;
   const c = creds[idx];
-  
-  // Save status to sheet
+
+  // Get both buttons
+  const confirmBtn = document.querySelector(`button[onclick="markLoginStatus(${idx},'confirmed')"]`);
+  const failBtn = document.querySelector(`button[onclick="markLoginStatus(${idx},'failed')"]`);
+  const activeBtn = status === 'confirmed' ? confirmBtn : failBtn;
+
+  // Press animation
+  if(activeBtn){
+    activeBtn.textContent = '⏳ Sending...';
+    activeBtn.style.opacity = '0.7';
+    activeBtn.style.transform = 'scale(0.96)';
+    activeBtn.disabled = true;
+  }
+
+  // Save to sheet
   await apiPost('updateCredentialLoginStatus',{
     token: currentClient.Token,
     platform: c.Platform,
     loginStatus: status
   });
 
-  // Send email to client
-  const subject = status === 'confirmed' 
-    ? '✅ Your '+c.Platform+' login details are confirmed' 
-    : '❌ Your '+c.Platform+' login details need updating';
-  
+  // Send email
+  const clientFirstName = (currentClient.Name||'there').split(' ')[0];
+  const subject = status === 'confirmed'
+    ? `✅ Your ${c.Platform} login is confirmed — FitFlux`
+    : `⚠️ Your ${c.Platform} login details need updating — FitFlux`;
+
   const message = status === 'confirmed'
-    ? `Hi ${currentClient.Name?.split(' ')[0]||'there'},\n\nGreat news — we've successfully logged into your ${c.Platform} account and everything is set up. Your content is now being managed.\n\nIf you update your password, please resubmit your login details through the portal.\n\nFitFlux Team`
-    : `Hi ${currentClient.Name?.split(' ')[0]||'there'},\n\nWe tried logging into your ${c.Platform} account but the details don't seem to be working. Please resubmit your login details through your portal's Secure Login section.\n\nFitFlux Team`;
+    ? `Hi ${clientFirstName},\n\nGreat news — we've successfully logged into your ${c.Platform} account. Your content is now being managed.\n\nIf you ever change your password, please resubmit your login details through the portal.\n\nFitFlux Team`
+    : `Hi ${clientFirstName},\n\nWe tried logging into your ${c.Platform} account but the details don't seem to be working.\n\nPlease go to your portal → Secure Login Details and resubmit the correct login for ${c.Platform}.\n\nFitFlux Team`;
 
   await apiPost('sendLoginStatusEmail',{
     token: currentClient.Token,
@@ -3396,8 +3410,45 @@ async function markLoginStatus(idx, status){
     message
   });
 
-  toast(status === 'confirmed' ? '✅ Login confirmed — email sent to client' : '❌ Login failed — client notified by email');
-  loadAdminCredentials();
+  // Update button states
+  const statusDiv = document.getElementById('login-status-'+idx);
+  if(status === 'confirmed'){
+    if(statusDiv) statusDiv.innerHTML = '<span style="color:var(--green);">✅ Login Confirmed — client notified</span>';
+    // Change confirm button to Re-Login
+    if(confirmBtn){
+      confirmBtn.textContent = '🔄 Re-Login';
+      confirmBtn.style.opacity = '1';
+      confirmBtn.style.transform = 'scale(1)';
+      confirmBtn.disabled = false;
+      confirmBtn.setAttribute('onclick', `markLoginStatus(${idx},'confirmed')`);
+    }
+    // Keep fail button as Login Failed
+    if(failBtn){
+      failBtn.textContent = '❌ Login Failed';
+      failBtn.disabled = false;
+    }
+    toast('✅ Login confirmed — email sent to '+currentClient.Name);
+  } else {
+    if(statusDiv) statusDiv.innerHTML = '<span style="color:var(--red);">❌ Login Failed — client asked to resubmit</span>';
+    // Change fail button to Decline/Re-Login
+    if(failBtn){
+      failBtn.textContent = '🔄 Decline / Re-Login';
+      failBtn.style.opacity = '1';
+      failBtn.style.transform = 'scale(1)';
+      failBtn.disabled = false;
+    }
+    // Change confirm button to Login Works
+    if(confirmBtn){
+      confirmBtn.textContent = '✅ Login Works';
+      confirmBtn.style.opacity = '1';
+      confirmBtn.style.transform = 'scale(1)';
+      confirmBtn.disabled = false;
+    }
+    toast('📨 Login failed — client asked to resubmit credentials');
+  }
+
+  // Update stored credentials with new status
+  window._currentCredentials[idx].LoginStatus = status;
 }
 async function sendCredentialReminder(){
   if(!currentClient) return;
