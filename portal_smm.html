@@ -2766,16 +2766,24 @@ async function sendDirectMessage(){
   // Show login status per platform
 const statusEl = document.getElementById('login-status-section');
 if(statusEl && data.credentials){
-  statusEl.innerHTML = data.credentials.map(c=>{
-    const status = c.LoginStatus;
-    if(!status || status === '') return '';
-    const color = status==='confirmed'?'var(--green)':status==='failed'?'var(--red)':'var(--t3)';
-    const emoji = status==='confirmed'?'✅':status==='failed'?'❌':'⚪';
-    const label = status==='confirmed'?'Login confirmed by FitFlux':status==='failed'?'Login failed — please resubmit':'Pending verification';
-    return `<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:rgba(255,255,255,0.03);border:1px solid var(--bdr);border-radius:8px;margin-bottom:6px;font-size:12px;color:${color};">
-      ${emoji} <strong>${c.Platform}</strong> — ${label}
-    </div>`;
-  }).join('');
+  const statusItems = data.credentials.filter(c => c.LoginStatus && c.LoginStatus !== '');
+  if(statusItems.length){
+    statusEl.innerHTML = '<div style="font-size:10px;font-weight:700;color:var(--gold);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;">Login Status</div>'
+    + statusItems.map(c=>{
+      const confirmed = c.LoginStatus === 'confirmed';
+      const failed = c.LoginStatus === 'failed';
+      const color = confirmed ? 'var(--green)' : failed ? 'var(--red)' : 'var(--t3)';
+      const emoji = confirmed ? '✅' : failed ? '❌' : '⚪';
+      const label = confirmed ? 'Login verified by FitFlux' : failed ? 'Login failed — please resubmit correct details' : 'Pending verification';
+      const bg = confirmed ? 'rgba(61,214,140,0.08)' : failed ? 'rgba(255,85,85,0.08)' : 'rgba(255,255,255,0.03)';
+      const border = confirmed ? 'rgba(61,214,140,0.2)' : failed ? 'rgba(255,85,85,0.2)' : 'var(--bdr)';
+      return `<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:${bg};border:1px solid ${border};border-radius:8px;margin-bottom:6px;font-size:12px;color:${color};">
+        ${emoji} <strong>${c.Platform}</strong> — ${label}
+      </div>`;
+    }).join('');
+  } else {
+    statusEl.innerHTML = '';
+  }
 }
 }
 async function sendDelivChat(id, name){
