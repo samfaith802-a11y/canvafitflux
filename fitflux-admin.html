@@ -3346,16 +3346,59 @@ el.innerHTML = `
       <div style="font-size:14px;font-weight:700;color:var(--lime);">${c.Platform||'Unknown Platform'}</div>
       <div style="margin-left:auto;font-size:11px;color:var(--t3);">${c.Timestamp||'—'}</div>
     </div>
-    <button onclick="decryptCredByIndex(${idx})" style="background:var(--lime-dim);border:1px solid var(--lime-bdr);color:var(--lime);border-radius:7px;padding:8px 18px;font-family:var(--fb);font-size:12px;font-weight:700;cursor:pointer;margin-bottom:10px;">
-      👁 Decrypt & View
-    </button>
+<button id="decrypt-btn-${idx}" onclick="toggleDecrypt(${idx})" style="background:var(--lime-dim);border:1px solid var(--lime-bdr);color:var(--lime);border-radius:7px;padding:8px 18px;font-family:var(--fb);font-size:12px;font-weight:700;cursor:pointer;margin-bottom:10px;">
+  👁 Decrypt & View
+</button>
     <div id="cred-out-${idx}" style="display:none;background:rgba(0,0,0,0.3);border:1px solid var(--bdr);border-radius:8px;padding:14px;font-family:var(--fm);font-size:13px;color:var(--t1);line-height:1.9;"></div>
+    <div style="margin-top:12px;padding-top:12px;border-top:1px solid var(--bdr3);display:flex;align-items:center;gap:12px;">
+  <div id="login-status-${idx}" style="font-size:12px;color:var(--t3);">
+    ${c.LoginStatus === 'confirmed' 
+      ? '<span style="color:var(--green);">✅ Login Confirmed — client notified</span>' 
+      : c.LoginStatus === 'failed'
+      ? '<span style="color:var(--red);">❌ Login Failed — client notified</span>'
+      : '<span style="color:var(--t3);">⚪ Login not yet tested</span>'}
+  </div>
+  <button onclick="markLoginStatus(${idx},'confirmed')" style="background:rgba(61,214,140,0.1);border:1px solid rgba(61,214,140,0.25);color:var(--green);border-radius:6px;padding:6px 14px;font-family:var(--fb);font-size:11px;font-weight:700;cursor:pointer;">✅ Login Works</button>
+  <button onclick="markLoginStatus(${idx},'failed')" style="background:rgba(255,77,77,0.1);border:1px solid rgba(255,77,77,0.2);color:var(--red);border-radius:6px;padding:6px 14px;font-family:var(--fb);font-size:11px;font-weight:700;cursor:pointer;">❌ Login Failed</button>
+</div>
   </div>`).join('')}`;
 
 // Store credentials data for decryption
 window._currentCredentials = data.credentials;
 }
+async function markLoginStatus(idx, status){
+  const creds = window._currentCredentials;
+  if(!creds || !creds[idx]) return;
+  const c = creds[idx];
+  
+  // Save status to sheet
+  await apiPost('updateCredentialLoginStatus',{
+    token: currentClient.Token,
+    platform: c.Platform,
+    loginStatus: status
+  });
 
+  // Send email to client
+  const subject = status === 'confirmed' 
+    ? '✅ Your '+c.Platform+' login details are confirmed' 
+    : '❌ Your '+c.Platform+' login details need updating';
+  
+  const message = status === 'confirmed'
+    ? `Hi ${currentClient.Name?.split(' ')[0]||'there'},\n\nGreat news — we've successfully logged into your ${c.Platform} account and everything is set up. Your content is now being managed.\n\nIf you update your password, please resubmit your login details through the portal.\n\nFitFlux Team`
+    : `Hi ${currentClient.Name?.split(' ')[0]||'there'},\n\nWe tried logging into your ${c.Platform} account but the details don't seem to be working. Please resubmit your login details through your portal's Secure Login section.\n\nFitFlux Team`;
+
+  await apiPost('sendLoginStatusEmail',{
+    token: currentClient.Token,
+    email: currentClient.Email,
+    name: currentClient.Name,
+    platform: c.Platform,
+    subject,
+    message
+  });
+
+  toast(status === 'confirmed' ? '✅ Login confirmed — email sent to client' : '❌ Login failed — client notified by email');
+  loadAdminCredentials();
+}
 async function sendCredentialReminder(){
   if(!currentClient) return;
   const key = 'ff_cred_reminder_'+(currentClient.Token||'').slice(-8);
@@ -3365,11 +3408,21 @@ async function sendCredentialReminder(){
   toast('📨 Reminder sent to '+currentClient.Name);
   loadAdminCredentials();
 }
-async function decryptCredByIndex(idx){
+async function toggleDecrypt(idx){
+  const outputEl = document.getElementById('cred-out-'+idx);
+  const btn = document.getElementById('decrypt-btn-'+idx);
+  
+  // If already open — close it
+  if(outputEl.style.display === 'block'){
+    outputEl.style.display = 'none';
+    btn.textContent = '👁 Decrypt & View';
+    return;
+  }
+
+  // Decrypt and show
   const creds = window._currentCredentials;
   if(!creds || !creds[idx]) return;
   const c = creds[idx];
-  const outputId = 'cred-out-'+idx;
   try {
     const enc = new TextEncoder();
     const keyMaterial = await crypto.subtle.importKey('raw', enc.encode('FitFluxSecureKey2024!!'), {name:'PBKDF2'}, false, ['deriveKey']);
@@ -3378,18 +3431,17 @@ async function decryptCredByIndex(idx){
     const iv = Uint8Array.from(atob(c.IV), ch=>ch.charCodeAt(0));
     const decrypted = await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, encrypted);
     const result = JSON.parse(new TextDecoder().decode(decrypted));
-    const el = document.getElementById(outputId);
-    el.style.display = 'block';
-    el.innerHTML = `
+    outputEl.style.display = 'block';
+    outputEl.innerHTML = `
       <div>🏷 Platform: <strong style="color:var(--lime);">${result.platform||'—'}</strong></div>
       <div>👤 Username: <strong style="color:var(--t1);">${result.username||'—'}</strong></div>
       <div>🔑 Password: <strong style="color:var(--amber);">${result.password||'—'}</strong></div>
       ${result.notes?`<div>📝 Notes: <span style="color:var(--t2);">${result.notes}</span></div>`:''}
     `;
+    btn.textContent = '🔒 Close';
   } catch(e){
-    const el = document.getElementById(outputId);
-    el.style.display = 'block';
-    el.innerHTML = '<span style="color:var(--red);">❌ Decryption failed — '+e.message+'</span>';
+    outputEl.style.display = 'block';
+    outputEl.innerHTML = '<span style="color:var(--red);">❌ Decryption failed — '+e.message+'</span>';
   }
 }
 async function decryptCred(encryptedB64, ivB64, outputId){
