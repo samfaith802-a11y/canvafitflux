@@ -2151,14 +2151,19 @@ async function submitReupload(id, token){
 }
 async function deleteContentItem(id, token){
   if(!confirm('Delete this content item? This cannot be undone.')) return;
-  const result = await apiPost('deleteContent', {token, id});
-  if(result && result.status==='deleted'){
+  const useToken = token || (currentClient && currentClient.Token);
+  if(!useToken){ toast('No client token found','error'); return; }
+  const result = await apiPost('deleteContent', {token: useToken, id});
+  if(result && (result.status==='deleted' || result.deleted)){
     toast('✅ Content deleted');
     loadAdminContent();
   } else {
-    toast('❌ Delete failed','error');
+    // Fallback — try with just the id as title match
+    const result2 = await apiPost('deleteContent', {token: useToken, contentTitle: id});
+    if(result2){ toast('✅ Content deleted'); loadAdminContent(); }
+    else toast('❌ Delete failed — check Apps Script logs','error');
   }
-}  
+}
   function toggleSelectAll(cb){
   document.querySelectorAll('.content-select-cb').forEach(el=>el.checked=cb.checked);
   updateDeleteBtn();
@@ -2363,12 +2368,38 @@ async function sendAdminContentReply(token, title, platform, uid){
   const input = document.getElementById('admin-reply-'+uid);
   const text = input ? input.value.trim() : '';
   if(!text){ if(input) input.focus(); return; }
+  
+  const useToken = token || (currentClient && currentClient.Token);
   const time = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-  await apiPost('addContentChat',{token, contentTitle:title, platform, text, author:'FitFlux', time});
-  await sendTelegramAdmin('💬 ADMIN REPLIED TO CONTENT CHAT\n\nClient: '+(currentClient.Name||'—')+'\nContent: '+title+'\nReply: '+text);
-  if(input) input.value='';
-  toast('✅ Reply sent — client will see it in their portal');
-  loadAdminContent();
+  
+  const result = await apiPost('addContentChat',{
+    token: useToken, 
+    contentTitle: title, 
+    platform, 
+    text, 
+    author:'FitFlux', 
+    time
+  });
+  
+  if(result){
+    // Instantly append message to chat without full reload
+    const chatEl = document.getElementById('admin-chat-'+uid);
+    if(chatEl){
+      chatEl.insertAdjacentHTML('beforeend', `
+        <div style="background:rgba(204,255,0,0.06);border-radius:7px;padding:8px 10px;">
+          <div style="font-size:10px;font-weight:700;color:var(--lime);margin-bottom:3px;">FitFlux</div>
+          <div style="font-size:12px;color:var(--t2);">${text}</div>
+          <div style="font-size:10px;color:var(--t3);margin-top:3px;">${time}</div>
+        </div>`);
+      chatEl.scrollTop = chatEl.scrollHeight;
+    }
+    if(input) input.value='';
+    toast('✅ Reply sent');
+    // Silently reload in background to sync
+    setTimeout(()=>loadAdminContent(), 2000);
+  } else {
+    toast('❌ Failed to send reply','error');
+  }
 }
 
 async function sendAdminDelivReply(id, name){
