@@ -1984,10 +1984,10 @@ function toggleContentMonth(id){
 async function clearContentMonth(year, month){
   if(!confirm(`Delete all content from ${month} ${year}? This cannot be undone.`)) return;
   toast('Deleting...');
-  const result = await apiPost('deleteContent', {
+ const result = await apiPost('deleteContent', {
     token: currentClient.Token,
-    month: month,
-    year: year.toString()
+    month: month.trim(),
+    year: year.toString().trim()
   });
   if(result && result.status === 'deleted'){
     toast(`✅ Deleted ${result.count} content item${result.count!==1?'s':''} from ${month} ${year}`);
