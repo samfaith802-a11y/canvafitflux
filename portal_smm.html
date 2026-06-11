@@ -1764,16 +1764,16 @@ const actionBtns = c.Status==='waiting' ? `
       ${changeMindBtn}
       <div style="margin-top:14px;">
         <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">💬 Chat with FitFlux Team</div>
-      <div id="chat-${cardId}" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;max-height:400px;overflow-y:auto;">${chatMsgs}</div>
-  ${hasMsgs ? `<button onclick="document.getElementById('chatbox-${cardId}').style.display='block';this.style.display='none';" style="background:rgba(126,200,69,0.08);border:1px solid var(--bdr);color:var(--gold);font-family:var(--fb);font-size:12px;padding:7px 14px;border-radius:7px;cursor:pointer;margin-bottom:8px;">💬 Reply to thread (${(c.ChatMessages||[]).length})</button>` : ''}
-  <div class="comment-box" id="chatbox-${cardId}" style="display:none;">
-  <div id="chat-prompt-${cardId}" style="font-size:12px;color:var(--t3);padding:8px 12px;border-bottom:1px solid var(--bdr);">Send a message to your FitFlux team about this content:</div>
-          <textarea class="comment-input" id="${inputId}" placeholder="Type your message..."></textarea>
-          <div class="comment-footer">
-            <span class="comment-hint">Goes directly to your FitFlux team.</span>
-            <button class="btn-send" id="chat-send-${cardId}" onclick="sendGeneralChat('${titleEncoded}','${platformEncoded}','${contentId}','${cardId}')">Send →</button>
-          </div>
-        </div>` : ''}
+  <div id="chat-${cardId}" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;max-height:400px;overflow-y:auto;">${chatMsgs}</div>
+      ${hasMsgs ? `<button onclick="document.getElementById('chatbox-${cardId}').style.display='block';this.style.display='none';" style="background:rgba(126,200,69,0.08);border:1px solid var(--bdr);color:var(--gold);font-family:var(--fb);font-size:12px;padding:7px 14px;border-radius:7px;cursor:pointer;margin-bottom:8px;">💬 Reply to thread (${(c.ChatMessages||[]).length})</button>` : ''}
+      <div class="comment-box" id="chatbox-${cardId}">
+        <div id="chat-prompt-${cardId}" style="font-size:12px;color:var(--t3);padding:8px 12px;border-bottom:1px solid var(--bdr);">Send a message to your FitFlux team about this content:</div>
+        <textarea class="comment-input" id="${inputId}" placeholder="Type your message..."></textarea>
+        <div class="comment-footer">
+          <span class="comment-hint">Goes directly to your FitFlux team.</span>
+          <button class="btn-send" id="chat-send-${cardId}" onclick="sendGeneralChat('${titleEncoded}','${platformEncoded}','${contentId}','${cardId}')">Send →</button>
+        </div>
+      </div>
       </div>
     </div>
   </div>`;
