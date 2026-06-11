@@ -2040,6 +2040,39 @@ async function clearContentMonth(year, month){
     toast('❌ Delete failed — check Apps Script deleteContent handler','error');
   }
 }
+  async function clearContentYear(year){
+  if(!confirm(`Delete ALL content from ${year}? This cannot be undone.`)) return;
+
+  toast('Loading content...');
+
+  const data = await apiGet('getContent', currentClient.Token);
+  if(!data || !data.content){ toast('❌ Could not load content','error'); return; }
+
+  const toDelete = data.content.filter(c => {
+    const sheetYear = (c.Year||'').toString().trim();
+    if(sheetYear) return sheetYear === year.toString();
+    const d = new Date(c.ScheduledDate || c.CreatedAt || '');
+    return !isNaN(d) && d.getFullYear().toString() === year.toString();
+  });
+
+  if(!toDelete.length){ toast('No content found for '+year,'error'); return; }
+
+  toast(`Deleting ${toDelete.length} items...`);
+  let deleted = 0;
+  for(const c of toDelete){
+    const id = c.ID || c.id || c.Title;
+    if(!id) continue;
+    const r = await apiPost('deleteContent', {token: currentClient.Token, id});
+    if(r && (r.status==='deleted' || r.deleted===true)) deleted++;
+  }
+
+  if(deleted > 0){
+    toast(`✅ Deleted ${deleted} items from ${year}`);
+    loadAdminContent();
+  } else {
+    toast('❌ Delete failed','error');
+  }
+}
 }
 
 function buildAdminContentCard(c){
