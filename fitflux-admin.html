@@ -2086,7 +2086,7 @@ function buildAdminContentCard(c){
         <div id="admin-chat-${uid}" style="max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:8px;">${chatMsgs}</div>
         <div style="display:flex;gap:8px;">
           <input class="form-input" id="admin-reply-${uid}" placeholder="Reply to client..." style="flex:1;padding:8px 12px;font-size:12px;" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAdminContentReply('${c.Token}','${c.Title}','${c.Platform}','${uid}');}"/>
-          <button onclick="sendAdminContentReply('${c.Token}','${c.Title}','${c.Platform}','${uid}')" style="background:var(--lime);border:none;color:#080c08;font-family:var(--fb);font-size:12px;font-weight:700;padding:8px 16px;border-radius:7px;cursor:pointer;white-space:nowrap;">Reply →</button>
+          <button onclick="sendAdminContentReply('${c.Token}','${c.Title}','${c.Platform}','${uid}','${c.ID||''}')" style="background:var(--lime);border:none;color:#080c08;font-family:var(--fb);font-size:12px;font-weight:700;padding:8px 16px;border-radius:7px;cursor:pointer;white-space:nowrap;">Reply →</button>
         </div>
       </div>
 
@@ -2413,7 +2413,7 @@ async function loadAdminDeliverables(){
 </div>
     </div>`).join('');
 }
-async function sendAdminContentReply(token, title, platform, uid){
+async function sendAdminContentReply(token, title, platform, uid, contentId){
   const input = document.getElementById('admin-reply-'+uid);
   const text = input ? input.value.trim() : '';
   if(!text){ if(input) input.focus(); return; }
@@ -2421,34 +2421,35 @@ async function sendAdminContentReply(token, title, platform, uid){
   const useToken = token || (currentClient && currentClient.Token);
   const time = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
   
-  const result = await apiPost('addContentChat',{
-    token: useToken, 
-    contentTitle: title, 
-    platform, 
-    text, 
-    author:'FitFlux', 
+  // Build body with ALL possible identifiers so Apps Script can find the row
+  const body = {
+    token: useToken,
+    contentTitle: title,
+    contentId: contentId || uid,
+    id: contentId || uid,
+    platform,
+    text,
+    author: 'FitFlux',
     time
-  });
+  };
+
+  const result = await apiPost('addContentChat', body);
   
-  if(result){
-    // Instantly append message to chat without full reload
-    const chatEl = document.getElementById('admin-chat-'+uid);
-    if(chatEl){
-      chatEl.insertAdjacentHTML('beforeend', `
-        <div style="background:rgba(204,255,0,0.06);border-radius:7px;padding:8px 10px;">
-          <div style="font-size:10px;font-weight:700;color:var(--lime);margin-bottom:3px;">FitFlux</div>
-          <div style="font-size:12px;color:var(--t2);">${text}</div>
-          <div style="font-size:10px;color:var(--t3);margin-top:3px;">${time}</div>
-        </div>`);
-      chatEl.scrollTop = chatEl.scrollHeight;
-    }
-    if(input) input.value='';
-    toast('✅ Reply sent');
-    // Silently reload in background to sync
-    setTimeout(()=>loadAdminContent(), 2000);
-  } else {
-    toast('❌ Failed to send reply','error');
+  // Append message instantly to UI
+  const chatEl = document.getElementById('admin-chat-'+uid);
+  if(chatEl){
+    chatEl.insertAdjacentHTML('beforeend', `
+      <div style="background:rgba(204,255,0,0.06);border-radius:7px;padding:8px 10px;">
+        <div style="font-size:10px;font-weight:700;color:var(--lime);margin-bottom:3px;">FitFlux</div>
+        <div style="font-size:12px;color:var(--t2);">${text}</div>
+        <div style="font-size:10px;color:var(--t3);margin-top:3px;">${time}</div>
+      </div>`);
+    chatEl.scrollTop = chatEl.scrollHeight;
   }
+  if(input) input.value = '';
+  toast('✅ Reply sent — client sees it instantly');
+  setTimeout(()=>loadAdminContent(), 2000);
+}
 }
 
 async function sendAdminDelivReply(id, name){
