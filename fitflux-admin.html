@@ -1952,7 +1952,10 @@ const selectBar = `<div style="display:flex;align-items:center;gap:10px;margin-b
   el.innerHTML = years.map(yr=>{
     const months=Object.keys(grouped[yr]).sort((a,b)=>MONTHS.indexOf(b)-MONTHS.indexOf(a));
     return `<div style="margin-bottom:20px;">
-      <div style="font-family:var(--fh);font-size:20px;color:var(--lime);margin-bottom:12px;">${yr}</div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <div style="font-family:var(--fh);font-size:20px;color:var(--lime);">${yr}</div>
+        <button onclick="clearContentYear('${yr}')" style="background:rgba(255,77,77,0.1);border:1px solid rgba(255,77,77,0.2);color:var(--red);border-radius:5px;padding:3px 12px;font-size:10px;font-weight:700;cursor:pointer;">Clear Year</button>
+      </div>
       ${months.map(mo=>{
         const items=grouped[yr][mo];
         const monthId='month-'+yr+'-'+mo.replace(/\s/g,'');
@@ -1990,47 +1993,53 @@ function toggleContentMonth(id){
 
 async function clearContentMonth(year, month){
   if(!confirm(`Delete all content from ${month} ${year}? This cannot be undone.`)) return;
+  
   toast('Deleting...');
 
-  // Try bulk delete by month/year, also try alternative param names
-  const attempts = await Promise.all([
-    apiPost('deleteContent', {token: currentClient.Token, month: month.trim(), year: year.toString().trim()}),
-    apiPost('deleteContent', {token: currentClient.Token, bulkMonth: month.trim(), bulkYear: year.toString().trim()}),
-    apiPost('deleteContentBulk', {token: currentClient.Token, month: month.trim(), year: year.toString().trim()})
-  ]);
+  // First load all content to find IDs for this month
+  const data = await apiGet('getContent', currentClient.Token);
+  if(!data || !data.content){ toast('❌ Could not load content','error'); return; }
 
-  const success = attempts.find(r => r && (r.status==='deleted' || r.deleted || r.count > 0));
-  if(success){
-    const count = success.count || '?';
-    toast(`✅ Deleted ${count} item${count!==1?'s':''} from ${month} ${year}`);
+  // Match by Month+Year columns OR by parsed ScheduledDate/CreatedAt
+  const toDelete = data.content.filter(c => {
+    // Try sheet Month/Year columns first (most reliable)
+    const sheetMonth = (c.Month||'').toString().trim();
+    const sheetYear  = (c.Year||'').toString().trim();
+    if(sheetMonth && sheetYear){
+      return sheetMonth.toLowerCase() === month.toLowerCase() &&
+             sheetYear === year.toString();
+    }
+    // Fallback — parse ScheduledDate or CreatedAt
+    const d = new Date(c.ScheduledDate || c.CreatedAt || '');
+    if(isNaN(d)) return false;
+    return d.toLocaleString('default',{month:'long'}) === month &&
+           d.getFullYear().toString() === year.toString();
+  });
+
+  if(!toDelete.length){
+    toast('No content found for that month','error');
+    return;
+  }
+
+  // Delete one by one using ID (most reliable key)
+  let deleted = 0;
+  for(const c of toDelete){
+    const id = c.ID || c.id || c.Title;
+    if(!id) continue;
+    const r = await apiPost('deleteContent', {
+      token: currentClient.Token,
+      id: id
+    });
+    if(r && (r.status==='deleted' || r.deleted===true)) deleted++;
+  }
+
+  if(deleted > 0){
+    toast(`✅ Deleted ${deleted} item${deleted!==1?'s':''} from ${month} ${year}`);
     loadAdminContent();
   } else {
-    // Manual fallback — delete each card in that month individually
-    const data = await apiGet('getContent', currentClient.Token);
-    if(!data || !data.content){ toast('❌ Could not load content','error'); return; }
-
-    const toDelete = data.content.filter(c => {
-      const d = new Date(c.ScheduledDate || c.CreatedAt || '');
-      return d.getFullYear().toString() === year.toString() &&
-             d.toLocaleString('default',{month:'long'}) === month;
-    });
-
-    if(!toDelete.length){ toast('No content found for that month','error'); return; }
-
-    let deleted = 0;
-    for(const c of toDelete){
-      const id = c.ID || c.Title;
-      const r = await apiPost('deleteContent', {token: currentClient.Token, id});
-      if(r && (r.status==='deleted' || r.deleted)) deleted++;
-    }
-
-    if(deleted > 0){
-      toast(`✅ Deleted ${deleted} item${deleted!==1?'s':''} from ${month} ${year}`);
-      loadAdminContent();
-    } else {
-      toast('❌ Delete failed — check Apps Script deleteContent handler','error');
-    }
+    toast('❌ Delete failed — check Apps Script deleteContent handler','error');
   }
+}
 }
 
 function buildAdminContentCard(c){
