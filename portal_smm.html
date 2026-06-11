@@ -1666,11 +1666,12 @@ function buildApprovalCard(c, i){
   // Format date and time
   let dateStr = '';
   let isLocked = false;
-  if(c.ScheduledDate){
+if(c.ScheduledDate){
     const scheduled = new Date(c.ScheduledDate);
     const now = new Date();
     const daysUntil = Math.ceil((scheduled-now)/(1000*60*60*24));
-    isLocked = daysUntil <= 3;
+    // Only lock if it's a FUTURE date within 3 days — never lock past/today content still awaiting approval
+    isLocked = daysUntil > 0 && daysUntil <= 3;
     dateStr = scheduled.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}) + 
               ' at ' + scheduled.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
   }
@@ -1741,7 +1742,6 @@ const actionBtns = c.Status==='waiting' ? `
       </div>
       ${mediaHtml}
       ${c.Caption?`<div style="font-size:11px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;">CAPTION</div><div class="aitem-caption">${c.Caption.replace(/</g,'&lt;')}</div>`:''}
-      ${lockedMsg}
       ${actionBtns}
       ${changeMindBtn}
       <div style="margin-top:14px;">
