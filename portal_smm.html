@@ -1660,7 +1660,20 @@ function renderWeek(week, items){
 }
 function buildApprovalCard(c, i){
   const sc = c.Status==='Approved'||c.Status==='approved_minor'?'status-approved':c.Status==='Revision'||c.Status==='declined'?'status-revision':'status-pending';
- const statusMap = {
+ // Calculate isLocked FIRST
+let dateStr = '';
+let isLocked = false;
+if(c.ScheduledDate){
+  const scheduled = new Date(c.ScheduledDate);
+  const now = new Date();
+  const daysUntil = Math.ceil((scheduled-now)/(1000*60*60*24));
+  isLocked = daysUntil > 0 && daysUntil <= 2;
+  dateStr = scheduled.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}) + 
+            ' at ' + scheduled.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+}
+
+// NOW use isLocked safely
+const statusMap = {
     'Pending':'<span class="tag tag-a">⏳ Pending</span>',
     'waiting':'<span class="tag tag-y">👁 Waiting for Approval</span>',
     'Approved':'<span class="tag tag-g">✅ Approved</span>',
@@ -1669,29 +1682,17 @@ function buildApprovalCard(c, i){
     'published':'<span class="tag tag-p">🚀 Published</span>',
     'Revision':'<span class="tag tag-r">✏️ Needs Revision</span>'
 };
-// If locked and still waiting — treat as auto-approved, decision is final
 const st = (isLocked && c.Status === 'waiting')
     ? '<span class="tag tag-g">✅ Approved — Scheduled to Post</span>'
     : statusMap[c.Status] || '<span class="tag tag-a">⏳ Pending</span>';
-  const cardId = 'card-'+(c.ID||i);
-  const inputId = 'input-'+cardId;
-  const bodyId = 'body-'+cardId;
-  const titleEncoded = encodeURIComponent(c.Title||'');
-  const platformEncoded = encodeURIComponent(c.Platform||'');
-  const contentId = c.ID||'';
 
+const cardId = 'card-'+(c.ID||i);
+const inputId = 'input-'+cardId;
+const bodyId = 'body-'+cardId;
+const titleEncoded = encodeURIComponent(c.Title||'');
+const platformEncoded = encodeURIComponent(c.Platform||'');
+const contentId = c.ID||'';
   // Format date and time
-  let dateStr = '';
-  let isLocked = false;
-if(c.ScheduledDate){
-    const scheduled = new Date(c.ScheduledDate);
-    const now = new Date();
-    const daysUntil = Math.ceil((scheduled-now)/(1000*60*60*24));
-    // Only lock if it's a FUTURE date within 3 days — never lock past/today content still awaiting approval
-    isLocked = daysUntil > 0 && daysUntil <= 2;
-    dateStr = scheduled.toLocaleDateString('en-GB',{weekday:'short',day:'2-digit',month:'short',year:'numeric'}) + 
-              ' at ' + scheduled.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-  }
 
   // Media
   const mediaURLs = (c.MediaURL||'').split(',').filter(Boolean);
