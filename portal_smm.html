@@ -1598,9 +1598,11 @@ const pastItems = contentData.filter(c => c.Status === 'published')
   // Only re-render if not silent or if content changed
   if(!silent || JSON.stringify(contentData) !== window._lastContentData){
     window._lastContentData = JSON.stringify(contentData);
-    renderWeek('this', thisItems);
-    renderWeek('next', nextItems);
-    renderWeek('upcoming', upcomingItems);
+  renderWeek('this', thisItems);
+renderWeek('next', nextItems);
+renderWeek('upcoming', upcomingItems);
+renderWeek('past', pastItems);
+updateBadge('past', pastItems.length);
 
     // Restore open cards
     openCards.forEach(bodyId=>{
@@ -1618,7 +1620,19 @@ const pastItems = contentData.filter(c => c.Status === 'published')
 
 function renderWeek(week, items){
   const el = document.getElementById('week-'+week);
+
+  // Past content — sort newest first, no day grouping needed
+  if(week === 'past'){
+    if(!items.length){
+      el.innerHTML = '<div class="approval-empty"><div class="approval-empty-icon">📦</div><div style="font-size:14px;font-weight:600;color:var(--t2);margin-bottom:6px;">No published content yet</div><div style="font-size:12px;color:var(--t3);">Content you mark as published will appear here.</div></div>';
+      return;
+    }
+    el.innerHTML = items.map((c,i) => buildApprovalCard(c, 'past'+i)).join('');
+    return;
+  }
+
   const days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'];
+  // ... rest of function unchanged
   if(!items.length){
     el.innerHTML = '<div class="approval-empty"><div class="approval-empty-icon">'+(week==='this'?'📭':'📅')+'</div><div style="font-size:14px;font-weight:600;color:var(--t2);margin-bottom:6px;">'+(week==='this'?'No content pending this week':week==='last'?'No content from last week':'No upcoming content scheduled')+'</div><div style="font-size:12px;color:var(--t3);">Your FitFlux team will upload content here for your review.</div></div>';
     return;
@@ -1639,7 +1653,7 @@ function renderWeek(week, items){
       <div style="font-size:11px;font-weight:700;color:var(--gold);letter-spacing:.12em;text-transform:uppercase;padding:6px 0 10px;border-bottom:1px solid var(--bdr);margin-bottom:10px;">
         ${day} <span style="background:rgba(126,200,69,0.12);color:var(--gold);font-size:10px;padding:2px 8px;border-radius:10px;margin-left:6px;">${dayItems.length}</span>
       </div>
-      ${dayItems.map((c,i) => week==='upcoming' ? buildUpcomingCard(c, week+day+i) : buildApprovalCard(c, week+day+i)).join('')}
+      ${dayItems.map((c,i) => buildApprovalCard(c, week+day+i)).join('')}
     </div>`;
   });
   el.innerHTML = html;
