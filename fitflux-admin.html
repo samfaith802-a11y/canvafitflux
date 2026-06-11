@@ -1971,7 +1971,14 @@ const selectBar = `<div style="display:flex;align-items:center;gap:10px;margin-b
     </div>`;
   }).join('');
 }
-
+function toggleAdminCard(bodyId){
+  const body = document.getElementById(bodyId);
+  const arr = document.getElementById('arr-'+bodyId);
+  if(!body) return;
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  if(arr) arr.textContent = isOpen ? '▼' : '▲';
+}
 function toggleContentMonth(id){
   const el=document.getElementById(id);
   const arr=document.getElementById('arr-'+id);
@@ -1984,16 +1991,45 @@ function toggleContentMonth(id){
 async function clearContentMonth(year, month){
   if(!confirm(`Delete all content from ${month} ${year}? This cannot be undone.`)) return;
   toast('Deleting...');
- const result = await apiPost('deleteContent', {
-    token: currentClient.Token,
-    month: month.trim(),
-    year: year.toString().trim()
-  });
-  if(result && result.status === 'deleted'){
-    toast(`✅ Deleted ${result.count} content item${result.count!==1?'s':''} from ${month} ${year}`);
+
+  // Try bulk delete by month/year, also try alternative param names
+  const attempts = await Promise.all([
+    apiPost('deleteContent', {token: currentClient.Token, month: month.trim(), year: year.toString().trim()}),
+    apiPost('deleteContent', {token: currentClient.Token, bulkMonth: month.trim(), bulkYear: year.toString().trim()}),
+    apiPost('deleteContentBulk', {token: currentClient.Token, month: month.trim(), year: year.toString().trim()})
+  ]);
+
+  const success = attempts.find(r => r && (r.status==='deleted' || r.deleted || r.count > 0));
+  if(success){
+    const count = success.count || '?';
+    toast(`✅ Deleted ${count} item${count!==1?'s':''} from ${month} ${year}`);
     loadAdminContent();
   } else {
-    toast('❌ Delete failed','error');
+    // Manual fallback — delete each card in that month individually
+    const data = await apiGet('getContent', currentClient.Token);
+    if(!data || !data.content){ toast('❌ Could not load content','error'); return; }
+
+    const toDelete = data.content.filter(c => {
+      const d = new Date(c.ScheduledDate || c.CreatedAt || '');
+      return d.getFullYear().toString() === year.toString() &&
+             d.toLocaleString('default',{month:'long'}) === month;
+    });
+
+    if(!toDelete.length){ toast('No content found for that month','error'); return; }
+
+    let deleted = 0;
+    for(const c of toDelete){
+      const id = c.ID || c.Title;
+      const r = await apiPost('deleteContent', {token: currentClient.Token, id});
+      if(r && (r.status==='deleted' || r.deleted)) deleted++;
+    }
+
+    if(deleted > 0){
+      toast(`✅ Deleted ${deleted} item${deleted!==1?'s':''} from ${month} ${year}`);
+      loadAdminContent();
+    } else {
+      toast('❌ Delete failed — check Apps Script deleteContent handler','error');
+    }
   }
 }
 
@@ -2001,18 +2037,21 @@ function buildAdminContentCard(c){
   const statusClass=c.Status==='Approved'?'cai-approved':c.Status==='Revision'||c.Status==='declined'?'cai-revision':'cai-pending';
   const statusLabel=c.Status==='Approved'?'✅ Approved':c.Status==='Revision'?'✏️ Revision':c.Status==='waiting'?'👁 Awaiting Approval':c.Status==='published'?'🚀 Published':'⏳ Pending';
   const hasUnread=(c.ChatMessages||[]).some(m=>m.author!=='FitFlux');
+  const uid = c.ID || c.Title;
+  const bodyId = 'admin-body-'+uid;
 
   // Media preview
   const mediaURLs=(c.MediaURL||'').split(',').filter(Boolean);
-  const mediaHtml=mediaURLs.length?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px;">
+  const mediaHtml=mediaURLs.length?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;">
     ${mediaURLs.map(url=>{
       const isVideo=url.match(/\.(mp4|mov|webm)/i);
       return isVideo
-        ? `<video src="${url}" controls style="width:120px;height:90px;object-fit:cover;border-radius:8px;border:1px solid var(--bdr3);"></video>`
+        ? `<video src="${url}" controls style="width:160px;height:120px;object-fit:cover;border-radius:8px;border:1px solid var(--bdr3);"></video>`
         : `<img src="${url}" style="width:90px;height:90px;object-fit:cover;border-radius:8px;border:1px solid var(--bdr3);cursor:pointer;" onclick="window.open('${url}','_blank')"/>`;
     }).join('')}
   </div>`:'';
 
+  // Chat thread
   const chatMsgs=(c.ChatMessages||[]).map(m=>`
     <div style="background:${m.author==='FitFlux'?'rgba(204,255,0,0.06)':'rgba(255,255,255,0.04)'};border-radius:7px;padding:8px 10px;${m.author!=='FitFlux'?'border-left:2px solid var(--amber);':''}">
       <div style="font-size:10px;font-weight:700;color:${m.author==='FitFlux'?'var(--lime)':'var(--amber)'};margin-bottom:3px;">${m.author||'Client'}</div>
@@ -2020,51 +2059,52 @@ function buildAdminContentCard(c){
       <div style="font-size:10px;color:var(--t3);margin-top:3px;">${m.time||''}</div>
     </div>`).join('');
 
-  const uid=c.ID||c.Title;
+  return `<div class="content-admin-item" id="card-wrap-${uid}" style="${hasUnread?'border-color:rgba(245,158,11,0.4);':''}">
 
- return `<div class="content-admin-item" style="${hasUnread?'border-color:rgba(245,158,11,0.4);':''}">
-    <div style="display:flex;align-items:center;gap:10px;padding:8px 14px;border-bottom:1px solid var(--bdr3);">
-      <input type="checkbox" class="content-select-cb" data-id="${c.ID||c.Title}" data-token="${c.Token||currentClient?.Token}" style="cursor:pointer;width:16px;height:16px;" onchange="updateDeleteBtn()"/>
-      <span style="font-size:11px;color:var(--t3);">Select</span>
-    </div>
-    <div class="cai-header">
+    <!-- HEADER — always visible, click to collapse -->
+    <div onclick="toggleAdminCard('${bodyId}')" style="cursor:pointer;user-select:none;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
       <span class="cai-platform">${c.Platform||'Post'}</span>
-      <span class="cai-title">${c.Title||'Content'}</span>
+      <span class="cai-title" style="flex:1;">${c.Title||'Content'}</span>
       <span style="font-size:11px;color:var(--t3);">${c.ScheduledDate||''}</span>
       <span class="cai-status-badge ${statusClass}">${statusLabel}</span>
-      ${hasUnread?'<span style="background:rgba(245,158,11,0.2);color:var(--amber);font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;">💬 New Message</span>':''}
+      ${hasUnread?'<span style="background:rgba(245,158,11,0.2);color:var(--amber);font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;">💬 New</span>':''}
+      <span id="arr-${bodyId}" style="font-size:10px;color:var(--t3);">▼</span>
     </div>
-    ${mediaHtml}
-    <div class="cai-caption">${(c.Caption||'').substring(0,200)}${c.Caption&&c.Caption.length>200?'...':''}</div>
-    ${c.RevisionNote?`<div style="font-size:11px;color:var(--amber);margin-bottom:8px;">Revision: ${c.RevisionNote}</div>`:''}
-    <div style="margin-top:10px;">
-      <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;">💬 Chat</div>
-      <div id="admin-chat-${uid}" style="max-height:160px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:8px;">${chatMsgs}</div>
-      <div style="display:flex;gap:8px;">
-        <input class="form-input" id="admin-reply-${uid}" placeholder="Reply to client..." style="flex:1;padding:8px 12px;font-size:12px;"/>
-        <button onclick="sendAdminContentReply('${c.Token}','${c.Title}','${c.Platform}','${uid}')" style="background:var(--lime);border:none;color:#080c08;font-family:var(--fb);font-size:12px;font-weight:700;padding:8px 16px;border-radius:7px;cursor:pointer;">Reply →</button>
+
+    <!-- BODY — collapsible -->
+    <div id="${bodyId}" style="display:none;margin-top:12px;border-top:1px solid var(--bdr3);padding-top:12px;">
+
+      ${mediaHtml}
+
+      ${c.Caption?`<div style="font-size:12px;color:var(--t2);line-height:1.7;margin-bottom:12px;white-space:pre-wrap;">${(c.Caption).substring(0,300)}${c.Caption.length>300?'...':''}</div>`:''}
+
+      ${c.RevisionNote?`<div style="font-size:11px;color:var(--amber);margin-bottom:10px;">📝 Revision note: ${c.RevisionNote}</div>`:''}
+
+      <!-- CHAT — always open, unlimited -->
+      <div style="margin-bottom:12px;">
+        <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">💬 Chat</div>
+        <div id="admin-chat-${uid}" style="max-height:200px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:8px;">${chatMsgs}</div>
+        <div style="display:flex;gap:8px;">
+          <input class="form-input" id="admin-reply-${uid}" placeholder="Reply to client..." style="flex:1;padding:8px 12px;font-size:12px;" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAdminContentReply('${c.Token}','${c.Title}','${c.Platform}','${uid}');}"/>
+          <button onclick="sendAdminContentReply('${c.Token}','${c.Title}','${c.Platform}','${uid}')" style="background:var(--lime);border:none;color:#080c08;font-family:var(--fb);font-size:12px;font-weight:700;padding:8px 16px;border-radius:7px;cursor:pointer;white-space:nowrap;">Reply →</button>
+        </div>
       </div>
+
+      <!-- ACTIONS -->
+      <div style="display:flex;gap:8px;flex-wrap:wrap;padding-top:10px;border-top:1px solid var(--bdr3);">
+        ${c.Status!=='published'?`<button class="btn-sm btn-sm-green" onclick="setContentPublished('${c.Token}','${c.Title}','${c.Platform}')">🚀 Mark Published</button>`:''}
+        <button class="btn-sm" style="background:rgba(77,157,255,0.1);border-color:rgba(77,157,255,0.25);color:var(--blue);" onclick="showReschedule('${uid}','${c.Token}')">📅 Reschedule</button>
+        <button class="btn-sm" style="background:rgba(255,77,77,0.1);border-color:rgba(255,77,77,0.2);color:var(--red);" onclick="deleteContentItem('${uid}','${c.Token}')">🗑 Delete</button>
+      </div>
+
+      <!-- RESCHEDULE INLINE -->
+      <div id="reschedule-${uid}" style="display:none;margin-top:10px;align-items:center;gap:8px;">
+        <input type="datetime-local" id="newdate-${uid}" class="form-input" style="flex:1;padding:7px 12px;font-size:12px;" value="${c.ScheduledDate||''}"/>
+        <button onclick="saveReschedule('${uid}','${c.Token}')" style="background:var(--lime);border:none;color:#080c08;font-family:var(--fb);font-size:12px;font-weight:700;padding:7px 14px;border-radius:7px;cursor:pointer;">Save</button>
+        <button onclick="document.getElementById('reschedule-${uid}').style.display='none'" style="background:none;border:1px solid var(--bdr);color:var(--t3);font-size:12px;padding:7px 14px;border-radius:7px;cursor:pointer;">Cancel</button>
+      </div>
+
     </div>
-<div class="cai-actions" style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap;">
-  ${c.Status!=='published'?`<button class="btn-sm btn-sm-red" onclick="setContentPublished('${c.Token}','${c.Title}','${c.Platform}')">🚀 Mark Published</button>`:''}
-  ${c.Status==='declined'||c.Status==='Revision'?`<button class="btn-sm" style="background:rgba(77,157,255,0.1);border-color:rgba(77,157,255,0.25);color:var(--blue);" onclick="showReupload('${c.ID||c.Title}','${c.Token}')">📤 Reupload Corrected Version</button>`:''}
-  <button class="btn-sm" style="background:rgba(77,157,255,0.1);border-color:rgba(77,157,255,0.25);color:var(--blue);" onclick="showReschedule('${c.ID||c.Title}','${c.Token}')">📅 Reschedule</button>
-  <button class="btn-sm" style="background:rgba(255,77,77,0.1);border-color:rgba(255,77,77,0.2);color:var(--red);" onclick="deleteContentItem('${c.ID||c.Title}','${c.Token}')">🗑 Delete</button>
-</div>
-<div id="reupload-${c.ID||c.Title}" style="display:none;margin-top:8px;flex-direction:column;gap:8px;">
-  <div style="font-size:12px;color:var(--amber);font-weight:600;">📤 Upload corrected version — replaces existing files</div>
-  <div id="reupload-filelist-${c.ID||c.Title}" style="display:flex;flex-direction:column;gap:6px;"></div>
-  <div style="border:1.5px dashed rgba(204,255,0,0.25);border-radius:8px;padding:14px;text-align:center;cursor:pointer;" onclick="document.getElementById('reupload-input-${c.ID||c.Title}').click()">
-    <div style="font-size:12px;color:var(--t2);">Drop new files or <span style="color:var(--lime);">browse</span></div>
-  </div>
-  <input type="file" id="reupload-input-${c.ID||c.Title}" multiple accept="image/*,video/*" style="display:none" onchange="handleReuploadFiles(this.files,'${c.ID||c.Title}','${c.Token}')"/>
-  <button onclick="submitReupload('${c.ID||c.Title}','${c.Token}')" style="background:var(--lime);border:none;color:#080c08;font-family:var(--fh);font-size:14px;padding:9px 20px;border-radius:7px;cursor:pointer;">Submit Corrected Version →</button>
-</div>
-<div id="reschedule-${c.ID||c.Title}" style="display:none;margin-top:8px;align-items:center;gap:8px;">
-  <input type="datetime-local" id="newdate-${c.ID||c.Title}" class="form-input" style="flex:1;padding:7px 12px;font-size:12px;" value="${c.ScheduledDate||''}"/>
-  <button onclick="saveReschedule('${c.ID||c.Title}','${c.Token}')" style="background:var(--lime);border:none;color:#080c08;font-family:var(--fb);font-size:12px;font-weight:700;padding:7px 14px;border-radius:7px;cursor:pointer;">Save</button>
-  <button onclick="document.getElementById('reschedule-${c.ID||c.Title}').style.display='none'" style="background:none;border:1px solid var(--bdr);color:var(--t3);font-size:12px;padding:7px 14px;border-radius:7px;cursor:pointer;">Cancel</button>
-</div>
   </div>`;
 }
 
@@ -2153,15 +2193,24 @@ async function deleteContentItem(id, token){
   if(!confirm('Delete this content item? This cannot be undone.')) return;
   const useToken = token || (currentClient && currentClient.Token);
   if(!useToken){ toast('No client token found','error'); return; }
-  const result = await apiPost('deleteContent', {token: useToken, id});
-  if(result && (result.status==='deleted' || result.deleted)){
+
+  // Try all possible identifiers simultaneously
+  const attempts = [
+    apiPost('deleteContent', {token: useToken, id: id}),
+    apiPost('deleteContent', {token: useToken, contentTitle: id}),
+    apiPost('deleteContent', {token: useToken, title: id})
+  ];
+
+  const results = await Promise.all(attempts);
+  const success = results.some(r => r && (r.status==='deleted' || r.deleted || r.status==='ok' || r.success));
+
+  if(success){
     toast('✅ Content deleted');
     loadAdminContent();
   } else {
-    // Fallback — try with just the id as title match
-    const result2 = await apiPost('deleteContent', {token: useToken, contentTitle: id});
-    if(result2){ toast('✅ Content deleted'); loadAdminContent(); }
-    else toast('❌ Delete failed — check Apps Script logs','error');
+    // Last resort — log what the server returned so you can debug
+    console.error('Delete responses:', results);
+    toast('❌ Delete failed — open console for details','error');
   }
 }
   function toggleSelectAll(cb){
