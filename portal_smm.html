@@ -1808,7 +1808,15 @@ function toggleContentCard(bodyId){
   body.style.display = isOpen ? 'none' : 'block';
   if(icon) icon.textContent = isOpen ? '▼' : '▲';
 }
-async function handleApprove(titleEncoded, platformEncoded, btn){
+async function handleApprove(titleEncoded, platformEncoded, contentId, btn){
+  const title = decodeURIComponent(titleEncoded);
+  const platform = decodeURIComponent(platformEncoded);
+  btn.textContent='⏳ Approving...'; btn.disabled=true;
+  btn.style.transform='scale(0.95)'; btn.style.opacity='0.7';
+  await apiPost('approveContent', {token:window.FF_TOKEN||urlToken, contentTitle:title, contentId, platform});
+  await sendTelegram('✅ CONTENT APPROVED\n\nClient: '+(window.FF_CLIENT.name||'—')+'\nContent: '+title+'\nPlatform: '+platform);
+  await loadContent(true);
+}
   const title = decodeURIComponent(titleEncoded);
   const platform = decodeURIComponent(platformEncoded);
   btn.textContent='⏳ Approving...'; btn.disabled=true;
@@ -1844,14 +1852,14 @@ function showChatForAction(cardId, action, titleEncoded, platformEncoded, conten
       const time = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
      await apiPost('approveWithMinor', {token:window.FF_TOKEN||urlToken, contentTitle:title, contentId, platform});
 await apiPost('addContentChat', {
-  token:window.FF_TOKEN||urlToken,
-  contentTitle:title,
-  contentId: contentId,
-  platform,
-  text:'✏️ Approved with correction: '+text,
-  author:window.FF_CLIENT.name||'Client',
-  time
-});
+        token:window.FF_TOKEN||urlToken,
+        contentTitle:title,
+        contentId: contentId,
+        platform,
+        text:'❌ Declined: '+text,
+        author:window.FF_CLIENT.name||'Client',
+        time
+      });
       await sendTelegram('✏️ APPROVED WITH MINOR CORRECTION\n\nClient: '+(window.FF_CLIENT.name||'—')+'\nContent: '+title+'\nNote: '+text);
       if(input) input.value='';
       sendBtn.textContent='Send →'; sendBtn.disabled=false; sendBtn.style.transform='';
@@ -1883,48 +1891,7 @@ await apiPost('addContentChat', {
     };
   }
 }
-function showChatForAction(cardId, action){
-  const chatbox = document.getElementById('chatbox-'+cardId);
-  const prompt = document.getElementById('chat-prompt-'+cardId);
-  const sendBtn = document.getElementById('chat-send-'+cardId);
-  const inputId = 'input-'+cardId;
-  if(!chatbox) return;
-  chatbox.style.display = 'block';
 
-  // Find the content item to get title and platform
-  const card = document.getElementById(cardId);
-  const titleEl = card?.querySelector('.aitem-title');
-  const platformEl = card?.querySelector('.aitem-platform');
-  const title = titleEl?.textContent || '';
-  const platform = platformEl?.textContent || '';
-
-  if(action === 'minor'){
-    prompt.textContent = '✏️ What minor correction is needed?';
-    sendBtn.onclick = async function(){
-      const input = document.getElementById(inputId);
-      const text = input?.value.trim();
-      if(!text){ input?.focus(); return; }
-      await apiPost('approveContent', {token: window.FF_TOKEN||urlToken, contentTitle: title, platform});
-      const time = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-      await apiPost('addContentChat', {token: window.FF_TOKEN||urlToken, contentTitle: title, platform, text: '✏️ Approved with correction: '+text, author: window.FF_CLIENT.name||'Client', time});
-      await sendTelegram('✏️ APPROVED WITH MINOR CORRECTION\n\nClient: '+(window.FF_CLIENT.name||'—')+'\nContent: '+title+'\nNote: '+text);
-      if(input) input.value='';
-      await loadContent();
-    };
-  } else {
-    prompt.textContent = '❌ Why are you declining this content?';
-    sendBtn.onclick = async function(){
-      const input = document.getElementById(inputId);
-      const text = input?.value.trim();
-      if(!text){ input?.focus(); return; }
-      await apiPost('requestRevision', {token: window.FF_TOKEN||urlToken, contentTitle: title, platform, note: text});
-      await apiPost('updateContentStatus', {token: window.FF_TOKEN||urlToken, contentTitle: title, platform, status: 'declined'});
-      await sendTelegram('❌ CONTENT DECLINED\n\nClient: '+(window.FF_CLIENT.name||'—')+'\nContent: '+title+'\nReason: '+text);
-      if(input) input.value='';
-      await loadContent();
-    };
-  }
-}
 async function approveContent(title, platform, cardId){
   const result = await apiPost('approveContent', {token:window.FF_TOKEN || urlToken, contentTitle:title, platform});
   if(result && (result.status==='approved'||result.status==='updated')){
