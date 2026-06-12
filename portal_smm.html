@@ -1762,7 +1762,7 @@ const actionBtns = c.Status==='waiting' ? `
       ${c.Caption?`<div style="font-size:11px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;">CAPTION</div><div class="aitem-caption">${c.Caption.replace(/</g,'&lt;')}</div>`:''}
       ${actionBtns}
       ${changeMindBtn}
-<div id="correction-section-${cardId}" style="${hasMsgs?'display:block':'display:none'};margin-top:14px;border-top:1px solid var(--bdr);padding-top:14px;">
+<div id="correction-section-${cardId}" style="${hasMsgs || c.Status==='approved_minor' || c.Status==='declined' || c.Status==='Approved'?'display:block':'display:none'};margin-top:14px;border-top:1px solid var(--bdr);padding-top:14px;">
   <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">💬 Chat History</div>
   <div id="chat-${cardId}" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;max-height:300px;overflow-y:auto;">
     ${hasMsgs ? chatMsgs : '<div style="font-size:12px;color:var(--t3);text-align:center;padding:8px;">No messages yet.</div>'}
@@ -1856,15 +1856,19 @@ function showChatForAction(cardId, action, titleEncoded, platformEncoded, conten
   const title = decodeURIComponent(titleEncoded);
   const platform = decodeURIComponent(platformEncoded);
 
+  const corrSection = document.getElementById('correction-section-'+cardId);
   const chatbox = document.getElementById('chatbox-'+cardId);
   const prompt = document.getElementById('chat-prompt-'+cardId);
   const sendBtn = document.getElementById('chat-send-'+cardId);
   const inputId = 'input-'+cardId;
+
   if(!chatbox) return;
 
+  // Visual press feedback on button
   btn.style.transform='scale(0.95)'; btn.style.opacity='0.7';
   setTimeout(()=>{ btn.style.transform=''; btn.style.opacity=''; },200);
- const corrSection = document.getElementById('correction-section-'+cardId);
+
+  // Always show the correction section with chat history
   if(corrSection) corrSection.style.display='block';
   chatbox.style.display='block';
 
@@ -1877,15 +1881,30 @@ function showChatForAction(cardId, action, titleEncoded, platformEncoded, conten
       sendBtn.textContent='Sending...'; sendBtn.disabled=true;
       sendBtn.style.transform='scale(0.95)';
       const time = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-     await apiPost('approveWithMinor', {token:window.FF_TOKEN||urlToken, contentTitle:title, contentId, platform});
-await apiPost('addContentChat', {
+
+      // Instantly append to chat UI
+      const chatEl = document.getElementById('chat-'+cardId);
+      if(chatEl){
+        chatEl.insertAdjacentHTML('beforeend',`
+          <div class="comment-msg" style="background:rgba(255,255,255,0.04);border-left:2px solid var(--blue);">
+            <div class="comment-author" style="color:var(--blue);">${window.FF_CLIENT.name||'You'}</div>
+            <div class="comment-text">✏️ Minor correction: ${text}</div>
+            <div class="comment-time">${time}</div>
+          </div>`);
+        chatEl.scrollTop = chatEl.scrollHeight;
+      }
+
+      await apiPost('approveWithMinor', {token:window.FF_TOKEN||urlToken, contentTitle:title, contentId, platform});
+      await apiPost('addContentChat', {
         token:window.FF_TOKEN||urlToken,
         contentTitle:title,
-        contentId: contentId,
+        contentId,
+        id:contentId||'',
         platform,
-        text:'❌ Declined: '+text,
+        text:'✏️ Approved with minor correction: '+text,
         author:window.FF_CLIENT.name||'Client',
-        time
+        time,
+        role:'client'
       });
       await sendTelegram('✏️ APPROVED WITH MINOR CORRECTION\n\nClient: '+(window.FF_CLIENT.name||'—')+'\nContent: '+title+'\nNote: '+text);
       if(input) input.value='';
@@ -1901,15 +1920,31 @@ await apiPost('addContentChat', {
       sendBtn.textContent='Sending...'; sendBtn.disabled=true;
       sendBtn.style.transform='scale(0.95)';
       const time = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+
+      // Instantly append to chat UI
+      const chatEl = document.getElementById('chat-'+cardId);
+      if(chatEl){
+        chatEl.insertAdjacentHTML('beforeend',`
+          <div class="comment-msg" style="background:rgba(255,255,255,0.04);border-left:2px solid var(--red);">
+            <div class="comment-author" style="color:var(--red);">You</div>
+            <div class="comment-text">❌ Declined: ${text}</div>
+            <div class="comment-time">${time}</div>
+          </div>`);
+        chatEl.scrollTop = chatEl.scrollHeight;
+      }
+
       await apiPost('requestRevision', {token:window.FF_TOKEN||urlToken, contentTitle:title, platform, note:text});
-      await apiPost('updateContentStatus', {token:window.FF_TOKEN||urlToken, contentTitle:title, platform, status:'declined'});
+      await apiPost('updateContentStatus', {token:window.FF_TOKEN||urlToken, contentTitle:title, id:contentId||'', platform, status:'declined'});
       await apiPost('addContentChat', {
         token:window.FF_TOKEN||urlToken,
         contentTitle:title,
+        contentId,
+        id:contentId||'',
         platform,
         text:'❌ Declined: '+text,
         author:window.FF_CLIENT.name||'Client',
-        time
+        time,
+        role:'client'
       });
       await sendTelegram('❌ CONTENT DECLINED\n\nClient: '+(window.FF_CLIENT.name||'—')+'\nContent: '+title+'\nReason: '+text);
       if(input) input.value='';
