@@ -4,7 +4,7 @@
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>FitFlux — Admin Command Centre</title>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Bebas+Neue&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Bebas+Neue&family=JetBrains+Mono:wght@400;500&family=Montserrat:wght@600;700&display=swap" rel="stylesheet"/>
 <style>
 :root{
   --lime:#CCFF00;--lime2:#b8e800;--lime-dim:rgba(204,255,0,0.12);--lime-bdr:rgba(204,255,0,0.22);
@@ -2132,7 +2132,7 @@ function buildAdminContentCard(c){
     <!-- HEADER — click to collapse -->
     <div onclick="toggleAdminCard('${bodyId}')" style="cursor:pointer;user-select:none;padding:14px 18px;border-bottom:1px solid var(--bdr3);display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
       <span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:4px;background:var(--lime-dim);color:var(--lime);letter-spacing:.06em;text-transform:uppercase;">${c.Platform||'Post'}</span>
-      <span style="font-family:var(--fh);font-size:15px;font-weight:700;color:var(--t1);flex:1;">${c.Title||'Content'}</span>
+      <span style="font-family:'Montserrat',sans-serif;font-size:14px;font-weight:700;color:var(--t1);flex:1;letter-spacing:.02em;">${c.Title||'Content'}</span>
       <span style="font-size:11px;color:var(--t3);">${c.ScheduledDate||''}</span>
       <span class="cai-status-badge ${statusClass}" style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:4px;">${statusLabel}</span>
       ${hasUnread?'<span style="background:rgba(245,158,11,0.2);color:var(--amber);font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;">💬 Client replied</span>':''}
