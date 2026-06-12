@@ -1174,7 +1174,18 @@ async function loadDashboard(){
 
   buildTaskSummary();
   renderRetainerTracker(allClients);
-  loadInbox();
+loadInbox();
+  // Auto-refresh content every 4 seconds when client detail is open
+  if(!window._adminAutoRefresh){
+    window._adminAutoRefresh = setInterval(async()=>{
+      if(!currentClient) return;
+      const activePage = document.getElementById('page-client-detail');
+      if(!activePage || !activePage.classList.contains('active')) return;
+      const contentTab = document.getElementById('dtab-content');
+      if(!contentTab || !contentTab.classList.contains('active')) return;
+      await loadAdminContent(true);
+    }, 4000);
+  }
   // Silent check for new client messages every 20 seconds
 if(!window._adminMsgRefresh){
   window._adminMsgRefresh = setInterval(async()=>{
@@ -1897,10 +1908,10 @@ function setContentTimeFilter(mode, btn){
   loadAdminContent();
 }
 
-async function loadAdminContent(){
+async function loadAdminContent(silent=false){
   if(!currentClient) return;
   const el = document.getElementById('content-admin-list');
-  el.innerHTML='<div class="loading"><div class="spinner"></div>Loading...</div>';
+  if(!silent) el.innerHTML='<div class="loading"><div class="spinner"></div>Loading...</div>';
   const data = await apiGet('getContent', currentClient.Token);
   const content = (data&&data.content) ? data.content : [];
 
@@ -1949,7 +1960,16 @@ const selectBar = `<div style="display:flex;align-items:center;gap:10px;margin-b
   <label for="select-all-content" style="font-size:12px;color:var(--t2);cursor:pointer;">Select All</label>
   <button onclick="deleteSelected()" style="margin-left:auto;background:rgba(255,77,77,0.1);border:1px solid rgba(255,77,77,0.2);color:var(--red);border-radius:6px;padding:6px 14px;font-family:var(--fb);font-size:12px;font-weight:700;cursor:pointer;" id="delete-selected-btn" style="display:none;">🗑 Delete Selected</button>
 </div>`;
-  el.innerHTML = years.map(yr=>{
+ // Select all + delete selected bar
+  const selectBar = document.createElement('div');
+  selectBar.style.cssText='display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:10px 14px;background:var(--bg3);border-radius:8px;';
+  selectBar.innerHTML=`
+    <input type="checkbox" id="select-all-content" onchange="toggleSelectAll(this)" style="cursor:pointer;width:16px;height:16px;"/>
+    <label for="select-all-content" style="font-size:12px;color:var(--t2);cursor:pointer;">Select All</label>
+    <button onclick="deleteSelected()" style="margin-left:auto;background:rgba(255,77,77,0.1);border:1px solid rgba(255,77,77,0.2);color:var(--red);border-radius:6px;padding:6px 14px;font-family:var(--fb);font-size:12px;font-weight:700;cursor:pointer;" id="delete-selected-btn">🗑 Delete Selected</button>`;
+  el.appendChild(selectBar);
+
+  el.innerHTML += years.map(yr=>{
     const months=Object.keys(grouped[yr]).sort((a,b)=>MONTHS.indexOf(b)-MONTHS.indexOf(a));
     return `<div style="margin-bottom:20px;">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
@@ -1993,111 +2013,108 @@ function toggleContentMonth(id){
 
 async function clearContentMonth(year, month){
   if(!confirm(`Delete all content from ${month} ${year}? This cannot be undone.`)) return;
-  
-  toast('Deleting...');
-
-  // First load all content to find IDs for this month
+  toast('Loading content...');
   const data = await apiGet('getContent', currentClient.Token);
   if(!data || !data.content){ toast('❌ Could not load content','error'); return; }
 
-  // Match by Month+Year columns OR by parsed ScheduledDate/CreatedAt
-  const toDelete = data.content.filter(c => {
-    // Try sheet Month/Year columns first (most reliable)
-    const sheetMonth = (c.Month||'').toString().trim();
-    const sheetYear  = (c.Year||'').toString().trim();
-    if(sheetMonth && sheetYear){
-      return sheetMonth.toLowerCase() === month.toLowerCase() &&
-             sheetYear === year.toString();
-    }
-    // Fallback — parse ScheduledDate or CreatedAt
-    const d = new Date(c.ScheduledDate || c.CreatedAt || '');
+  const toDelete = data.content.filter(c=>{
+    const d = new Date(c.ScheduledDate||c.CreatedAt||'');
     if(isNaN(d)) return false;
-    return d.toLocaleString('default',{month:'long'}) === month &&
-           d.getFullYear().toString() === year.toString();
+    return d.toLocaleString('default',{month:'long'})===month && d.getFullYear().toString()===year.toString();
   });
 
-  if(!toDelete.length){
-    toast('No content found for that month','error');
-    return;
-  }
+  if(!toDelete.length){ toast('No content found for that month','error'); return; }
+  toast(`Deleting ${toDelete.length} items...`);
 
-  // Delete one by one using ID (most reliable key)
   let deleted = 0;
   for(const c of toDelete){
-    const id = c.ID || c.id || c.Title;
+    const id = c.ID||c.id||c.Title;
     if(!id) continue;
-    const r = await apiPost('deleteContent', {
-      token: currentClient.Token,
-      id: id
-    });
-    if(r && (r.status==='deleted' || r.deleted===true)) deleted++;
+    // Try all identifiers
+    const r = await apiPost('deleteContent',{token:currentClient.Token, id, contentTitle:id, title:id});
+    if(r && (r.status==='deleted'||r.deleted===true||r.status==='ok'||r.success)) deleted++;
   }
 
-  if(deleted > 0){
+  if(deleted>0){
     toast(`✅ Deleted ${deleted} item${deleted!==1?'s':''} from ${month} ${year}`);
     loadAdminContent();
   } else {
-    toast('❌ Delete failed — check Apps Script deleteContent handler','error');
+    // Force delete by title if ID approach failed
+    let fallbackDeleted = 0;
+    for(const c of toDelete){
+      const r = await apiPost('deleteContent',{token:currentClient.Token, contentTitle:c.Title, platform:c.Platform||''});
+      if(r && (r.status==='deleted'||r.deleted===true)) fallbackDeleted++;
+    }
+    if(fallbackDeleted>0){
+      toast(`✅ Deleted ${fallbackDeleted} items from ${month} ${year}`);
+      loadAdminContent();
+    } else {
+      toast('❌ Delete failed — check Apps Script deleteContent handler','error');
+    }
   }
 }
-  async function clearContentYear(year){
+async function clearContentYear(year){
   if(!confirm(`Delete ALL content from ${year}? This cannot be undone.`)) return;
-
   toast('Loading content...');
-
   const data = await apiGet('getContent', currentClient.Token);
   if(!data || !data.content){ toast('❌ Could not load content','error'); return; }
 
-  const toDelete = data.content.filter(c => {
-    const sheetYear = (c.Year||'').toString().trim();
-    if(sheetYear) return sheetYear === year.toString();
-    const d = new Date(c.ScheduledDate || c.CreatedAt || '');
-    return !isNaN(d) && d.getFullYear().toString() === year.toString();
+  const toDelete = data.content.filter(c=>{
+    const d = new Date(c.ScheduledDate||c.CreatedAt||'');
+    if(isNaN(d)) return false;
+    return d.getFullYear().toString()===year.toString();
   });
 
   if(!toDelete.length){ toast('No content found for '+year,'error'); return; }
-
   toast(`Deleting ${toDelete.length} items...`);
+
   let deleted = 0;
   for(const c of toDelete){
-    const id = c.ID || c.id || c.Title;
+    const id = c.ID||c.id||c.Title;
     if(!id) continue;
-    const r = await apiPost('deleteContent', {token: currentClient.Token, id});
-    if(r && (r.status==='deleted' || r.deleted===true)) deleted++;
+    const r = await apiPost('deleteContent',{token:currentClient.Token, id, contentTitle:id, title:id});
+    if(r && (r.status==='deleted'||r.deleted===true||r.status==='ok'||r.success)) deleted++;
   }
 
-  if(deleted > 0){
+  if(deleted>0){
     toast(`✅ Deleted ${deleted} items from ${year}`);
     loadAdminContent();
   } else {
-    toast('❌ Delete failed','error');
+    let fallbackDeleted = 0;
+    for(const c of toDelete){
+      const r = await apiPost('deleteContent',{token:currentClient.Token, contentTitle:c.Title, platform:c.Platform||''});
+      if(r && (r.status==='deleted'||r.deleted===true)) fallbackDeleted++;
+    }
+    if(fallbackDeleted>0){
+      toast(`✅ Deleted ${fallbackDeleted} items from ${year}`);
+      loadAdminContent();
+    } else {
+      toast('❌ Delete failed','error');
+    }
   }
 }
 
 
 function buildAdminContentCard(c){
-  const statusClass=c.Status==='Approved'?'cai-approved':c.Status==='Revision'||c.Status==='declined'?'cai-revision':'cai-pending';
-  const statusLabel=c.Status==='Approved'?'✅ Approved':c.Status==='Revision'?'✏️ Revision':c.Status==='waiting'?'👁 Awaiting Approval':c.Status==='published'?'🚀 Published':c.Status==='approved_minor'?'✅ Approved w/ Correction':'⏳ Pending';
-  const hasUnread=(c.ChatMessages||[]).some(m=>m.author!=='FitFlux');
+  const statusMap = {
+    waiting:   {label:'⏳ Awaiting Approval',  cls:'cai-pending',  border:'rgba(245,158,11,0.4)',  left:'var(--amber)'},
+    Pending:   {label:'⏳ Awaiting Approval',  cls:'cai-pending',  border:'rgba(245,158,11,0.4)',  left:'var(--amber)'},
+    Approved:  {label:'✅ Approved',            cls:'cai-approved', border:'rgba(61,214,140,0.4)',  left:'var(--green)'},
+    approved_minor:{label:'✅ Approved w/ Correction',cls:'cai-approved',border:'rgba(245,158,11,0.4)',left:'var(--amber)'},
+    declined:  {label:'❌ Declined',            cls:'cai-revision', border:'rgba(255,77,77,0.4)',   left:'var(--red)'},
+    Revision:  {label:'✏️ Needs Revision',      cls:'cai-revision', border:'rgba(255,77,77,0.4)',   left:'var(--red)'},
+    published: {label:'🚀 Published',           cls:'cai-approved', border:'rgba(204,255,0,0.4)',   left:'var(--lime)'}
+  };
+  const st = statusMap[c.Status] || statusMap['waiting'];
+  const hasUnread = (c.ChatMessages||[]).some(m=>m.author!=='FitFlux');
   const uid = c.ID || c.Title;
   const bodyId = 'admin-body-'+uid;
 
-  // Status border color — matches client portal
-  const borderColor = c.Status==='Approved'||c.Status==='approved_minor' ? 'rgba(61,214,140,0.4)' :
-    c.Status==='declined'||c.Status==='Revision' ? 'rgba(255,77,77,0.4)' :
-    c.Status==='waiting' ? 'rgba(245,158,11,0.4)' :
-    c.Status==='published' ? 'rgba(204,255,0,0.4)' : 'var(--bdr3)';
-
-  const leftBorder = c.Status==='Approved'||c.Status==='approved_minor' ? 'var(--green)' :
-    c.Status==='declined'||c.Status==='Revision' ? 'var(--red)' :
-    c.Status==='waiting' ? 'var(--amber)' :
-    c.Status==='published' ? 'var(--lime)' : 'var(--bdr3)';
-
   // Media
-  const mediaURLs=(c.MediaURL||'').split(',').filter(Boolean);
-  const mediaHtml=mediaURLs.length?`<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
+  const mediaURLs = (c.MediaURL||'').split(',').filter(Boolean);
+  const mediaHtml = mediaURLs.length ? `<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px;">
     ${mediaURLs.map(url=>{
-      const isVideo=url.match(/\.(mp4|mov|webm)/i);
+      const isVideo = url.match(/\.(mp4|mov|webm)/i);
       return isVideo
         ? `<video src="${url}" controls style="width:100%;max-height:320px;border-radius:10px;border:1px solid var(--bdr3);display:block;" preload="metadata"></video>`
         : `<div style="position:relative;display:inline-block;cursor:pointer;" onclick="window.open('${url}','_blank')">
@@ -2107,8 +2124,8 @@ function buildAdminContentCard(c){
     }).join('')}
   </div>` : '';
 
-  // Chat thread — full history both sides
-  const chatMsgs=(c.ChatMessages||[]).map(m=>`
+  // Chat thread
+  const chatMsgs = (c.ChatMessages||[]).map(m=>`
     <div style="background:${m.author==='FitFlux'?'rgba(204,255,0,0.06)':'rgba(255,255,255,0.04)'};border-radius:8px;padding:10px 12px;border-left:2px solid ${m.author==='FitFlux'?'var(--lime)':'var(--amber)'};">
       <div style="font-size:10px;font-weight:700;color:${m.author==='FitFlux'?'var(--lime)':'var(--amber)'};margin-bottom:4px;">${m.author==='FitFlux'?'FitFlux Team (You)':m.author||'Client'}</div>
       <div style="font-size:12.5px;color:var(--t2);line-height:1.6;">${m.text||''}</div>
@@ -2117,35 +2134,26 @@ function buildAdminContentCard(c){
 
   const hasMsgs = (c.ChatMessages||[]).length > 0;
 
-  // Status change + actions row
-  const statusOptions = ['waiting','Approved','approved_minor','declined','published'];
-  const statusLabels = {
-    waiting:'👁 Awaiting Approval',
-    Approved:'✅ Approved',
-    approved_minor:'✅ Approved w/ Correction',
-    declined:'❌ Declined',
-    published:'🚀 Published'
-  };
+  return `<div style="background:var(--card);border:1px solid ${st.border};border-radius:14px;overflow:hidden;margin-bottom:14px;border-left:3px solid ${st.left};" id="card-wrap-${uid}">
 
-  return `<div style="background:var(--card);border:1px solid ${borderColor};border-radius:14px;overflow:hidden;margin-bottom:14px;border-left:3px solid ${leftBorder};" id="card-wrap-${uid}">
-
-    <!-- HEADER — click to collapse -->
+    <!-- HEADER -->
     <div onclick="toggleAdminCard('${bodyId}')" style="cursor:pointer;user-select:none;padding:14px 18px;border-bottom:1px solid var(--bdr3);display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
       <span style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:4px;background:var(--lime-dim);color:var(--lime);letter-spacing:.06em;text-transform:uppercase;">${c.Platform||'Post'}</span>
       <span style="font-family:'Montserrat',sans-serif;font-size:14px;font-weight:700;color:var(--t1);flex:1;letter-spacing:.02em;">${c.Title||'Content'}</span>
-      <span style="font-size:11px;color:var(--t3);">${c.ScheduledDate||''}</span>
-      <span class="cai-status-badge ${statusClass}" style="font-size:10px;font-weight:700;padding:2px 9px;border-radius:4px;">${statusLabel}</span>
+      <span style="font-size:11px;color:var(--t3);">${c.ScheduledDate ? new Date(c.ScheduledDate).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : ''}</span>
+      <span class="cai-status-badge ${st.cls}" style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;">${st.label}</span>
       ${hasUnread?'<span style="background:rgba(245,158,11,0.2);color:var(--amber);font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;">💬 Client replied</span>':''}
+      <input type="checkbox" class="content-select-cb" data-id="${uid}" data-token="${currentClient?.Token||''}" onclick="event.stopPropagation();updateDeleteBtn()" style="width:16px;height:16px;cursor:pointer;flex-shrink:0;"/>
       <span id="arr-${bodyId}" style="font-size:10px;color:var(--t3);">▼</span>
     </div>
 
     <!-- BODY -->
     <div id="${bodyId}" style="display:none;padding:16px 18px;">
 
-      <!-- META GRID — matches client portal -->
+      <!-- META GRID -->
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px;padding:12px;background:rgba(0,0,0,0.15);border-radius:8px;">
         <div>
-          <div style="font-size:9px;font-weight:700;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;">Platform To Be Posted</div>
+          <div style="font-size:9px;font-weight:700;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;">Platform</div>
           <div style="font-size:12px;color:var(--t1);font-weight:600;">${c.Platform||'—'}</div>
         </div>
         <div>
@@ -2165,49 +2173,29 @@ function buildAdminContentCard(c){
 
       ${c.RevisionNote?`<div style="font-size:11px;color:var(--amber);margin-bottom:10px;padding:8px 12px;background:rgba(245,158,11,0.08);border-radius:8px;">📝 Client note: ${c.RevisionNote}</div>`:''}
 
-      <!-- ADMIN STATUS CHANGE -->
-      <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;padding:10px 14px;background:rgba(0,0,0,0.2);border-radius:8px;flex-wrap:wrap;">
-        <span style="font-size:11px;color:var(--t3);font-weight:700;text-transform:uppercase;letter-spacing:.08em;">Update Status:</span>
-        <select id="content-status-sel-${uid}" style="background:var(--bg3);border:1px solid var(--bdr);border-radius:6px;padding:6px 10px;color:var(--t1);font-family:var(--fb);font-size:12px;outline:none;cursor:pointer;flex:1;min-width:160px;">
-          ${statusOptions.map(s=>`<option value="${s}" ${s===c.Status?'selected':''}>${statusLabels[s]||s}</option>`).join('')}
-        </select>
-        <button onclick="adminUpdateContentStatus('${uid}','${c.Token||''}')" style="background:var(--lime);border:none;color:#080c08;font-family:var(--fb);font-size:12px;font-weight:700;padding:7px 14px;border-radius:7px;cursor:pointer;white-space:nowrap;">Update →</button>
-      </div>
-
-      <!-- WHAT CLIENT SEES -->
-      <div style="padding:8px 12px;background:rgba(204,255,0,0.03);border:1px solid rgba(204,255,0,0.08);border-radius:8px;font-size:11px;color:var(--t3);margin-bottom:14px;line-height:1.6;">
-        <strong style="color:var(--lime);">Client sees: </strong>
-        ${c.Status==='waiting'?'<em style="color:var(--amber);">✅ Approve &nbsp;|&nbsp; ✏️ Approve with Minor Correction &nbsp;|&nbsp; ❌ Decline</em>':
-          c.Status==='Approved'?'<em style="color:var(--green);">✅ Approved — can still change decision</em>':
-          c.Status==='approved_minor'?'<em style="color:var(--amber);">✅ Approved with minor correction noted</em>':
-          c.Status==='declined'?'<em style="color:var(--red);">❌ Declined — reason in chat below</em>':
-          c.Status==='published'?'<em style="color:var(--lime);">🚀 Published — shown in Past Content tab</em>':
-          '<em>Pending — no action buttons shown yet</em>'}
-      </div>
-
-      <!-- CHAT HISTORY -->
-      <div style="border-top:1px solid var(--bdr3);padding-top:14px;">
+      <!-- CHAT HISTORY — always visible, shows history -->
+      <div style="border-top:1px solid var(--bdr3);padding-top:14px;margin-top:4px;">
         <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">💬 Chat History</div>
         <div id="admin-chat-${uid}" style="max-height:240px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:10px;">
           ${hasMsgs ? chatMsgs : '<div style="font-size:12px;color:var(--t3);text-align:center;padding:10px;">No messages yet.</div>'}
         </div>
         <div style="display:flex;gap:8px;">
-          <input class="form-input" id="admin-reply-${uid}" placeholder="Reply to client..." style="flex:1;padding:8px 12px;font-size:12px;" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAdminContentReply('${c.Token}','${c.Title}','${c.Platform}','${uid}','${c.ID||''}');}"/>
-          <button onclick="sendAdminContentReply('${c.Token}','${c.Title}','${c.Platform}','${uid}','${c.ID||''}')" style="background:var(--lime);border:none;color:#080c08;font-family:var(--fb);font-size:12px;font-weight:700;padding:8px 16px;border-radius:7px;cursor:pointer;white-space:nowrap;">Reply →</button>
+          <input class="form-input" id="admin-reply-${uid}" placeholder="Reply to client..." style="flex:1;padding:8px 12px;font-size:12px;" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAdminContentReply('${c.Token||currentClient?.Token||''}','${c.Title}','${c.Platform}','${uid}','${c.ID||''}');}"/>
+          <button onclick="sendAdminContentReply('${c.Token||currentClient?.Token||''}','${c.Title}','${c.Platform}','${uid}','${c.ID||''}')" style="background:var(--lime);border:none;color:#080c08;font-family:var(--fb);font-size:12px;font-weight:700;padding:8px 16px;border-radius:7px;cursor:pointer;white-space:nowrap;">Reply →</button>
         </div>
       </div>
 
-      <!-- ACTIONS ROW — Mark Published, Reschedule, Delete -->
+      <!-- ACTIONS — Mark Published, Reschedule, Delete only -->
       <div style="display:flex;gap:8px;flex-wrap:wrap;padding-top:14px;margin-top:14px;border-top:1px solid var(--bdr3);">
-        ${c.Status!=='published'?`<button class="btn-sm btn-sm-green" onclick="setContentPublished('${c.Token}','${c.Title}','${c.Platform}')">🚀 Mark Published</button>`:''}
-        <button class="btn-sm" style="background:rgba(77,157,255,0.1);border-color:rgba(77,157,255,0.25);color:var(--blue);" onclick="showReschedule('${uid}','${c.Token}')">📅 Reschedule</button>
-        <button class="btn-sm" style="background:rgba(255,77,77,0.1);border-color:rgba(255,77,77,0.2);color:var(--red);" onclick="deleteContentItem('${uid}','${c.Token}')">🗑 Delete</button>
+        ${c.Status!=='published'?`<button class="btn-sm btn-sm-green" onclick="setContentPublished('${c.Token||currentClient?.Token||''}','${c.Title}','${c.Platform}')">🚀 Mark Published</button>`:''}
+        <button class="btn-sm" style="background:rgba(77,157,255,0.1);border-color:rgba(77,157,255,0.25);color:var(--blue);" onclick="showReschedule('${uid}','${c.Token||currentClient?.Token||''}')">📅 Reschedule</button>
+        <button class="btn-sm" style="background:rgba(255,77,77,0.1);border-color:rgba(255,77,77,0.2);color:var(--red);" onclick="deleteContentItem('${uid}','${c.Token||currentClient?.Token||''}')">🗑 Delete</button>
       </div>
 
       <!-- RESCHEDULE INLINE -->
       <div id="reschedule-${uid}" style="display:none;margin-top:10px;align-items:center;gap:8px;flex-wrap:wrap;">
-        <input type="datetime-local" id="newdate-${uid}" class="form-input" style="flex:1;padding:7px 12px;font-size:12px;" value="${c.ScheduledDate||''}"/>
-        <button onclick="saveReschedule('${uid}','${c.Token}')" style="background:var(--lime);border:none;color:#080c08;font-family:var(--fb);font-size:12px;font-weight:700;padding:7px 14px;border-radius:7px;cursor:pointer;">Save</button>
+        <input type="datetime-local" id="newdate-${uid}" class="form-input" style="flex:1;padding:7px 12px;font-size:12px;"/>
+        <button onclick="saveReschedule('${uid}','${c.Token||currentClient?.Token||''}')" style="background:var(--lime);border:none;color:#080c08;font-family:var(--fb);font-size:12px;font-weight:700;padding:7px 14px;border-radius:7px;cursor:pointer;">Save</button>
         <button onclick="document.getElementById('reschedule-${uid}').style.display='none'" style="background:none;border:1px solid var(--bdr);color:var(--t3);font-size:12px;padding:7px 14px;border-radius:7px;cursor:pointer;">Cancel</button>
       </div>
 
@@ -2345,22 +2333,15 @@ async function deleteSelected(){
   const selected = Array.from(document.querySelectorAll('.content-select-cb:checked'));
   if(!selected.length){ toast('No items selected','error'); return; }
   if(!confirm(`Delete ${selected.length} selected item${selected.length!==1?'s':''}? This cannot be undone.`)) return;
-  
   toast('Deleting...');
   let deleted = 0;
   for(const cb of selected){
     const id = cb.getAttribute('data-id');
-    const token = cb.getAttribute('data-token');
-    const result = await apiPost('deleteContent', {token, id});
-    if(result && result.status==='deleted') deleted++;
+    const token = cb.getAttribute('data-token') || currentClient?.Token;
+    const r = await apiPost('deleteContent',{token, id, contentTitle:id, title:id});
+    if(r && (r.status==='deleted'||r.deleted===true||r.status==='ok'||r.success)) deleted++;
   }
   toast(`✅ Deleted ${deleted} item${deleted!==1?'s':''}`);
-  loadAdminContent();
-}
-  async function setContentWaiting(token, title, platform){
-  await apiPost('updateContentStatus',{token, contentTitle:title, platform, status:'waiting'});
-  await sendTelegramAdmin('👁 CONTENT SENT FOR APPROVAL\n\nClient: '+(currentClient.Name||'—')+'\nContent: '+title+'\nPlatform: '+platform+'\n\nClient will now see Approve/Decline buttons.');
-  toast('✅ Content sent for client approval');
   loadAdminContent();
 }
 
@@ -2636,15 +2617,16 @@ async function sendAdminContentReply(token, title, platform, uid, contentId){
   const time = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
   
   // Build body with ALL possible identifiers so Apps Script can find the row
-  const body = {
+const body = {
     token: useToken,
     contentTitle: title,
-    contentId: contentId || uid,
-    id: contentId || uid,
+    contentId: contentId||uid,
+    id: contentId||uid,
     platform,
     text,
     author: 'FitFlux',
-    time
+    time,
+    role: 'admin'
   };
 
   const result = await apiPost('addContentChat', body);
