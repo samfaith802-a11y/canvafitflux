@@ -1738,8 +1738,8 @@ const actionBtns = c.Status==='waiting' ? `
     </div>` : '';
 
   const chatMsgs = (c.ChatMessages||[]).map(m=>`
-    <div class="comment-msg" style="background:${m.author==='FitFlux'?'rgba(204,255,0,0.06)':'rgba(255,255,255,0.04)'};">
-      <div class="comment-author" style="color:${m.author==='FitFlux'?'var(--gold)':'var(--blue)'};">${m.author||'Client'}</div>
+    <div class="comment-msg" style="background:${m.author==='FitFlux'?'rgba(204,255,0,0.06)':'rgba(255,255,255,0.04)'};border-left:2px solid ${m.author==='FitFlux'?'var(--gold)':'var(--blue)'};">
+      <div class="comment-author" style="color:${m.author==='FitFlux'?'var(--gold)':'var(--blue)'};">${m.author==='FitFlux'?'FitFlux Team':window.FF_CLIENT.name||'You'}</div>
       <div class="comment-text">${m.text||''}</div>
       <div class="comment-time">${m.time||''}</div>
     </div>`).join('');
@@ -1762,9 +1762,11 @@ const actionBtns = c.Status==='waiting' ? `
       ${c.Caption?`<div style="font-size:11px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:6px;">CAPTION</div><div class="aitem-caption">${c.Caption.replace(/</g,'&lt;')}</div>`:''}
       ${actionBtns}
       ${changeMindBtn}
-   <div id="correction-section-${cardId}" style="display:none;margin-top:14px;">
-  <div style="font-size:10px;font-weight:700;color:var(--amber);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">✏️ Correction Feedback Chat</div>
-  <div id="chat-${cardId}" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;max-height:300px;overflow-y:auto;">${chatMsgs}</div>
+<div id="correction-section-${cardId}" style="display:block;margin-top:14px;border-top:1px solid var(--bdr);padding-top:14px;">
+  <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">💬 Chat History</div>
+  <div id="chat-${cardId}" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;max-height:300px;overflow-y:auto;">
+    ${hasMsgs ? chatMsgs : '<div style="font-size:12px;color:var(--t3);text-align:center;padding:10px;">No messages yet. Leave a comment for your FitFlux team.</div>'}
+  </div>
   <div class="comment-box" id="chatbox-${cardId}">
     <div id="chat-prompt-${cardId}" style="font-size:12px;color:var(--t3);padding:8px 12px;border-bottom:1px solid var(--bdr);">What correction is needed?</div>
     <textarea class="comment-input" id="${inputId}" placeholder="Type your feedback..."></textarea>
@@ -1803,6 +1805,19 @@ async function sendGeneralChat(titleEncoded, platformEncoded, contentId, cardId)
   sendBtn.textContent='Sending...'; sendBtn.disabled=true;
   sendBtn.style.transform='scale(0.95)';
   const time = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+
+  // Instantly append to chat UI before API call
+  const chatEl = document.getElementById('chat-'+cardId);
+  if(chatEl){
+    chatEl.insertAdjacentHTML('beforeend',`
+      <div class="comment-msg" style="background:rgba(255,255,255,0.04);border-left:2px solid var(--blue);">
+        <div class="comment-author" style="color:var(--blue);">${window.FF_CLIENT.name||'You'}</div>
+        <div class="comment-text">${text}</div>
+        <div class="comment-time">${time}</div>
+      </div>`);
+    chatEl.scrollTop = chatEl.scrollHeight;
+  }
+
   await apiPost('addContentChat',{
     token:window.FF_TOKEN||urlToken,
     contentTitle:title,
@@ -1810,7 +1825,8 @@ async function sendGeneralChat(titleEncoded, platformEncoded, contentId, cardId)
     platform,
     text,
     author:window.FF_CLIENT.name||'Client',
-    time
+    time,
+    role:'client'
   });
   await sendTelegram('💬 CLIENT MESSAGE ON CONTENT\n\nClient: '+(window.FF_CLIENT.name||'—')+'\nContent: '+title+'\nMessage: '+text);
   if(input) input.value='';
