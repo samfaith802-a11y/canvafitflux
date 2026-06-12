@@ -2122,7 +2122,7 @@ async function loadDeliverables(){
 }
 function renderDeliverables(){
   const el = document.getElementById('deliv-list');
-if(!deliverables.length){
+  if(!deliverables.length){
     el.innerHTML='<div style="padding:24px;text-align:center;color:var(--t3);font-size:13px;">No deliverables yet.</div>';
     return;
   }
@@ -2133,51 +2133,99 @@ if(!deliverables.length){
       progress:'<span class="tag tag-b">🔄 In Progress</span>',
       waiting:'<span class="tag tag-y">👁 Waiting for Approval</span>',
       approved:'<span class="tag tag-g">✅ Approved</span>',
+      approved_minor:'<span class="tag tag-g" style="background:rgba(245,158,11,0.15);color:var(--amber);">✅ Approved with Minor Correction</span>',
       declined:'<span class="tag tag-r">❌ Declined</span>',
       published:'<span class="tag tag-p">🚀 Published</span>'
     };
     const id = d.ID||d.id||i;
-    const waitingNote = sid==='waiting' ? `<div style="margin:10px 0;padding:10px 14px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;font-size:12px;color:var(--amber);">👁 This content is waiting for your approval — please review and use the buttons below.</div>` : '';
-    const actionBtns = (sid==='waiting') ? `
-      <div style="display:flex;gap:8px;margin:10px 0;">
-        <button class="btn-approve" onclick="updateDelivStatus('${id}','approved','${d.Name||d.name||''}')">✅ Approve</button>
-        <button class="btn-revision" onclick="updateDelivStatus('${id}','declined','${d.Name||d.name||''}')">❌ Decline</button>
-      </div>` : '';
     const mediaURL = d.Link || d.link || '';
-const pdfLinks = mediaURL ? getMediaPlayer(mediaURL) : '';
+    const pdfLinks = mediaURL ? getMediaPlayer(mediaURL) : '';
+
+    // Chat messages — show all, both client and FitFlux
     const chatMsgs = (d.ChatMessages||[]).map(m=>`
-      <div class="comment-msg">
-        <div class="comment-author">${m.author||'Client'}</div>
+      <div class="comment-msg" style="background:${m.author==='FitFlux'?'rgba(204,255,0,0.06)':'rgba(255,255,255,0.04)'};border-left:${m.author==='FitFlux'?'2px solid var(--gold)':'2px solid var(--blue)'};">
+        <div class="comment-author" style="color:${m.author==='FitFlux'?'var(--gold)':'var(--blue)'};">${m.author==='FitFlux'?'FitFlux Team':m.author||'You'}</div>
         <div class="comment-text">${m.text||''}</div>
         <div class="comment-time">${m.time||''}</div>
       </div>`).join('');
+
+    const hasMsgs = (d.ChatMessages||[]).length > 0;
+    const bodyId = 'deliv-body-'+id;
+
+    // Action buttons for waiting status
+    const waitingNote = sid==='waiting' ? `<div style="margin:10px 0;padding:10px 14px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;font-size:12px;color:var(--amber);">👁 This content is waiting for your approval — review and use the buttons below.</div>` : '';
+
+    const actionBtns = (sid==='waiting') ? `
+      <div style="display:flex;gap:8px;margin:10px 0;flex-wrap:wrap;">
+        <button class="btn-approve" onclick="updateDelivStatus('${id}','approved','${d.Name||d.name||''}')">✅ Approve</button>
+        <button onclick="updateDelivStatus('${id}','approved_minor','${d.Name||d.name||''}')" style="background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);color:var(--amber);font-family:var(--fb);font-size:12px;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer;transition:all .15s;">✏️ Approve with Minor Correction</button>
+        <button class="btn-revision" onclick="updateDelivStatus('${id}','declined','${d.Name||d.name||''}')">❌ Decline</button>
+      </div>` : '';
+
+    const changeMindBtn = (sid==='approved'||sid==='approved_minor'||sid==='declined') ? `
+      <div style="margin:8px 0;">
+        <button onclick="toggleChangeMindDeliv('${id}')" style="background:rgba(255,255,255,0.04);border:1px solid var(--bdr);color:var(--t3);font-family:var(--fb);font-size:11px;padding:6px 14px;border-radius:7px;cursor:pointer;">↩ Change my decision</button>
+      </div>
+      <div id="changemind-deliv-${id}" style="display:none;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.2);border-radius:10px;padding:14px;margin-top:8px;">
+        <div style="font-size:12px;color:var(--amber);font-weight:600;margin-bottom:10px;">Change your decision:</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+          <button class="btn-approve" onclick="updateDelivStatus('${id}','approved','${d.Name||d.name||''}')">✅ Approve</button>
+          <button onclick="updateDelivStatus('${id}','approved_minor','${d.Name||d.name||''}')" style="background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);color:var(--amber);font-family:var(--fb);font-size:12px;font-weight:700;padding:8px 16px;border-radius:8px;cursor:pointer;">✏️ Approve with Minor Correction</button>
+          <button class="btn-revision" onclick="updateDelivStatus('${id}','declined','${d.Name||d.name||''}')">❌ Decline</button>
+        </div>
+      </div>` : '';
+
     return `
-    <div style="background:var(--card);border:1px solid var(--bdr);border-radius:14px;overflow:hidden;margin-bottom:16px;border-left:3px solid ${sid==='approved'?'var(--green)':sid==='declined'?'var(--red)':sid==='published'?'var(--purple)':sid==='waiting'?'var(--amber)':'var(--bdr)'};">
-      <div style="display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--bdr);">
+    <div style="background:var(--card);border:1px solid var(--bdr);border-radius:14px;overflow:hidden;margin-bottom:16px;border-left:3px solid ${sid==='approved'||sid==='approved_minor'?'var(--green)':sid==='declined'?'var(--red)':sid==='published'?'var(--purple)':sid==='waiting'?'var(--amber)':'var(--bdr)'};">
+
+      <!-- HEADER — click to toggle body -->
+      <div onclick="toggleDelivCard('${bodyId}')" style="cursor:pointer;user-select:none;display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--bdr);">
+        ${sm[sid]||'<span class="tag tag-a">⏳ Pending</span>'}
         <span style="font-size:13px;font-weight:600;color:var(--t1);flex:1;">${d.Name||d.name||'—'}</span>
         <span class="tag tag-p" style="font-size:10px;">${d.Type||d.type||'—'}</span>
-        ${sm[sid]||sid}
-        <button class="deliv-rm" onclick="removeDeliverable('${id}')" style="margin-left:4px;">&times;</button>
+        ${hasMsgs?`<span style="background:rgba(204,255,0,0.12);color:var(--gold);font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;">💬 ${(d.ChatMessages||[]).length}</span>`:''}
+        <span id="deliv-arr-${bodyId}" style="color:var(--t3);font-size:12px;">▼</span>
       </div>
-      <div style="padding:14px 18px;">
+
+      <!-- BODY -->
+      <div id="${bodyId}" style="display:none;padding:14px 18px;">
         ${d.Date||d.date?`<div style="font-size:11px;color:var(--t3);margin-bottom:10px;">📅 ${d.Date||d.date}</div>`:''}
         ${pdfLinks?`<div style="margin-bottom:10px;">${pdfLinks}</div>`:''}
         ${waitingNote}
         ${actionBtns}
-        <div style="margin-top:12px;">
-          <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">💬 Chat</div>
-          <div id="chat-${id}" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;max-height:200px;overflow-y:auto;">${chatMsgs}</div>
+        ${changeMindBtn}
+
+        <!-- CHAT HISTORY -->
+        <div style="margin-top:14px;border-top:1px solid var(--bdr);padding-top:14px;">
+          <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">💬 Chat History</div>
+          <div id="deliv-chat-${id}" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;max-height:220px;overflow-y:auto;">
+            ${hasMsgs ? chatMsgs : '<div style="font-size:12px;color:var(--t3);text-align:center;padding:10px;">No messages yet. Leave a comment for your FitFlux team.</div>'}
+          </div>
           <div class="comment-box">
-            <textarea class="comment-input" id="chat-input-${id}" placeholder="Type your feedback or question..."></textarea>
+            <textarea class="comment-input" id="chat-input-${id}" placeholder="Type your feedback, question or correction..."></textarea>
             <div class="comment-footer">
-              <span class="comment-hint">Feedback goes directly to your FitFlux team.</span>
+              <span class="comment-hint">Goes directly to your FitFlux team.</span>
               <button class="btn-send" onclick="sendDelivChat('${id}','${d.Name||d.name||''}')">Send →</button>
             </div>
           </div>
         </div>
+
       </div>
     </div>`;
   }).join('');
+}
+  function toggleDelivCard(bodyId){
+  const body = document.getElementById(bodyId);
+  const arr = document.getElementById('deliv-arr-'+bodyId);
+  if(!body) return;
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  if(arr) arr.textContent = isOpen ? '▼' : '▲';
+}
+
+function toggleChangeMindDeliv(id){
+  const el = document.getElementById('changemind-deliv-'+id);
+  if(el) el.style.display = el.style.display==='none' ? 'block' : 'none';
 }
 async function addDeliverable(){
   const name = document.getElementById('d-name').value.trim();
@@ -2443,26 +2491,43 @@ document.addEventListener('DOMContentLoaded',()=>{
 });
 async function updateDelivStatus(id, newStatus, name){
   if(newStatus === 'declined'){
-    const existing = document.getElementById('deliv-decline-'+id);
-    if(existing) return;
-    const block = document.createElement('div');
-    block.id = 'deliv-decline-'+id;
-    block.style.cssText = 'margin:10px 0;padding:14px;background:rgba(255,85,85,0.06);border:1px solid rgba(255,85,85,0.2);border-radius:9px;';
-    block.innerHTML = `
-      <div style="font-size:12px;color:var(--red);font-weight:700;margin-bottom:8px;">You must leave a reason before declining:</div>
-      <textarea id="deliv-decline-reason-${id}" class="comment-input" placeholder="Explain what needs to change..." style="background:rgba(0,0,0,0.2);border:1px solid rgba(255,85,85,0.25);border-radius:7px;min-height:70px;width:100%;"></textarea>
-      <div style="display:flex;gap:8px;margin-top:8px;">
-        <button class="btn-revision" onclick="submitDelivDecline('${id}','${name}')">Confirm Decline</button>
-        <button onclick="document.getElementById('deliv-decline-${id}').remove()" style="background:none;border:1px solid var(--bdr);color:var(--t3);border-radius:7px;padding:7px 14px;font-size:12px;cursor:pointer;">Cancel</button>
+    // Show inline reason box inside the card
+    const existingBox = document.getElementById('deliv-decline-inline-'+id);
+    if(existingBox){ existingBox.style.display='block'; return; }
+    const chatArea = document.getElementById('deliv-chat-'+id);
+    if(!chatArea) return;
+    const box = document.createElement('div');
+    box.id = 'deliv-decline-inline-'+id;
+    box.style.cssText='margin:10px 0;padding:14px;background:rgba(255,85,85,0.06);border:1px solid rgba(255,85,85,0.2);border-radius:9px;';
+    box.innerHTML=`
+      <div style="font-size:12px;color:var(--red);font-weight:700;margin-bottom:8px;">Please explain what needs to change:</div>
+      <textarea id="decline-reason-${id}" class="comment-input" placeholder="What correction is needed?" style="background:rgba(0,0,0,0.2);border:1px solid rgba(255,85,85,0.25);border-radius:7px;min-height:70px;width:100%;margin-bottom:8px;"></textarea>
+      <div style="display:flex;gap:8px;">
+        <button class="btn-revision" onclick="submitDelivDeclineClient('${id}','${name}')">Confirm Decline →</button>
+        <button onclick="document.getElementById('deliv-decline-inline-${id}').remove()" style="background:none;border:1px solid var(--bdr);color:var(--t3);border-radius:7px;padding:7px 14px;font-size:12px;cursor:pointer;">Cancel</button>
       </div>`;
-    const actionArea = document.querySelector('#deliv-list [data-id="'+id+'"]');
-    if(actionArea) actionArea.appendChild(block);
-    else document.getElementById('deliv-list').appendChild(block);
+    chatArea.parentNode.insertBefore(box, chatArea);
     return;
   }
   await apiPost('updateDeliverableStatus', {token: window.FF_TOKEN || urlToken, id, status: newStatus});
-  const action = newStatus === 'approved' ? '✅ DELIVERABLE APPROVED' : '🔄 DELIVERABLE STATUS UPDATED';
+  const action = newStatus==='approved'?'✅ DELIVERABLE APPROVED':newStatus==='approved_minor'?'✅ APPROVED WITH MINOR CORRECTION':'🔄 DELIVERABLE STATUS UPDATED';
   await sendTelegram(action+'\n\nClient: '+(CLIENT.name||'—')+'\nDeliverable: '+name+'\nStatus: '+newStatus);
+  // Close change mind box if open
+  const cm = document.getElementById('changemind-deliv-'+id);
+  if(cm) cm.style.display='none';
+  await loadDeliverables();
+}
+
+async function submitDelivDeclineClient(id, name){
+  const reasonEl = document.getElementById('decline-reason-'+id);
+  const reason = reasonEl ? reasonEl.value.trim() : '';
+  if(!reason){ if(reasonEl){ reasonEl.style.border='1px solid var(--red)'; reasonEl.focus(); } return; }
+  const time = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  await apiPost('updateDeliverableStatus', {token: window.FF_TOKEN||urlToken, id, status:'declined', reason});
+  await apiPost('addDelivChat', {token: window.FF_TOKEN||urlToken, id, delivId:id, text:'❌ Declined: '+reason, author: CLIENT.name||'Client', time, role:'client'});
+  await sendTelegram('❌ DELIVERABLE DECLINED\n\nClient: '+(CLIENT.name||'—')+'\nDeliverable: '+name+'\nReason: '+reason);
+  const box = document.getElementById('deliv-decline-inline-'+id);
+  if(box) box.remove();
   await loadDeliverables();
 }
 
@@ -2888,10 +2953,21 @@ async function sendDelivChat(id, name){
   const input = document.getElementById('chat-input-'+id);
   const text = input ? input.value.trim() : '';
   if(!text){ if(input) input.focus(); return; }
+  const sendBtn = input.closest('.comment-box')?.querySelector('.btn-send');
+  if(sendBtn){ sendBtn.textContent='Sending...'; sendBtn.disabled=true; }
   const time = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-  await apiPost('addDelivChat', {token: window.FF_TOKEN || urlToken, id, text, author: CLIENT.name||'Client', time});
+  const result = await apiPost('addDelivChat', {
+    token: window.FF_TOKEN || urlToken,
+    id: id,
+    delivId: id,
+    text: text,
+    author: CLIENT.name||'Client',
+    time: time,
+    role: 'client'
+  });
   await sendTelegram('💬 CHAT MESSAGE ON DELIVERABLE\n\nClient: '+(CLIENT.name||'—')+'\nDeliverable: '+name+'\nMessage: '+text);
   if(input) input.value = '';
+  if(sendBtn){ sendBtn.textContent='Send →'; sendBtn.disabled=false; }
   await loadDeliverables();
 }
   window.addEventListener('online', async ()=>{
