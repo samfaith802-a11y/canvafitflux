@@ -2651,10 +2651,10 @@ async function sendAdminContentReply(token, title, platform, uid, contentId){
   
   // Append message instantly to UI
   const chatEl = document.getElementById('admin-chat-'+uid);
-  if(chatEl){
+ if(chatEl){
     chatEl.insertAdjacentHTML('beforeend', `
-      <div style="background:rgba(204,255,0,0.06);border-radius:7px;padding:8px 10px;">
-        <div style="font-size:10px;font-weight:700;color:var(--lime);margin-bottom:3px;">FitFlux</div>
+      <div style="background:rgba(204,255,0,0.06);border-radius:7px;padding:8px 10px;border-left:2px solid var(--lime);">
+        <div style="font-size:10px;font-weight:700;color:var(--lime);margin-bottom:3px;">FitFlux Team (You)</div>
         <div style="font-size:12px;color:var(--t2);">${text}</div>
         <div style="font-size:10px;color:var(--t3);margin-top:3px;">${time}</div>
       </div>`);
