@@ -1954,15 +1954,12 @@ async function loadAdminContent(silent=false){
 
   const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
   const years=Object.keys(grouped).sort((a,b)=>b-a);
-  const selectBar = document.createElement('div');
-  selectBar.style.cssText='display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:10px 14px;background:var(--bg3);border-radius:8px;';
-  selectBar.innerHTML=`
+const selectBarHtml = `<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:10px 14px;background:var(--bg3);border-radius:8px;">
     <input type="checkbox" id="select-all-content" onchange="toggleSelectAll(this)" style="cursor:pointer;width:16px;height:16px;"/>
     <label for="select-all-content" style="font-size:12px;color:var(--t2);cursor:pointer;">Select All</label>
     <button onclick="deleteSelected()" style="margin-left:auto;background:rgba(255,77,77,0.1);border:1px solid rgba(255,77,77,0.2);color:var(--red);border-radius:6px;padding:6px 14px;font-family:var(--fb);font-size:12px;font-weight:700;cursor:pointer;" id="delete-selected-btn">🗑 Delete Selected</button>`;
-  el.appendChild(selectBar);
 
-  el.innerHTML += years.map(yr=>{
+  const yearsHtml = years.map(yr=>{
     const months=Object.keys(grouped[yr]).sort((a,b)=>MONTHS.indexOf(b)-MONTHS.indexOf(a));
     return `<div style="margin-bottom:20px;">
       <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
@@ -1986,6 +1983,8 @@ async function loadAdminContent(silent=false){
       }).join('')}
     </div>`;
   }).join('');
+
+  el.innerHTML = selectBarHtml + yearsHtml;
 }
 function toggleAdminCard(bodyId){
   const body = document.getElementById(bodyId);
