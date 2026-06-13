@@ -1954,10 +1954,6 @@ async function loadAdminContent(silent=false){
 
   const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
   const years=Object.keys(grouped).sort((a,b)=>b-a);
-// Add select all controls
-// Select all + delete selected bar
-  const selectBar = document.createElement('div');
- // Select all + delete selected bar
   const selectBar = document.createElement('div');
   selectBar.style.cssText='display:flex;align-items:center;gap:10px;margin-bottom:12px;padding:10px 14px;background:var(--bg3);border-radius:8px;';
   selectBar.innerHTML=`
