@@ -1603,13 +1603,12 @@ window._lastContentData = JSON.stringify(contentData);
   renderWeek('past', pastItems);
   updateBadge('past', pastItems.length);
 
-  // Restore open cards and re-inject any chat messages that were just sent
+  /// Restore open cards and re-inject any chat messages that were just sent
   openCards.forEach(bodyId=>{
     const el = document.getElementById(bodyId);
     const icon = document.getElementById('toggle-icon-'+bodyId);
     if(el){ el.style.display='block'; if(icon) icon.textContent='▲'; }
   });
-  }
 
   const pending = contentData.filter(c=>c.Status==='Pending'||c.Status==='waiting').length;
   const badge = document.getElementById('pending-badge');
