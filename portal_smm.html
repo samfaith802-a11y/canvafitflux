@@ -1595,21 +1595,20 @@ const pastItems = contentData.filter(c => c.Status === 'published')
     if(el.style.display!=='none') openCards.add(el.id);
   });
 
-  // Only re-render if not silent or if content changed
-  if(!silent || JSON.stringify(contentData) !== window._lastContentData){
-    window._lastContentData = JSON.stringify(contentData);
+ 
+window._lastContentData = JSON.stringify(contentData);
   renderWeek('this', thisItems);
-renderWeek('next', nextItems);
-renderWeek('upcoming', upcomingItems);
-renderWeek('past', pastItems);
-updateBadge('past', pastItems.length);
+  renderWeek('next', nextItems);
+  renderWeek('upcoming', upcomingItems);
+  renderWeek('past', pastItems);
+  updateBadge('past', pastItems.length);
 
-    // Restore open cards
-    openCards.forEach(bodyId=>{
-      const el = document.getElementById(bodyId);
-      const icon = document.getElementById('toggle-icon-'+bodyId);
-      if(el){ el.style.display='block'; if(icon) icon.textContent='▲'; }
-    });
+  // Restore open cards and re-inject any chat messages that were just sent
+  openCards.forEach(bodyId=>{
+    const el = document.getElementById(bodyId);
+    const icon = document.getElementById('toggle-icon-'+bodyId);
+    if(el){ el.style.display='block'; if(icon) icon.textContent='▲'; }
+  });
   }
 
   const pending = contentData.filter(c=>c.Status==='Pending'||c.Status==='waiting').length;
@@ -1832,7 +1831,8 @@ async function sendGeneralChat(titleEncoded, platformEncoded, contentId, cardId)
   await sendTelegram('💬 CLIENT MESSAGE ON CONTENT\n\nClient: '+(window.FF_CLIENT.name||'—')+'\nContent: '+title+'\nMessage: '+text);
   if(input) input.value='';
   sendBtn.textContent='Send →'; sendBtn.disabled=false; sendBtn.style.transform='';
-  await loadContent(true);
+  // Don't reload — message already shown inline. Reload quietly after 3s
+  setTimeout(()=>loadContent(true), 3000);
 }
 function toggleContentCard(bodyId){
   const body = document.getElementById(bodyId);
@@ -1909,7 +1909,7 @@ function showChatForAction(cardId, action, titleEncoded, platformEncoded, conten
       await sendTelegram('✏️ APPROVED WITH MINOR CORRECTION\n\nClient: '+(window.FF_CLIENT.name||'—')+'\nContent: '+title+'\nNote: '+text);
       if(input) input.value='';
       sendBtn.textContent='Send →'; sendBtn.disabled=false; sendBtn.style.transform='';
-      await loadContent(true);
+     setTimeout(()=>loadContent(true), 3000);
     };
   } else {
     prompt.textContent='❌ Why are you declining this content?';
@@ -1949,7 +1949,7 @@ function showChatForAction(cardId, action, titleEncoded, platformEncoded, conten
       await sendTelegram('❌ CONTENT DECLINED\n\nClient: '+(window.FF_CLIENT.name||'—')+'\nContent: '+title+'\nReason: '+text);
       if(input) input.value='';
       sendBtn.textContent='Send →'; sendBtn.disabled=false; sendBtn.style.transform='';
-      await loadContent(true);
+      setTimeout(()=>loadContent(true), 3000);
     };
   }
 }
