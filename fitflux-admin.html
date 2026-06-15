@@ -986,6 +986,8 @@ let allClients = [];
 let currentClient = null;
 let currentPerfPlatform = 'Instagram';
 let roadmapState = {};
+let openMonthIds = new Set();
+let openYearIds = new Set();
 
 // ── ROADMAP TEMPLATE ──────────────────────────────────────────
 const ROADMAP_PHASES = [
@@ -1998,6 +2000,17 @@ const yearsHtml = years.map(yr=>{
   }).join('');
 
    el.innerHTML = yearsHtml;
+  // Re-apply open/closed state after rebuild so it doesn't snap shut
+openYearIds.forEach(yr=>{
+  const yEl = document.getElementById('year-'+yr);
+  const yArr = document.getElementById('yarr-'+yr);
+  if(yEl){ yEl.style.display='block'; if(yArr) yArr.style.transform='rotate(90deg)'; }
+});
+openMonthIds.forEach(id=>{
+  const mEl = document.getElementById(id);
+  const mArr = document.getElementById('arr-'+id);
+  if(mEl){ mEl.style.display='flex'; if(mArr) mArr.style.transform='rotate(90deg)'; }
+});
    
 }
   
@@ -2016,6 +2029,7 @@ function toggleContentMonth(id){
   const isOpen=el.style.display==='flex';
   el.style.display=isOpen?'none':'flex';
   if(arr) arr.style.transform=isOpen?'':'rotate(90deg)';
+  if(isOpen) openMonthIds.delete(id); else openMonthIds.add(id);
 }
 function toggleContentYear(yr){
   const el = document.getElementById('year-'+yr);
@@ -2024,6 +2038,7 @@ function toggleContentYear(yr){
   const isOpen = el.style.display === 'block';
   el.style.display = isOpen ? 'none' : 'block';
   if(arr) arr.style.transform = isOpen ? '' : 'rotate(90deg)';
+  if(isOpen) openYearIds.delete(yr); else openYearIds.add(yr);
 }
 
 function toggleYearSelect(cb, yearId){
