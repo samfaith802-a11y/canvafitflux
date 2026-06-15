@@ -1969,12 +1969,6 @@ const yearsHtml = years.map(yr=>{
         <div style="font-family:var(--fh);font-size:20px;color:var(--lime);">${yr}</div>
         <button onclick="clearContentYear('${yr}')" style="background:rgba(255,77,77,0.1);border:1px solid rgba(255,77,77,0.2);color:var(--red);border-radius:5px;padding:3px 12px;font-size:10px;font-weight:700;cursor:pointer;">Clear Year</button>
       </div>
-
-   <div style="display:flex;align-items:center;gap:8px;margin-top:12px;padding:8px 12px;background:var(--bg3);border-radius:7px;width:fit-content;">
-      <input type="checkbox" id="select-all-content" onchange="toggleSelectAll(this)" style="cursor:pointer;width:14px;height:14px;flex-shrink:0;"/>
-      <label for="select-all-content" style="font-size:11px;color:var(--t3);cursor:pointer;white-space:nowrap;">Select All</label>
-      <button onclick="deleteSelected()" id="delete-selected-btn" style="background:rgba(255,77,77,0.1);border:1px solid rgba(255,77,77,0.2);color:var(--red);border-radius:5px;padding:3px 10px;font-family:var(--fb);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">🗑 Delete Selected</button>
-    </div>
   
       ${months.map(mo=>{
         const items=grouped[yr][mo];
