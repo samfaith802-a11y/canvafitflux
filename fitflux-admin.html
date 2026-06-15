@@ -1183,7 +1183,8 @@ loadInbox();
       if(!activePage || !activePage.classList.contains('active')) return;
       const contentTab = document.getElementById('dtab-content');
       if(!contentTab || !contentTab.classList.contains('active')) return;
-      await loadAdminContent(true);
+     const openMonths = [...document.querySelectorAll('#content-admin-list [id^="month-"]')].some(el=>el.style.display==='flex');
+      if(!openMonths) await loadAdminContent(true);
     }, 4000);
   }
   // Silent check for new client messages every 20 seconds
@@ -1965,11 +1966,15 @@ const yearsHtml = years.map(yr=>{
         const items=grouped[yr][mo];
         const monthId='month-'+yr+'-'+mo.replace(/\s/g,'');
         return `<div style="margin-bottom:16px;">
-          <div onclick="toggleContentMonth('${monthId}')" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg3);border-radius:8px;cursor:pointer;margin-bottom:8px;">
-            <span id="arr-${monthId}" style="font-size:9px;color:var(--t3);transition:transform .2s;">▶</span>
+         <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg3);border-radius:8px;margin-bottom:8px;">
+            <input type="checkbox" onclick="event.stopPropagation();toggleMonthSelect(this,'${monthId}')" style="cursor:pointer;width:14px;height:14px;flex-shrink:0;"/>
+            <div onclick="toggleContentMonth('${monthId}')" style="display:flex;align-items:center;gap:8px;flex:1;cursor:pointer;">
+              <span id="arr-${monthId}" style="font-size:9px;color:var(--t3);transition:transform .2s;">▶</span>
             <span style="font-size:13px;font-weight:600;color:var(--t1);">${mo}</span>
             <span style="font-size:11px;color:var(--t3);">(${items.length})</span>
-            <button onclick="event.stopPropagation();clearContentMonth('${yr}','${mo}')" style="margin-left:auto;background:rgba(255,77,77,0.1);border:1px solid rgba(255,77,77,0.2);color:var(--red);border-radius:5px;padding:3px 10px;font-size:10px;font-weight:700;cursor:pointer;">Clear</button>
+           </div>
+            <button onclick="event.stopPropagation();deleteMonth('${monthId}')" style="background:rgba(255,77,77,0.1);border:1px solid rgba(255,77,77,0.2);color:var(--red);border-radius:5px;padding:3px 10px;font-size:10px;font-weight:700;cursor:pointer;">🗑 Month</button>
+            <button onclick="event.stopPropagation();clearContentMonth('${yr}','${mo}')" style="background:rgba(255,77,77,0.1);border:1px solid rgba(255,77,77,0.2);color:var(--red);border-radius:5px;padding:3px 10px;font-size:10px;font-weight:700;cursor:pointer;">Clear</button>
           </div>
           <div id="${monthId}" style="display:none;flex-direction:column;gap:8px;">
             ${items.map(c=>buildAdminContentCard(c)).join('')}
@@ -1980,12 +1985,12 @@ const yearsHtml = years.map(yr=>{
   }).join('');
 
   el.innerHTML = `
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;padding:8px 12px;background:var(--bg3);border-radius:7px;width:fit-content;">
+    ${yearsHtml}
+    <div style="display:flex;align-items:center;gap:8px;margin-top:12px;padding:8px 12px;background:var(--bg3);border-radius:7px;width:fit-content;">
       <input type="checkbox" id="select-all-content" onchange="toggleSelectAll(this)" style="cursor:pointer;width:14px;height:14px;flex-shrink:0;"/>
       <label for="select-all-content" style="font-size:11px;color:var(--t3);cursor:pointer;white-space:nowrap;">Select All</label>
       <button onclick="deleteSelected()" id="delete-selected-btn" style="background:rgba(255,77,77,0.1);border:1px solid rgba(255,77,77,0.2);color:var(--red);border-radius:5px;padding:3px 10px;font-family:var(--fb);font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;">🗑 Delete Selected</button>
     </div>
-    ${yearsHtml}`;
 }
   
 function toggleAdminCard(bodyId){
@@ -2315,6 +2320,15 @@ async function deleteContentItem(id, token){
   function toggleSelectAll(cb){
   document.querySelectorAll('.content-select-cb').forEach(el=>el.checked=cb.checked);
   updateDeleteBtn();
+}
+  function toggleMonthSelect(cb, monthId){
+  document.getElementById(monthId)?.querySelectorAll('.content-select-cb').forEach(el=>el.checked=cb.checked);
+  updateDeleteBtn();
+}
+function deleteMonth(monthId){
+  document.getElementById(monthId)?.querySelectorAll('.content-select-cb').forEach(el=>el.checked=true);
+  updateDeleteBtn();
+  deleteSelected();
 }
 
 function updateDeleteBtn(){
