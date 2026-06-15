@@ -2151,7 +2151,7 @@ function buildAdminContentCard(c){
       const isVideo = url.match(/\.(mp4|mov|webm)/i);
       return isVideo
         ? `<video src="${url}" controls style="width:100%;max-height:320px;border-radius:10px;border:1px solid var(--bdr3);display:block;" preload="metadata"></video>`
-        : `<div style="position:relative;display:inline-block;cursor:pointer;" onclick="window.open('${url}','_blank')">
+      : `<div style="position:relative;display:inline-block;cursor:pointer;" onclick="event.stopPropagation();openAdminMedia('${url}')">
             <img src="${url}" style="width:120px;height:120px;object-fit:cover;border-radius:10px;border:1px solid var(--bdr3);display:block;"/>
             <div style="position:absolute;bottom:0;left:0;right:0;background:rgba(0,0,0,0.6);color:#fff;font-size:10px;font-weight:700;text-align:center;padding:5px;border-radius:0 0 10px 10px;letter-spacing:.04em;">👆 TAP TO EXPAND</div>
            </div>`;
@@ -2177,8 +2177,8 @@ function buildAdminContentCard(c){
       <span style="font-size:11px;color:var(--t3);">${c.ScheduledDate ? new Date(c.ScheduledDate).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : ''}</span>
       <span class="cai-status-badge ${st.cls}" style="font-size:10px;font-weight:700;padding:3px 10px;border-radius:6px;">${st.label}</span>
       ${hasUnread?'<span style="background:rgba(245,158,11,0.2);color:var(--amber);font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;">💬 Client replied</span>':''}
-      <input type="checkbox" class="content-select-cb" data-id="${uid}" data-token="${currentClient?.Token||''}" onclick="event.stopPropagation();updateDeleteBtn()" style="width:16px;height:16px;cursor:pointer;flex-shrink:0;"/>
       <span id="arr-${bodyId}" style="font-size:10px;color:var(--t3);">▼</span>
+      <input type="checkbox" class="content-select-cb" data-id="${uid}" data-token="${currentClient?.Token||''}" onclick="event.stopPropagation();updateDeleteBtn()" style="width:16px;height:16px;cursor:pointer;flex-shrink:0;margin-left:8px;"/>
     </div>
 
     <!-- BODY -->
@@ -2641,6 +2641,13 @@ async function loadAdminDeliverables(){
   body.style.display = isOpen ? 'none' : 'block';
   if(arr) arr.textContent = isOpen ? '▼' : '▲';
 }
+  function openAdminMedia(url){
+  const m = document.createElement('div');
+  m.style.cssText='position:fixed;inset:0;background:rgba(0,0,0,0.92);z-index:99999;display:flex;align-items:center;justify-content:center;cursor:pointer;backdrop-filter:blur(8px);';
+  m.innerHTML=`<img src="${url}" style="max-width:90vw;max-height:90vh;border-radius:12px;object-fit:contain;box-shadow:0 0 80px rgba(0,0,0,0.8);"/><button onclick="event.stopPropagation();this.closest('div').remove()" style="position:absolute;top:20px;right:24px;background:rgba(255,255,255,0.1);border:none;color:#fff;font-size:28px;width:48px;height:48px;border-radius:50%;cursor:pointer;display:flex;align-items:center;justify-content:center;">×</button>`;
+  m.onclick=()=>m.remove();
+  document.body.appendChild(m);
+}
 
 async function adminUpdateDelivStatus(id, name){
   const sel = document.getElementById('admin-status-sel-'+id);
@@ -2687,7 +2694,8 @@ const body = {
   }
   if(input) input.value = '';
   toast('✅ Reply sent — client sees it instantly');
-  setTimeout(()=>loadAdminContent(), 2000);
+  // Don't full reload — message already appended inline
+  setTimeout(()=>loadAdminContent(), 3500);
 }
 
 
