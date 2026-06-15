@@ -1965,10 +1965,15 @@ async function loadAdminContent(silent=false){
 const yearsHtml = years.map(yr=>{
     const months=Object.keys(grouped[yr]).sort((a,b)=>MONTHS.indexOf(b)-MONTHS.indexOf(a));
     return `<div style="margin-bottom:20px;">
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-        <div style="font-family:var(--fh);font-size:20px;color:var(--lime);">${yr}</div>
-        <button onclick="clearContentYear('${yr}')" style="background:rgba(255,77,77,0.1);border:1px solid rgba(255,77,77,0.2);color:var(--red);border-radius:5px;padding:3px 12px;font-size:10px;font-weight:700;cursor:pointer;">Clear Year</button>
+     <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
+        <input type="checkbox" onclick="event.stopPropagation();toggleYearSelect(this,'year-${yr}')" style="cursor:pointer;width:14px;height:14px;flex-shrink:0;"/>
+        <div onclick="toggleContentYear('${yr}')" style="display:flex;align-items:center;gap:8px;flex:1;cursor:pointer;">
+          <span id="yarr-${yr}" style="font-size:9px;color:var(--t3);transition:transform .2s;">▶</span>
+          <div style="font-family:var(--fh);font-size:20px;color:var(--lime);">${yr}</div>
+        </div>
+        <button onclick="event.stopPropagation();clearContentYear('${yr}')" style="background:rgba(255,77,77,0.1);border:1px solid rgba(255,77,77,0.2);color:var(--red);border-radius:5px;padding:3px 12px;font-size:10px;font-weight:700;cursor:pointer;">Clear Year</button>
       </div>
+      <div id="year-${yr}" style="display:none;">
   
       ${months.map(mo=>{
         const items=grouped[yr][mo];
@@ -2012,7 +2017,19 @@ function toggleContentMonth(id){
   el.style.display=isOpen?'none':'flex';
   if(arr) arr.style.transform=isOpen?'':'rotate(90deg)';
 }
+function toggleContentYear(yr){
+  const el = document.getElementById('year-'+yr);
+  const arr = document.getElementById('yarr-'+yr);
+  if(!el) return;
+  const isOpen = el.style.display === 'block';
+  el.style.display = isOpen ? 'none' : 'block';
+  if(arr) arr.style.transform = isOpen ? '' : 'rotate(90deg)';
+}
 
+function toggleYearSelect(cb, yearId){
+  document.getElementById(yearId)?.querySelectorAll('.content-select-cb').forEach(el=>el.checked=cb.checked);
+  updateDeleteBtn();
+}
 async function clearContentMonth(year, month){
   if(!confirm(`Delete all content from ${month} ${year}? This cannot be undone.`)) return;
   toast('Loading content...');
