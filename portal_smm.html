@@ -853,7 +853,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
 </div>
   </div>
   <div id="week-loading" class="loading"><div class="spinner"></div>Loading content...</div>
-<div id="week-this" class="approval-week">
+<div id="week-this" class="approval-week active" style="display:block;">
     <div style="margin-bottom:24px;">
       <div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(204,255,0,0.5);padding:8px 0;border-bottom:1px solid var(--bdr);margin-bottom:16px;">📦 Deliverables This Period</div>
       <div style="background:var(--card);border:1px solid var(--bdr);border-radius:14px;overflow:hidden;margin-bottom:16px;">
@@ -1492,10 +1492,16 @@ function switchView(v, el){
 function switchWeek(w, el){
   currentWeek = w;
   document.querySelectorAll('.atab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.approval-week').forEach(aw=>aw.classList.remove('active'));
+  document.querySelectorAll('.approval-week').forEach(aw=>{
+    aw.classList.remove('active');
+    aw.style.display = 'none';
+  });
   el.classList.add('active');
   const weekEl = document.getElementById('week-'+w);
-  if(weekEl) weekEl.classList.add('active');
+  if(weekEl){
+    weekEl.classList.add('active');
+    weekEl.style.display = 'block';
+  }
 }
 
 /* ── API ── */
@@ -1610,6 +1616,9 @@ window._lastContentData = JSON.stringify(contentData);
   renderWeek('upcoming', upcomingItems);
   renderWeek('past', pastItems);
   updateBadge('past', pastItems.length);
+  // Ensure active week is visible after render
+const activeWeek = document.getElementById('week-'+currentWeek);
+if(activeWeek){ activeWeek.style.display='block'; activeWeek.classList.add('active'); }
 
   /// Restore open cards and re-inject any chat messages that were just sent
   openCards.forEach(bodyId=>{
