@@ -917,7 +917,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
         <div class="callout-icon">&#x1F4CA;</div>
         <div>
           <div class="callout-title">Your Growth Intelligence</div>
-          <div class="callout-text">Updated weekly by your FitFlux team. Select a platform and toggle between weekly and monthly view.</div>
+          <div class="callout-text">Updated monthly by your FitFlux team. Select a platform to view your monthly report.</div>
         </div>
       </div>
       
@@ -1484,9 +1484,7 @@ function switchPlatform(p, el){
   renderPerformancePanel(p);
 }
 function switchView(v, el){
-  currentView = v;
-  document.querySelectorAll('.vbtn').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');
+  currentView = 'monthly';
   renderPerformancePanel(currentPlatform);
 }
 function switchWeek(w, el){
@@ -2040,29 +2038,27 @@ async function loadPerformance(){
   document.getElementById('perf-content').style.display = '';
   if(data && data.performance){
     data.performance.forEach(row=>{
-      const key = row.Platform+'_'+row.PeriodType;
+      const key = row.Platform+'_monthly';
       if(!perfData[key]) perfData[key]={};
       perfData[key][row.Period] = row;
     });
   }
   ['instagram','tiktok','facebook','youtube','linkedin','twitter'].forEach(p=>renderPerformancePanel(p));
   renderReportDownload();
-  // Populate month dropdown
-const select = document.getElementById('report-month-select');
-if(select){
-  select.innerHTML = '<option value="">Select a month...</option>';
-  const months = [...new Set(
-    Object.keys(perfData)
-      .filter(k=>k.includes('_monthly'))
-      .flatMap(k=>Object.keys(perfData[k]))
-  )].sort((a,b)=>new Date(b)-new Date(a));
-  months.forEach(m=>{
-    const opt = document.createElement('option');
-    opt.value = m;
-    opt.textContent = m;
-    select.appendChild(opt);
-  });
-}
+  // Populate dropdown with all 12 months, only current selectable
+  const select = document.getElementById('report-month-select');
+  if(select){
+    const allMonths = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+    const currentMonth = new Date().toLocaleString('default',{month:'long'});
+    select.innerHTML = '<option value="">Select a month...</option>';
+    allMonths.forEach(m=>{
+      const opt = document.createElement('option');
+      opt.value = m;
+      opt.textContent = m + (m === currentMonth ? ' (Current)' : '');
+      if(m !== currentMonth) opt.disabled = true;
+      select.appendChild(opt);
+    });
+  }
 }
 function renderReportDownload(){
   const el = document.getElementById('report-download-wrap');
@@ -2154,7 +2150,7 @@ async function requestReport(){
 function renderPerformancePanel(platform){
   const el = document.getElementById('panel-'+platform);
   if(!el) return;
-  const rows = perfData[platform+'_'+currentView] || {};
+ const rows = perfData[platform+'_monthly'] || {};
   const latest = Object.values(rows).sort((a,b)=>new Date(b.UpdatedAt)-new Date(a.UpdatedAt))[0];
   const labels = {
     instagram:{icon:'&#x1F4F8;',followers:'Followers',metric2:'Reach',metric3:'Engagement Rate',metric4:'Posts Published',metric5:'Profile Visits',metric6:'Enquiries'},
@@ -2361,6 +2357,8 @@ function saveNotes(){
  function downloadMonthlyReport(){
   const period = document.getElementById('report-month-select').value;
   if(!period){ alert('Please select a month first.'); return; }
+  const currentMonth = new Date().toLocaleString('default',{month:'long'});
+  if(period !== currentMonth){ alert('You can only download the current month\'s report. Previous months will be available at the end of each month.'); return; }
 
   const client = window.FF_CLIENT;
   const tier = (window.FF_TIER||'').charAt(0).toUpperCase()+(window.FF_TIER||'').slice(1);
@@ -3044,6 +3042,28 @@ async function sendDelivChat(id, name){
   await loadContent(true);
   await initGrowthJourney();
 });
+
+// Silent performance refresh every 10 seconds when on performance section
+if(!window._perfRefresh){
+  window._perfRefresh = setInterval(async()=>{
+    if(document.visibilityState !== 'visible') return;
+    const perfNav = document.querySelector('.nv[data-target="performance"]');
+    if(!perfNav || !perfNav.classList.contains('act')) return;
+    const prev = JSON.stringify(perfData);
+    const data = await apiGet('getPerformance', window.FF_TOKEN || urlToken);
+    if(!data || !data.performance) return;
+    const newData = {};
+    data.performance.forEach(row=>{
+      const key = row.Platform+'_monthly';
+      if(!newData[key]) newData[key]={};
+      newData[key][row.Period] = row;
+    });
+    if(JSON.stringify(newData) !== prev){
+      perfData = newData;
+      ['instagram','tiktok','facebook','youtube','linkedin','twitter'].forEach(p=>renderPerformancePanel(p));
+    }
+  }, 10000);
+}
 </script>
 </body>
 </html>
