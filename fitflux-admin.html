@@ -822,18 +822,24 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
           </div>
           <div class="perf-form">
             <div style="display:flex;gap:12px;margin-bottom:14px;">
-         <div class="form-group" style="flex:1;">
-  <div class="perf-input-label">Report Type</div>
-  <select class="grade-select" id="p-periodtype" onchange="updatePeriodLabel(this)">
-    <option value="weekly">Weekly</option>
-    <option value="monthly">Monthly ✉️</option>
+       <div class="form-group" style="flex:1;">
+  <div class="perf-input-label">Month</div>
+  <select class="grade-select" id="p-period">
+    <option value="January">January</option>
+    <option value="February">February</option>
+    <option value="March">March</option>
+    <option value="April">April</option>
+    <option value="May">May</option>
+    <option value="June">June</option>
+    <option value="July">July</option>
+    <option value="August">August</option>
+    <option value="September">September</option>
+    <option value="October">October</option>
+    <option value="November">November</option>
+    <option value="December">December</option>
   </select>
-  <div style="font-size:10px;color:var(--t3);margin-top:4px;">Monthly sends client email automatically</div>
+  <div style="font-size:10px;color:var(--t3);margin-top:4px;">Saves as monthly report · sends client email automatically</div>
 </div>
-              <div class="form-group" style="flex:1;">
-                <div class="perf-input-label">Period (e.g. Week 12 or May 2026)</div>
-                <input class="perf-input" id="p-period" placeholder="e.g. May 2026"/>
-              </div>
              
             </div>
             <div class="perf-grid">
@@ -1499,6 +1505,10 @@ async function openClient(token){
     <div class="pr"><div class="prk">● Status</div><div class="prv"><span class="tag tag-g">Active</span></div></div>
     <div class="pr"><div class="prk">🔑 Full Token</div><div class="prv" style="font-family:var(--fm);font-size:11px;word-break:break-all;">${currentClient.Token||'—'}</div></div>`;
 
+  // Set current month as default in period dropdown
+  const monthNames = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const periodSel = document.getElementById('p-period');
+  if(periodSel) periodSel.value = monthNames[new Date().getMonth()];
   // Load roadmap
   loadAdminRoadmap();
   // Load content
@@ -2479,18 +2489,14 @@ function selectPerfPlatform(p, btn){
   document.querySelectorAll('.pptab').forEach(t=>t.classList.remove('active'));
   btn.classList.add('active');
 }
-function updatePeriodLabel(sel){
-  const input = document.getElementById('p-period');
-  if(!input) return;
-  input.placeholder = sel.value==='monthly' ? 'e.g. May 2026' : 'e.g. Week 10';
-}
+function updatePeriodLabel(sel){ /* removed - monthly only */ }
 
 async function savePerformance(btn){
   if(!currentClient) return;
   if(!btn) btn = document.getElementById('perf-save-btn');
 
-  const period = document.getElementById('p-period').value.trim();
-  if(!period){ toast('Enter the month period e.g. May 2026','error'); return; }
+ const period = document.getElementById('p-period').value;
+  if(!period){ toast('Select a month','error'); return; }
 
   btn.textContent = 'Saving...';
   btn.style.transform = 'scale(0.97)';
@@ -2527,8 +2533,8 @@ async function savePerformance(btn){
     btn.disabled = false;
   }, 2500);
 
-  ['p-followers','p-reach','p-engagement','p-posts','p-visits','p-enquiries',
-   'p-video','p-graphic','p-story','p-period','p-note'].forEach(id=>{
+['p-followers','p-reach','p-engagement','p-posts','p-visits','p-enquiries',
+   'p-video','p-graphic','p-story','p-note'].forEach(id=>{
     const el = document.getElementById(id);
     if(el) el.value = '';
   });
