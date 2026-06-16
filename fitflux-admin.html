@@ -988,6 +988,8 @@ let currentPerfPlatform = 'Instagram';
 let roadmapState = {};
 let openMonthIds = new Set();
 let openYearIds = new Set();
+let openCardIds = new Set();
+let _adminContentLoading = false;
 
 // ── ROADMAP TEMPLATE ──────────────────────────────────────────
 const ROADMAP_PHASES = [
@@ -1208,7 +1210,7 @@ if(!window._adminMsgRefresh){
       if(badge){ badge.textContent=unread.length; badge.style.display=''; }
       // If content tab is open refresh it silently
       if(document.getElementById('dtab-content')?.classList.contains('active')){
-        loadAdminContent();
+        loadAdminContent(true);
       }
     }
   }, 20000);
@@ -1917,8 +1919,13 @@ function setContentTimeFilter(mode, btn){
   btn.classList.add('active');
   loadAdminContent();
 }
-
 async function loadAdminContent(silent=false){
+  if(!currentClient) return;
+  if(_adminContentLoading) return;
+  _adminContentLoading = true;
+  try{ await loadAdminContentImpl(silent); } finally { _adminContentLoading = false; }
+}
+async function loadAdminContentImpl(silent=false){
   if(!currentClient) return;
   const el = document.getElementById('content-admin-list');
   if(!silent) el.innerHTML='<div class="loading"><div class="spinner"></div>Loading...</div>';
@@ -2011,6 +2018,11 @@ openMonthIds.forEach(id=>{
   const mArr = document.getElementById('arr-'+id);
   if(mEl){ mEl.style.display='flex'; if(mArr) mArr.style.transform='rotate(90deg)'; }
 });
+  openCardIds.forEach(bodyId=>{
+  const cEl = document.getElementById(bodyId);
+  const cArr = document.getElementById('arr-'+bodyId);
+  if(cEl){ cEl.style.display='block'; if(cArr) cArr.textContent='▲'; }
+});
    
 }
   
@@ -2021,6 +2033,7 @@ function toggleAdminCard(bodyId){
   const isOpen = body.style.display !== 'none';
   body.style.display = isOpen ? 'none' : 'block';
   if(arr) arr.textContent = isOpen ? '▼' : '▲';
+  if(isOpen) openCardIds.delete(bodyId); else openCardIds.add(bodyId);
 }
 function toggleContentMonth(id){
   const el=document.getElementById(id);
@@ -2697,7 +2710,7 @@ async function sendAdminContentReply(token, title, platform, uid, contentId){
   }
   if(input) input.value = '';
   toast('✅ Reply sent — client sees it instantly');
-  setTimeout(()=>loadAdminContent(), 3500);
+  setTimeout(()=>loadAdminContent(true), 3500);
 }
 
 
