@@ -1967,13 +1967,13 @@ async function loadAdminContent(silent=false){
 const yearsHtml = years.map(yr=>{
     const months=Object.keys(grouped[yr]).sort((a,b)=>MONTHS.indexOf(b)-MONTHS.indexOf(a));
     return `<div style="margin-bottom:20px;">
-     <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
-        <input type="checkbox" onclick="event.stopPropagation();toggleYearSelect(this,'year-${yr}')" style="cursor:pointer;width:14px;height:14px;flex-shrink:0;"/>
+   <div style="display:flex;align-items:center;gap:12px;margin-bottom:12px;">
         <div onclick="toggleContentYear('${yr}')" style="display:flex;align-items:center;gap:8px;flex:1;cursor:pointer;">
           <span id="yarr-${yr}" style="font-size:9px;color:var(--t3);transition:transform .2s;">▶</span>
           <div style="font-family:var(--fh);font-size:20px;color:var(--lime);">${yr}</div>
         </div>
         <button onclick="event.stopPropagation();clearContentYear('${yr}')" style="background:rgba(255,77,77,0.1);border:1px solid rgba(255,77,77,0.2);color:var(--red);border-radius:5px;padding:3px 12px;font-size:10px;font-weight:700;cursor:pointer;">Clear Year</button>
+        <input type="checkbox" onclick="event.stopPropagation();toggleYearSelect(this,'year-${yr}')" style="cursor:pointer;width:14px;height:14px;flex-shrink:0;"/>
       </div>
       <div id="year-${yr}" style="display:none;">
   
@@ -1981,8 +1981,7 @@ const yearsHtml = years.map(yr=>{
         const items=grouped[yr][mo];
         const monthId='month-'+yr+'-'+mo.replace(/\s/g,'');
         return `<div style="margin-bottom:16px;">
-         <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg3);border-radius:8px;margin-bottom:8px;">
-            <input type="checkbox" onclick="event.stopPropagation();toggleMonthSelect(this,'${monthId}')" style="cursor:pointer;width:14px;height:14px;flex-shrink:0;"/>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--bg3);border-radius:8px;margin-bottom:8px;">
             <div onclick="toggleContentMonth('${monthId}')" style="display:flex;align-items:center;gap:8px;flex:1;cursor:pointer;">
               <span id="arr-${monthId}" style="font-size:9px;color:var(--t3);transition:transform .2s;">▶</span>
             <span style="font-size:13px;font-weight:600;color:var(--t1);">${mo}</span>
@@ -1990,6 +1989,7 @@ const yearsHtml = years.map(yr=>{
            </div>
             <button onclick="event.stopPropagation();deleteMonth('${monthId}')" style="background:rgba(255,77,77,0.1);border:1px solid rgba(255,77,77,0.2);color:var(--red);border-radius:5px;padding:3px 10px;font-size:10px;font-weight:700;cursor:pointer;">🗑 Month</button>
             <button onclick="event.stopPropagation();clearContentMonth('${yr}','${mo}')" style="background:rgba(255,77,77,0.1);border:1px solid rgba(255,77,77,0.2);color:var(--red);border-radius:5px;padding:3px 10px;font-size:10px;font-weight:700;cursor:pointer;">Clear</button>
+            <input type="checkbox" onclick="event.stopPropagation();toggleMonthSelect(this,'${monthId}')" style="cursor:pointer;width:14px;height:14px;flex-shrink:0;"/>
           </div>
           <div id="${monthId}" style="display:none;flex-direction:column;gap:8px;">
             ${items.map(c=>buildAdminContentCard(c)).join('')}
