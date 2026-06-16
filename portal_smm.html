@@ -1492,16 +1492,11 @@ function switchView(v, el){
 function switchWeek(w, el){
   currentWeek = w;
   document.querySelectorAll('.atab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.approval-week').forEach(aw=>{
-    aw.classList.remove('active');
-    aw.style.display = 'none';
-  });
+  document.querySelectorAll('.approval-week').forEach(aw=>aw.classList.remove('active'));
   el.classList.add('active');
   const weekEl = document.getElementById('week-'+w);
-  if(weekEl){
-    weekEl.classList.add('active');
-    weekEl.style.display = 'block';
-  }
+  if(weekEl) weekEl.classList.add('active');
+}
 }
 
 /* ── API ── */
@@ -1616,9 +1611,6 @@ window._lastContentData = JSON.stringify(contentData);
   renderWeek('upcoming', upcomingItems);
   renderWeek('past', pastItems);
   updateBadge('past', pastItems.length);
-  // Ensure active week is visible after render
-const activeWeek = document.getElementById('week-'+currentWeek);
-if(activeWeek){ activeWeek.style.display='block'; activeWeek.classList.add('active'); }
 
   /// Restore open cards and re-inject any chat messages that were just sent
   openCards.forEach(bodyId=>{
