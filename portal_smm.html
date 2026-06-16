@@ -1239,6 +1239,13 @@ document.addEventListener('visibilitychange', async ()=>{
   }
 });
   if(saved && saved.notes) document.getElementById('notes-area').value = saved.notes;
+  if(!window._clientChatRefresh){
+  window._clientChatRefresh = setInterval(async()=>{
+    if(document.visibilityState !== 'visible') return;
+    const approvalsNav = document.querySelector('.nv[data-target="approvals"]');
+    if(!approvalsNav || !approvalsNav.classList.contains('act')) return;
+    await loadContent(true);
+  }, 4000);
 }
 
 /* ── FILL DATA ── */
@@ -1804,7 +1811,25 @@ async function sendGeneralChat(titleEncoded, platformEncoded, contentId, cardId)
   sendBtn.style.transform='scale(0.95)';
   const time = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
 
-  // Instantly append to chat UI before API call
+  const result = await apiPost('addContentChat',{
+    token:window.FF_TOKEN||urlToken,
+    contentTitle:title,
+    contentId:contentId||'',
+    id:contentId||'',
+    platform,
+    text,
+    author:window.FF_CLIENT.name||'Client',
+    time,
+    role:'client'
+  });
+
+  sendBtn.textContent='Send →'; sendBtn.disabled=false; sendBtn.style.transform='';
+
+  if(!result || result.error){
+    alert('Message failed to send. Please try again.');
+    return;
+  }
+
   const chatEl = document.getElementById('chat-'+cardId);
   if(chatEl){
     chatEl.insertAdjacentHTML('beforeend',`
@@ -1816,21 +1841,8 @@ async function sendGeneralChat(titleEncoded, platformEncoded, contentId, cardId)
     chatEl.scrollTop = chatEl.scrollHeight;
   }
 
- await apiPost('addContentChat',{
-    token:window.FF_TOKEN||urlToken,
-    contentTitle:title,
-    contentId:contentId||'',
-    id:contentId||'',
-    platform,
-    text,
-    author:window.FF_CLIENT.name||'Client',
-    time,
-    role:'client'
-  });
   await sendTelegram('💬 CLIENT MESSAGE ON CONTENT\n\nClient: '+(window.FF_CLIENT.name||'—')+'\nContent: '+title+'\nMessage: '+text);
   if(input) input.value='';
-  sendBtn.textContent='Send →'; sendBtn.disabled=false; sendBtn.style.transform='';
-  // Don't reload — message already shown inline. Reload quietly after 3s
   setTimeout(()=>loadContent(true), 3000);
 }
 function toggleContentCard(bodyId){
@@ -1873,7 +1885,7 @@ function showChatForAction(cardId, action, titleEncoded, platformEncoded, conten
 
   if(action==='minor'){
     prompt.textContent='✏️ What minor correction is needed?';
-    sendBtn.onclick = async function(){
+   sendBtn.onclick = async function(){
       const input = document.getElementById(inputId);
       const text = input?.value.trim();
       if(!text){ input?.focus(); return; }
@@ -1881,7 +1893,26 @@ function showChatForAction(cardId, action, titleEncoded, platformEncoded, conten
       sendBtn.style.transform='scale(0.95)';
       const time = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
 
-      // Instantly append to chat UI
+      await apiPost('approveWithMinor', {token:window.FF_TOKEN||urlToken, contentTitle:title, contentId, platform});
+      const result = await apiPost('addContentChat', {
+        token:window.FF_TOKEN||urlToken,
+        contentTitle:title,
+        contentId,
+        id:contentId||'',
+        platform,
+        text:'✏️ Approved with minor correction: '+text,
+        author:window.FF_CLIENT.name||'Client',
+        time,
+        role:'client'
+      });
+
+      sendBtn.textContent='Send →'; sendBtn.disabled=false; sendBtn.style.transform='';
+
+      if(!result || result.error){
+        alert('Your approval was saved, but the note failed to send — please resend it.');
+        return;
+      }
+
       const chatEl = document.getElementById('chat-'+cardId);
       if(chatEl){
         chatEl.insertAdjacentHTML('beforeend',`
@@ -1893,22 +1924,9 @@ function showChatForAction(cardId, action, titleEncoded, platformEncoded, conten
         chatEl.scrollTop = chatEl.scrollHeight;
       }
 
-      await apiPost('approveWithMinor', {token:window.FF_TOKEN||urlToken, contentTitle:title, contentId, platform});
-      await apiPost('addContentChat', {
-        token:window.FF_TOKEN||urlToken,
-        contentTitle:title,
-        contentId,
-        id:contentId||'',
-        platform,
-        text:'✏️ Approved with minor correction: '+text,
-        author:window.FF_CLIENT.name||'Client',
-        time,
-        role:'client'
-      });
       await sendTelegram('✏️ APPROVED WITH MINOR CORRECTION\n\nClient: '+(window.FF_CLIENT.name||'—')+'\nContent: '+title+'\nNote: '+text);
-      if(input) input.value='';
-      sendBtn.textContent='Send →'; sendBtn.disabled=false; sendBtn.style.transform='';
-     setTimeout(()=>loadContent(true), 3000);
+      if(input) input.value = '';
+      setTimeout(()=>loadContent(true), 3000);
     };
   } else {
     prompt.textContent='❌ Why are you declining this content?';
