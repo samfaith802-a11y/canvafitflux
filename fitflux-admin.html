@@ -2662,12 +2662,11 @@ async function sendAdminContentReply(token, title, platform, uid, contentId){
   const input = document.getElementById('admin-reply-'+uid);
   const text = input ? input.value.trim() : '';
   if(!text){ if(input) input.focus(); return; }
-  
+
   const useToken = token || (currentClient && currentClient.Token);
   const time = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
-  
-  // Build body with ALL possible identifiers so Apps Script can find the row
-const body = {
+
+  const body = {
     token: useToken,
     contentTitle: title,
     contentId: contentId||uid,
@@ -2680,10 +2679,14 @@ const body = {
   };
 
   const result = await apiPost('addContentChat', body);
-  
-  // Append message instantly to UI
+
+  if(!result || result.error){
+    toast('❌ Failed to send — '+(result && result.error ? result.error : 'no response'),'error');
+    return;
+  }
+
   const chatEl = document.getElementById('admin-chat-'+uid);
- if(chatEl){
+  if(chatEl){
     chatEl.insertAdjacentHTML('beforeend', `
       <div style="background:rgba(204,255,0,0.06);border-radius:7px;padding:8px 10px;border-left:2px solid var(--lime);">
         <div style="font-size:10px;font-weight:700;color:var(--lime);margin-bottom:3px;">FitFlux Team (You)</div>
@@ -2694,7 +2697,6 @@ const body = {
   }
   if(input) input.value = '';
   toast('✅ Reply sent — client sees it instantly');
-  // Don't full reload — message already appended inline
   setTimeout(()=>loadAdminContent(), 3500);
 }
 
