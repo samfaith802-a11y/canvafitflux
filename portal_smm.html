@@ -904,15 +904,6 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     <!-- 06 PERFORMANCE -->
     <div id="performance" style="margin-top:55px;">
       <div class="sec-head"><div class="sec-num">08</div><div class="sec-title">Performance Dashboard</div><div class="sec-line"></div></div>
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:16px 20px;">
-  <div style="flex:1;">
-    <div style="font-size:11px;font-weight:700;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;">Download Monthly Report</div>
-    <select id="report-month-select" style="background:var(--card2);border:1px solid var(--bdr);border-radius:8px;padding:8px 12px;color:var(--t1);font-family:var(--fb);font-size:13px;outline:none;cursor:pointer;min-width:200px;">
-      <option value="">Select a month...</option>
-    </select>
-  </div>
-  <button onclick="downloadMonthlyReport()" style="background:#CCFF00;color:#0D1F00;border:none;border-radius:10px;padding:12px 24px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;margin-top:18px;">⬇ Download Report</button>
-</div>
       <div class="callout">
         <div class="callout-icon">&#x1F4CA;</div>
         <div>
@@ -921,27 +912,9 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
         </div>
       </div>
       
-      <div id="report-download-wrap" style="margin-bottom:16px;"></div>
       
-      <div class="platform-tabs">
-        <div class="ptab active" onclick="switchPlatform('instagram',this)">&#x1F4F8; Instagram</div>
-        <div class="ptab" onclick="switchPlatform('tiktok',this)">&#x1F3B5; TikTok</div>
-        <div class="ptab" onclick="switchPlatform('facebook',this)">&#x1F4D8; Facebook</div>
-        <div class="ptab" onclick="switchPlatform('youtube',this)">&#x25B6; YouTube</div>
-        <div class="ptab" onclick="switchPlatform('linkedin',this)">&#x1F4BC; LinkedIn</div>
-        <div class="ptab" onclick="switchPlatform('twitter',this)">&#x2715; Twitter/X</div>
-      </div>
- <div class="view-toggle" style="display:none;">
-  <div class="vbtn active">Monthly</div>
-</div>
       <div id="perf-loading" class="loading"><div class="spinner"></div>Loading performance data...</div>
       <div id="perf-content" style="display:none;">
-        <div id="panel-instagram" class="platform-panel active"></div>
-        <div id="panel-tiktok" class="platform-panel"></div>
-        <div id="panel-facebook" class="platform-panel"></div>
-        <div id="panel-youtube" class="platform-panel"></div>
-        <div id="panel-linkedin" class="platform-panel"></div>
-        <div id="panel-twitter" class="platform-panel"></div>
       </div>
     </div>
 
@@ -2429,93 +2402,7 @@ ${r.ExecutiveSummary ? `
   win.focus();
   setTimeout(()=>{ win.print(); }, 500);
 }
-function renderReportDownload(){
-  const el = document.getElementById('report-download-wrap');
-  if(!el) return;
 
-  const joinDate = new Date(window.FF_CLIENT.createdAt||'');
-  const now = new Date();
-  const daysSinceJoin = isNaN(joinDate) ? 0 : Math.floor((now-joinDate)/86400000);
-  const daysUntilFirst = Math.max(0, 30-daysSinceJoin);
-
-  if(daysUntilFirst > 0){
-    el.innerHTML = `
-      <div style="background:rgba(204,255,0,0.04);border:1px solid rgba(204,255,0,0.15);border-radius:12px;padding:16px 20px;display:flex;align-items:center;gap:14px;">
-        <div style="font-size:24px;">📊</div>
-        <div>
-          <div style="font-size:13px;font-weight:700;color:var(--t1);margin-bottom:4px;">Monthly Report</div>
-          <div style="font-size:12px;color:var(--t3);">Your first monthly performance report will be available in <strong style="color:var(--gold);">${daysUntilFirst} day${daysUntilFirst!==1?'s':''}</strong>. Reports are generated after your first full month of content.</div>
-        </div>
-      </div>`;
-    return;
-  }
-
-  // Build available months from performance data
-  const monthlyData = Object.entries(perfData).filter(([k])=>k.includes('_monthly'));
-  const availableMonths = [];
-  monthlyData.forEach(([key, periods])=>{
-    Object.keys(periods).forEach(period=>{
-      if(!availableMonths.includes(period)) availableMonths.push(period);
-    });
-  });
-
-  if(!availableMonths.length){
-    el.innerHTML = `
-      <div style="background:rgba(204,255,0,0.04);border:1px solid rgba(204,255,0,0.15);border-radius:12px;padding:16px 20px;display:flex;align-items:center;gap:14px;">
-        <div style="font-size:24px;">📊</div>
-        <div style="font-size:12px;color:var(--t3);">Your first monthly report will appear here once your FitFlux team logs your performance data.</div>
-      </div>`;
-    return;
-  }
-
-  el.innerHTML = `
-    <div style="background:rgba(204,255,0,0.04);border:1px solid rgba(204,255,0,0.15);border-radius:12px;padding:16px 20px;">
-      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">
-        <div style="font-size:24px;">📊</div>
-        <div style="flex:1;">
-          <div style="font-size:13px;font-weight:700;color:var(--t1);margin-bottom:4px;">Monthly Performance Report</div>
-          <div style="font-size:11px;color:var(--t3);">Select a month to request your report by email</div>
-        </div>
-        <select id="report-month-select" class="d-select" style="min-width:140px;" onchange="checkReportAvailability()">
-          <option value="">Select month...</option>
-          ${availableMonths.map(m=>`<option value="${m}">${m}</option>`).join('')}
-        </select>
-        <button id="report-download-btn" onclick="requestReport()" style="background:var(--purple);border:none;color:#0a1a00;font-family:var(--fb);font-size:12px;font-weight:700;padding:9px 18px;border-radius:8px;cursor:pointer;transition:all .2s;">📥 Email Report</button>
-      </div>
-      <div id="report-msg" style="display:none;margin-top:10px;font-size:12px;"></div>
-    </div>`;
-}
-
-function checkReportAvailability(){
-  const sel = document.getElementById('report-month-select');
-  const msg = document.getElementById('report-msg');
-  if(!sel || !msg) return;
-  msg.style.display = sel.value ? 'none' : 'block';
-}
-
-async function requestReport(){
-  const sel = document.getElementById('report-month-select');
-  const msg = document.getElementById('report-msg');
-  const btn = document.getElementById('report-download-btn');
-  if(!sel || !sel.value){ if(msg){ msg.style.display='block'; msg.style.color='var(--red)'; msg.textContent='Please select a month first.'; } return; }
-
-  const joinDate = new Date(window.FF_CLIENT.createdAt||'');
-  const now = new Date();
-  const daysSinceJoin = Math.floor((now-joinDate)/86400000);
-
-  if(daysSinceJoin < 30){
-    const daysLeft = 30 - daysSinceJoin;
-    msg.style.display='block'; msg.style.color='var(--amber)';
-    msg.textContent=`⏳ Report available in ${daysLeft} more day${daysLeft!==1?'s':''}. Reports unlock after your first full month.`;
-    return;
-  }
-
-  btn.textContent='Sending...'; btn.disabled=true;
-  await sendTelegram('📊 CLIENT REQUESTING PERFORMANCE REPORT\n\nClient: '+(window.FF_CLIENT.name||'—')+'\nMonth: '+sel.value+'\n\nPlease send their monthly report to their email.');
-  msg.style.display='block'; msg.style.color='var(--green)';
-  msg.textContent='✅ Request sent! Your FitFlux team will email your report shortly.';
-  btn.textContent='📥 Email Report'; btn.disabled=false;
-}
 function renderPerformancePanel(platform){
   const el = document.getElementById('panel-'+platform);
   if(!el) return;
