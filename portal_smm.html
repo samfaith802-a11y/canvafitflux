@@ -2033,32 +2033,401 @@ function openMedia(url){
 let perfData = {};
 async function loadPerformance(){
   document.getElementById('perf-loading').style.display = 'flex';
-  const data = await apiGet('getPerformance', window.FF_TOKEN || urlToken);
+  const data = await apiGet('getLatestPerformanceReport', window.FF_TOKEN || urlToken);
   document.getElementById('perf-loading').style.display = 'none';
   document.getElementById('perf-content').style.display = '';
-  if(data && data.performance){
-data.performance.forEach(row=>{
-  const key = (row.Platform||'').toLowerCase()+'_'+(row.PeriodType||'monthly').toLowerCase();
-      if(!perfData[key]) perfData[key]={};
-      perfData[key][row.Period] = row;
-    });
+
+  if(!data || !data.report){
+    document.getElementById('perf-content').innerHTML = `
+      <div style="text-align:center;padding:40px 20px;color:var(--t3);">
+        <div style="font-size:36px;margin-bottom:12px;opacity:.3;">📊</div>
+        <div style="font-size:14px;font-weight:600;color:var(--t2);margin-bottom:6px;">No report yet</div>
+        <div style="font-size:12px;color:var(--t3);line-height:1.7;">Your FitFlux team will send your first performance report at the end of the month.</div>
+      </div>`;
+    return;
   }
-  ['instagram','tiktok','facebook','youtube','linkedin','twitter'].forEach(p=>renderPerformancePanel(p));
-  renderReportDownload();
-  // Populate dropdown with all 12 months, only current selectable
-  const select = document.getElementById('report-month-select');
-  if(select){
-    const allMonths = ['January','February','March','April','May','June','July','August','September','October','November','December'];
-    const currentMonth = new Date().toLocaleString('default',{month:'long'});
-    select.innerHTML = '<option value="">Select a month...</option>';
-    allMonths.forEach(m=>{
-      const opt = document.createElement('option');
-      opt.value = m;
-      opt.textContent = m + (m === currentMonth ? ' (Current)' : '');
-      if(m !== currentMonth) opt.disabled = true;
-      select.appendChild(opt);
-    });
+
+  const r = data.report;
+  window._latestReport = r;
+  window._lastReportSentAt = r.ReportSentAt || '';
+  renderFullReport(r);
+  startSilentReportChecker();
+}
+
+function renderFullReport(r){
+  const el = document.getElementById('perf-content');
+  const now = new Date();
+  const sentAt = r.ReportSentAt ? new Date(r.ReportSentAt) : null;
+  const day = now.getDate();
+  const month = now.getMonth();
+
+  // Download window: sent date month, 30th to 7th of next month
+  let canDownload = false;
+  let isPreviousMonth = false;
+  if(sentAt){
+    const sentMonth = sentAt.getMonth();
+    const sentYear = sentAt.getFullYear();
+    const windowEnd = new Date(sentYear, sentMonth+1, 8); // 8th of next month
+    canDownload = now >= sentAt && now < windowEnd;
+    isPreviousMonth = now >= windowEnd;
   }
+
+  // Parse bullet points (stored as bullet1||bullet2||bullet3)
+  function parseBullets(str){
+    if(!str) return [];
+    return str.split('||').filter(Boolean);
+  }
+
+  const post1Bullets = parseBullets(r.Post1Why);
+  const post2Bullets = parseBullets(r.Post2Why);
+  const whatWorked = [r.WhatWorked1,r.WhatWorked2,r.WhatWorked3].filter(Boolean);
+  const challenges = [r.Challenges1,r.Challenges2,r.Challenges3].filter(Boolean);
+  const recs = [r.Rec1,r.Rec2,r.Rec3,r.Rec4,r.Rec5].filter(Boolean);
+
+  const totalEngagements = (parseInt(r.Likes||0)+parseInt(r.Comments||0)+parseInt(r.Shares||0)+parseInt(r.Saves||0));
+
+  const actions = [
+    {key:'ActionContent',label:'Content Creation'},
+    {key:'ActionCommunity',label:'Community Management'},
+    {key:'ActionComments',label:'Comment Replies'},
+    {key:'ActionDMs',label:'DM Management'},
+    {key:'ActionHashtags',label:'Hashtag Optimisation'},
+    {key:'ActionMonitoring',label:'Performance Monitoring'}
+  ].filter(a => r[a.key]==='TRUE'||r[a.key]===true);
+
+  el.innerHTML = `
+    ${isPreviousMonth ? `<div style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);border-radius:10px;padding:12px 16px;margin-bottom:20px;font-size:12px;color:var(--amber);font-weight:600;">📅 You are viewing your previous month's report — your FitFlux team is preparing your new report now.</div>` : ''}
+
+    <!-- KEY METRICS TOP -->
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:20px;">
+      <div class="pcard"><div class="pcard-lbl">Total Followers</div><div class="pcard-val">${r.Followers||0}</div><div class="pcard-trend up">+${r.NewFollowers||0} new · ${r.GrowthRate||0}% growth</div></div>
+      <div class="pcard"><div class="pcard-lbl">Accounts Reached</div><div class="pcard-val">${r.Reach||0}</div><div class="pcard-trend">${r.Impressions||0} impressions</div></div>
+      <div class="pcard"><div class="pcard-lbl">Total Engagements</div><div class="pcard-val">${totalEngagements}</div><div class="pcard-trend">${r.Engagement||0}% rate</div></div>
+      <div class="pcard"><div class="pcard-lbl">Posts Published</div><div class="pcard-val">${r.Posts||0}</div><div class="pcard-trend">${r.ReelsPublished||0} reels · ${r.StoriesPublished||0} stories</div></div>
+      <div class="pcard"><div class="pcard-lbl">Profile Visits</div><div class="pcard-val">${r.ProfileVisits||0}</div><div class="pcard-trend">profile activity</div></div>
+      <div class="pcard"><div class="pcard-lbl">Enquiries</div><div class="pcard-val">${r.Enquiries||0}</div><div class="pcard-trend up">from content</div></div>
+    </div>
+
+    <!-- ENGAGEMENT BREAKDOWN -->
+    <div class="bar-section" style="margin-bottom:16px;">
+      <div class="bar-section-title">Engagement Breakdown</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
+        <div style="text-align:center;padding:10px;background:rgba(0,0,0,0.15);border-radius:8px;"><div style="font-family:var(--fh);font-size:22px;color:var(--gold);">${r.Likes||0}</div><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-top:4px;">Likes</div></div>
+        <div style="text-align:center;padding:10px;background:rgba(0,0,0,0.15);border-radius:8px;"><div style="font-family:var(--fh);font-size:22px;color:var(--gold);">${r.Comments||0}</div><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-top:4px;">Comments</div></div>
+        <div style="text-align:center;padding:10px;background:rgba(0,0,0,0.15);border-radius:8px;"><div style="font-family:var(--fh);font-size:22px;color:var(--gold);">${r.Shares||0}</div><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-top:4px;">Shares</div></div>
+        <div style="text-align:center;padding:10px;background:rgba(0,0,0,0.15);border-radius:8px;"><div style="font-family:var(--fh);font-size:22px;color:var(--gold);">${r.Saves||0}</div><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-top:4px;">Saves</div></div>
+      </div>
+    </div>
+
+    <!-- TOP CONTENT -->
+    ${(r.Post1Reach||r.Post1Engagement) ? `
+    <div class="bar-section" style="margin-bottom:16px;">
+      <div class="bar-section-title">Top Content This Month</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div style="background:rgba(0,0,0,0.15);border-radius:10px;padding:14px;">
+          <div style="font-size:10px;font-weight:700;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;">Post #1</div>
+          <div style="display:flex;gap:16px;margin-bottom:10px;">
+            <div><div style="font-size:18px;font-weight:700;color:var(--t1);">${r.Post1Reach||0}</div><div style="font-size:10px;color:var(--t3);">Reach</div></div>
+            <div><div style="font-size:18px;font-weight:700;color:var(--t1);">${r.Post1Engagement||0}</div><div style="font-size:10px;color:var(--t3);">Engagement</div></div>
+          </div>
+          ${post1Bullets.length ? `<div style="font-size:11px;color:var(--t3);margin-bottom:4px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;">Why it performed</div><ul style="margin:0;padding-left:16px;">${post1Bullets.map(b=>`<li style="font-size:12px;color:var(--t2);margin-bottom:3px;">${b}</li>`).join('')}</ul>` : ''}
+        </div>
+        ${(r.Post2Reach||r.Post2Engagement) ? `
+        <div style="background:rgba(0,0,0,0.15);border-radius:10px;padding:14px;">
+          <div style="font-size:10px;font-weight:700;color:var(--gold);letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px;">Post #2</div>
+          <div style="display:flex;gap:16px;margin-bottom:10px;">
+            <div><div style="font-size:18px;font-weight:700;color:var(--t1);">${r.Post2Reach||0}</div><div style="font-size:10px;color:var(--t3);">Reach</div></div>
+            <div><div style="font-size:18px;font-weight:700;color:var(--t1);">${r.Post2Engagement||0}</div><div style="font-size:10px;color:var(--t3);">Engagement</div></div>
+          </div>
+          ${post2Bullets.length ? `<div style="font-size:11px;color:var(--t3);margin-bottom:4px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;">Why it performed</div><ul style="margin:0;padding-left:16px;">${post2Bullets.map(b=>`<li style="font-size:12px;color:var(--t2);margin-bottom:3px;">${b}</li>`).join('')}</ul>` : ''}
+        </div>` : ''}
+      </div>
+    </div>` : ''}
+
+    <!-- INSIGHTS -->
+    ${(whatWorked.length||challenges.length) ? `
+    <div class="bar-section" style="margin-bottom:16px;">
+      <div class="bar-section-title">Insights & Observations</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+        ${whatWorked.length ? `<div><div style="font-size:11px;font-weight:700;color:var(--green);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">What Worked</div><ul style="margin:0;padding-left:16px;">${whatWorked.map(w=>`<li style="font-size:12px;color:var(--t2);margin-bottom:4px;">${w}</li>`).join('')}</ul></div>` : ''}
+        ${challenges.length ? `<div><div style="font-size:11px;font-weight:700;color:var(--amber);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">Challenges</div><ul style="margin:0;padding-left:16px;">${challenges.map(c=>`<li style="font-size:12px;color:var(--t2);margin-bottom:4px;">${c}</li>`).join('')}</ul></div>` : ''}
+      </div>
+      ${(r.PeakTime||r.MostEngagedType||r.AudienceInterests) ? `
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+        ${r.PeakTime ? `<div style="background:rgba(0,0,0,0.15);border-radius:8px;padding:10px;"><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Peak Time</div><div style="font-size:12px;font-weight:600;color:var(--t1);">${r.PeakTime}</div></div>` : ''}
+        ${r.MostEngagedType ? `<div style="background:rgba(0,0,0,0.15);border-radius:8px;padding:10px;"><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Top Content Type</div><div style="font-size:12px;font-weight:600;color:var(--t1);">${r.MostEngagedType}</div></div>` : ''}
+        ${r.AudienceInterests ? `<div style="background:rgba(0,0,0,0.15);border-radius:8px;padding:10px;"><div style="font-size:10px;color:var(--t3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px;">Audience Interests</div><div style="font-size:12px;font-weight:600;color:var(--t1);">${r.AudienceInterests}</div></div>` : ''}
+      </div>` : ''}
+    </div>` : ''}
+
+    <!-- ACTIONS TAKEN -->
+    ${actions.length ? `
+    <div class="bar-section" style="margin-bottom:16px;">
+      <div class="bar-section-title">Actions Taken This Month</div>
+      <div style="display:flex;flex-wrap:wrap;gap:8px;">
+        ${actions.map(a=>`<span style="background:rgba(61,214,140,0.1);border:1px solid rgba(61,214,140,0.22);color:var(--green);font-size:12px;font-weight:600;padding:5px 12px;border-radius:20px;">✓ ${a.label}</span>`).join('')}
+      </div>
+    </div>` : ''}
+
+    <!-- RECOMMENDATIONS -->
+    ${recs.length ? `
+    <div class="bar-section" style="margin-bottom:16px;">
+      <div class="bar-section-title">Recommendations for Next Month</div>
+      <ol style="margin:0;padding-left:18px;">
+        ${recs.map(rec=>`<li style="font-size:13px;color:var(--t2);margin-bottom:8px;line-height:1.6;">${rec}</li>`).join('')}
+      </ol>
+    </div>` : ''}
+
+    <!-- NEXT MONTH GOALS -->
+    ${(r.NextReach||r.NextFollowers||r.NextEngagement||r.NextLeads) ? `
+    <div class="bar-section" style="margin-bottom:16px;">
+      <div class="bar-section-title">Next Month Goals</div>
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;">
+        ${r.NextReach ? `<div style="text-align:center;padding:12px;background:rgba(0,0,0,0.15);border-radius:8px;"><div style="font-family:var(--fh);font-size:20px;color:var(--gold);">${r.NextReach}</div><div style="font-size:10px;color:var(--t3);margin-top:4px;">Reach Target</div></div>` : ''}
+        ${r.NextFollowers ? `<div style="text-align:center;padding:12px;background:rgba(0,0,0,0.15);border-radius:8px;"><div style="font-family:var(--fh);font-size:20px;color:var(--gold);">+${r.NextFollowers}</div><div style="font-size:10px;color:var(--t3);margin-top:4px;">Follower Growth</div></div>` : ''}
+        ${r.NextEngagement ? `<div style="text-align:center;padding:12px;background:rgba(0,0,0,0.15);border-radius:8px;"><div style="font-family:var(--fh);font-size:20px;color:var(--gold);">${r.NextEngagement}%</div><div style="font-size:10px;color:var(--t3);margin-top:4px;">Engagement Rate</div></div>` : ''}
+        ${r.NextLeads ? `<div style="text-align:center;padding:12px;background:rgba(0,0,0,0.15);border-radius:8px;"><div style="font-family:var(--fh);font-size:20px;color:var(--gold);">${r.NextLeads}</div><div style="font-size:10px;color:var(--t3);margin-top:4px;">Leads Target</div></div>` : ''}
+      </div>
+    </div>` : ''}
+
+    <!-- EXECUTIVE SUMMARY -->
+    ${r.ExecutiveSummary ? `
+    <div style="background:rgba(204,255,0,0.04);border:1px solid rgba(204,255,0,0.15);border-radius:12px;padding:20px 24px;margin-bottom:20px;">
+      <div style="font-size:10px;font-weight:700;color:var(--gold);letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px;">Executive Summary</div>
+      <div style="font-size:13px;color:var(--t2);line-height:1.8;">${r.ExecutiveSummary}</div>
+    </div>` : ''}
+
+    <!-- DOWNLOAD BUTTON -->
+    <div style="margin-top:8px;">
+      ${canDownload ? `
+      <button onclick="downloadFullReport()" style="width:100%;background:#CCFF00;color:#0a1a00;border:none;border-radius:10px;padding:14px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.06em;">⬇ Download PDF Report</button>
+      <div style="font-size:11px;color:var(--t3);text-align:center;margin-top:6px;">Download available until the 7th of next month</div>
+      ` : isPreviousMonth ? `
+      <div style="background:rgba(255,255,255,0.03);border:1px solid var(--bdr);border-radius:10px;padding:14px;text-align:center;font-size:12px;color:var(--t3);">Download window closed — contact FitFlux if you need a copy</div>
+      ` : ''}
+    </div>`;
+}
+
+function startSilentReportChecker(){
+  if(window._reportChecker) clearInterval(window._reportChecker);
+
+  const now = new Date();
+  const day = now.getDate();
+  if(day < 27) return; // Only start checking from 27th
+
+  window._reportChecker = setInterval(async()=>{
+    if(document.visibilityState !== 'visible') return;
+    try{
+      const data = await apiGet('getLatestPerformanceReport', window.FF_TOKEN || urlToken);
+      if(!data || !data.report) return;
+      const newSentAt = data.report.ReportSentAt || '';
+      if(newSentAt && newSentAt !== window._lastReportSentAt){
+        window._lastReportSentAt = newSentAt;
+        window._latestReport = data.report;
+        showReportPopup(data.report);
+        renderFullReport(data.report);
+      }
+    }catch(e){}
+  }, 60000); // Check every 60 seconds
+}
+
+function showReportPopup(r){
+  const existing = document.getElementById('report-popup');
+  if(existing) existing.remove();
+
+  const totalEngagements = (parseInt(r.Likes||0)+parseInt(r.Comments||0)+parseInt(r.Shares||0)+parseInt(r.Saves||0));
+  const name = (window.FF_CLIENT.name||'there').split(' ')[0];
+
+  const popup = document.createElement('div');
+  popup.id = 'report-popup';
+  popup.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px);';
+  popup.innerHTML = `
+    <div style="background:#0d1f0a;border:1.5px solid rgba(204,255,0,0.35);border-radius:20px;padding:36px;max-width:400px;width:100%;text-align:center;">
+      <div style="font-size:40px;margin-bottom:16px;">📊</div>
+      <div style="font-size:10px;font-weight:700;color:rgba(204,255,0,0.5);letter-spacing:.18em;text-transform:uppercase;margin-bottom:8px;">New Report Available</div>
+      <div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;color:#fff;margin-bottom:8px;">Your ${r.Period} report is ready, ${name}.</div>
+      <div style="font-size:12px;color:rgba(255,255,255,0.4);line-height:1.7;margin-bottom:20px;">Your FitFlux team has submitted your monthly performance report.</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:20px;">
+        <div style="background:rgba(0,0,0,0.3);border-radius:8px;padding:12px;"><div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:#CCFF00;">${r.Followers||0}</div><div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;">Followers</div></div>
+        <div style="background:rgba(0,0,0,0.3);border-radius:8px;padding:12px;"><div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:#CCFF00;">+${r.NewFollowers||0}</div><div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;">New This Month</div></div>
+        <div style="background:rgba(0,0,0,0.3);border-radius:8px;padding:12px;"><div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:#CCFF00;">${r.Reach||0}</div><div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;">Reached</div></div>
+        <div style="background:rgba(0,0,0,0.3);border-radius:8px;padding:12px;"><div style="font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:#CCFF00;">${totalEngagements}</div><div style="font-size:10px;color:rgba(255,255,255,0.4);margin-top:2px;">Engagements</div></div>
+      </div>
+      <button onclick="document.getElementById('report-popup').remove();scrollToSection('performance')" style="width:100%;background:#CCFF00;color:#0a1a00;border:none;border-radius:10px;padding:14px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;margin-bottom:10px;">View Full Report →</button>
+      <button onclick="document.getElementById('report-popup').remove()" style="width:100%;background:rgba(255,255,255,0.05);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.5);border-radius:10px;padding:12px;font-family:'DM Sans',sans-serif;font-size:12px;cursor:pointer;">Dismiss</button>
+    </div>`;
+  document.body.appendChild(popup);
+}
+
+function downloadFullReport(){
+  const r = window._latestReport;
+  if(!r){ alert('No report data available.'); return; }
+
+  const client = window.FF_CLIENT;
+  const tier = (window.FF_TIER||'').charAt(0).toUpperCase()+(window.FF_TIER||'').slice(1);
+  const today = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'long',year:'numeric'});
+  const totalEngagements = (parseInt(r.Likes||0)+parseInt(r.Comments||0)+parseInt(r.Shares||0)+parseInt(r.Saves||0));
+
+  function parseBullets(str){ return str ? str.split('||').filter(Boolean) : []; }
+  const post1Bullets = parseBullets(r.Post1Why);
+  const post2Bullets = parseBullets(r.Post2Why);
+  const whatWorked = [r.WhatWorked1,r.WhatWorked2,r.WhatWorked3].filter(Boolean);
+  const challenges = [r.Challenges1,r.Challenges2,r.Challenges3].filter(Boolean);
+  const recs = [r.Rec1,r.Rec2,r.Rec3,r.Rec4,r.Rec5].filter(Boolean);
+  const actions = ['ActionContent','ActionCommunity','ActionComments','ActionDMs','ActionHashtags','ActionMonitoring'];
+  const actionLabels = {'ActionContent':'Content Creation','ActionCommunity':'Community Management','ActionComments':'Comment Replies','ActionDMs':'DM Management','ActionHashtags':'Hashtag Optimisation','ActionMonitoring':'Performance Monitoring'};
+  const checkedActions = actions.filter(a=>r[a]==='TRUE'||r[a]===true).map(a=>actionLabels[a]);
+
+  const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:Helvetica,Arial,sans-serif;background:#fff;color:#1a1a1a;font-size:13px;line-height:1.6;}
+.header{background:#0a1a00;padding:28px 40px;display:flex;align-items:center;justify-content:space-between;}
+.logo{font-size:22px;font-weight:800;color:#CCFF00;letter-spacing:.08em;}
+.header-right{text-align:right;}
+.header-right .period{font-size:18px;font-weight:700;color:#CCFF00;}
+.header-right .date{font-size:11px;color:rgba(255,255,255,0.4);margin-top:3px;}
+.accent{height:4px;background:linear-gradient(90deg,#CCFF00,#5fa832);}
+.banner{background:#f5f9f0;border-left:4px solid #CCFF00;padding:16px 40px;display:flex;gap:40px;flex-wrap:wrap;}
+.banner-item .lbl{font-size:10px;font-weight:700;color:#666;letter-spacing:.1em;text-transform:uppercase;margin-bottom:3px;}
+.banner-item .val{font-size:14px;font-weight:600;color:#1a1a1a;}
+.body{padding:28px 40px;}
+.section-title{font-size:14px;font-weight:700;color:#0a1a00;border-bottom:2px solid #CCFF00;padding-bottom:6px;margin:24px 0 14px;text-transform:uppercase;letter-spacing:.06em;}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:8px;}
+.metric-box{background:#f5f9f0;border-radius:8px;padding:12px 14px;text-align:center;}
+.metric-val{font-size:24px;font-weight:700;color:#0a1a00;}
+.metric-lbl{font-size:10px;color:#666;text-transform:uppercase;letter-spacing:.08em;margin-top:3px;}
+.eng-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.insight-box{background:#f5f9f0;border-radius:8px;padding:14px;}
+.insight-box .lbl{font-size:10px;font-weight:700;color:#0a1a00;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;}
+.post-box{background:#f5f9f0;border-radius:8px;padding:14px;margin-bottom:10px;}
+.action-tags{display:flex;flex-wrap:wrap;gap:6px;}
+.action-tag{background:#e8f5d9;border:1px solid #CCFF00;color:#0a1a00;font-size:11px;font-weight:600;padding:4px 10px;border-radius:20px;}
+.summary-box{background:#f5f9f0;border-left:4px solid #CCFF00;border-radius:0 8px 8px 0;padding:16px 20px;font-size:13px;color:#333;line-height:1.8;}
+.footer{background:#0a1a00;padding:16px 40px;display:flex;justify-content:space-between;align-items:center;margin-top:32px;}
+.footer-text{font-size:11px;color:rgba(255,255,255,0.4);}
+.footer-brand{font-size:14px;color:#CCFF00;font-weight:700;}
+ol,ul{padding-left:18px;}
+li{margin-bottom:4px;}
+</style></head><body>
+<div class="header">
+  <div><div class="logo">FitFlux Studio</div><div style="font-size:11px;color:rgba(255,255,255,0.4);margin-top:3px;letter-spacing:.1em;text-transform:uppercase;">Social Media Management · Monthly Report</div></div>
+  <div class="header-right"><div class="period">${r.Period||'—'}</div><div class="date">Generated ${today}</div></div>
+</div>
+<div class="accent"></div>
+<div class="banner">
+  <div class="banner-item"><div class="lbl">Client</div><div class="val">${client.name||'—'}</div></div>
+  <div class="banner-item"><div class="lbl">Plan</div><div class="val">${tier} Plan</div></div>
+  <div class="banner-item"><div class="lbl">Niche</div><div class="val">${client.niche||'—'}</div></div>
+  <div class="banner-item"><div class="lbl">Territory</div><div class="val">${client.territory||'—'}</div></div>
+  <div class="banner-item"><div class="lbl">Platform</div><div class="val">${r.Platform||'—'}</div></div>
+</div>
+<div class="body">
+
+<div class="section-title">01 — Audience Growth</div>
+<div class="metrics">
+  <div class="metric-box"><div class="metric-val">${r.Followers||0}</div><div class="metric-lbl">Total Followers</div></div>
+  <div class="metric-box"><div class="metric-val">+${r.NewFollowers||0}</div><div class="metric-lbl">New Followers</div></div>
+  <div class="metric-box"><div class="metric-val">${r.GrowthRate||0}%</div><div class="metric-lbl">Growth Rate</div></div>
+</div>
+
+<div class="section-title">02 — Reach & Awareness</div>
+<div class="metrics">
+  <div class="metric-box"><div class="metric-val">${r.Reach||0}</div><div class="metric-lbl">Accounts Reached</div></div>
+  <div class="metric-box"><div class="metric-val">${r.Impressions||0}</div><div class="metric-lbl">Impressions</div></div>
+  <div class="metric-box"><div class="metric-val">${r.ProfileVisits||0}</div><div class="metric-lbl">Profile Visits</div></div>
+</div>
+
+<div class="section-title">03 — Engagement</div>
+<div class="eng-grid" style="margin-bottom:8px;">
+  <div class="metric-box"><div class="metric-val">${r.Likes||0}</div><div class="metric-lbl">Likes</div></div>
+  <div class="metric-box"><div class="metric-val">${r.Comments||0}</div><div class="metric-lbl">Comments</div></div>
+  <div class="metric-box"><div class="metric-val">${r.Shares||0}</div><div class="metric-lbl">Shares</div></div>
+  <div class="metric-box"><div class="metric-val">${r.Saves||0}</div><div class="metric-lbl">Saves</div></div>
+</div>
+<div class="metrics">
+  <div class="metric-box"><div class="metric-val">${totalEngagements}</div><div class="metric-lbl">Total Engagements</div></div>
+  <div class="metric-box"><div class="metric-val">${r.Engagement||0}%</div><div class="metric-lbl">Engagement Rate</div></div>
+  <div class="metric-box"><div class="metric-val">${r.Enquiries||0}</div><div class="metric-lbl">Enquiries</div></div>
+</div>
+
+<div class="section-title">04 — Content Performance</div>
+<div class="metrics">
+  <div class="metric-box"><div class="metric-val">${r.Posts||0}</div><div class="metric-lbl">Total Posts</div></div>
+  <div class="metric-box"><div class="metric-val">${r.ReelsPublished||0}</div><div class="metric-lbl">Reels / Videos</div></div>
+  <div class="metric-box"><div class="metric-val">${r.StoriesPublished||0}</div><div class="metric-lbl">Stories</div></div>
+</div>
+${r.BestContent ? `<div style="margin-top:8px;padding:10px 14px;background:#f5f9f0;border-radius:8px;font-size:13px;"><strong>Best Performing:</strong> ${r.BestContent}</div>` : ''}
+
+${(r.Post1Reach||r.Post1Engagement) ? `
+<div class="section-title">05 — Top Content</div>
+<div class="two-col">
+  <div class="post-box">
+    <div style="font-size:11px;font-weight:700;color:#0a1a00;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Post #1</div>
+    <div style="display:flex;gap:20px;margin-bottom:8px;">
+      <div><div style="font-size:18px;font-weight:700;">${r.Post1Reach||0}</div><div style="font-size:10px;color:#666;">Reach</div></div>
+      <div><div style="font-size:18px;font-weight:700;">${r.Post1Engagement||0}</div><div style="font-size:10px;color:#666;">Engagement</div></div>
+    </div>
+    ${post1Bullets.length ? `<div style="font-size:10px;font-weight:700;color:#0a1a00;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;">Why it performed</div><ul>${post1Bullets.map(b=>`<li style="font-size:12px;color:#333;">${b}</li>`).join('')}</ul>` : ''}
+  </div>
+  ${(r.Post2Reach||r.Post2Engagement) ? `
+  <div class="post-box">
+    <div style="font-size:11px;font-weight:700;color:#0a1a00;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px;">Post #2</div>
+    <div style="display:flex;gap:20px;margin-bottom:8px;">
+      <div><div style="font-size:18px;font-weight:700;">${r.Post2Reach||0}</div><div style="font-size:10px;color:#666;">Reach</div></div>
+      <div><div style="font-size:18px;font-weight:700;">${r.Post2Engagement||0}</div><div style="font-size:10px;color:#666;">Engagement</div></div>
+    </div>
+    ${post2Bullets.length ? `<div style="font-size:10px;font-weight:700;color:#0a1a00;text-transform:uppercase;letter-spacing:.06em;margin-bottom:5px;">Why it performed</div><ul>${post2Bullets.map(b=>`<li style="font-size:12px;color:#333;">${b}</li>`).join('')}</ul>` : ''}
+  </div>` : ''}
+</div>` : ''}
+
+${(whatWorked.length||challenges.length) ? `
+<div class="section-title">06 — Insights & Observations</div>
+<div class="two-col" style="margin-bottom:10px;">
+  ${whatWorked.length ? `<div class="insight-box"><div class="lbl" style="color:#2d7a2d;">What Worked</div><ul>${whatWorked.map(w=>`<li style="font-size:12px;color:#333;">${w}</li>`).join('')}</ul></div>` : ''}
+  ${challenges.length ? `<div class="insight-box"><div class="lbl" style="color:#a06000;">Challenges</div><ul>${challenges.map(c=>`<li style="font-size:12px;color:#333;">${c}</li>`).join('')}</ul></div>` : ''}
+</div>
+${(r.PeakTime||r.MostEngagedType||r.AudienceInterests) ? `
+<div class="metrics">
+  ${r.PeakTime ? `<div class="metric-box"><div class="metric-val" style="font-size:14px;">${r.PeakTime}</div><div class="metric-lbl">Peak Time</div></div>` : ''}
+  ${r.MostEngagedType ? `<div class="metric-box"><div class="metric-val" style="font-size:14px;">${r.MostEngagedType}</div><div class="metric-lbl">Top Content Type</div></div>` : ''}
+  ${r.AudienceInterests ? `<div class="metric-box"><div class="metric-val" style="font-size:14px;">${r.AudienceInterests}</div><div class="metric-lbl">Audience Interests</div></div>` : ''}
+</div>` : ''}` : ''}
+
+${checkedActions.length ? `
+<div class="section-title">07 — Actions Taken</div>
+<div class="action-tags">${checkedActions.map(a=>`<span class="action-tag">✓ ${a}</span>`).join('')}</div>` : ''}
+
+${recs.length ? `
+<div class="section-title">08 — Recommendations for Next Month</div>
+<ol>${recs.map(rec=>`<li style="font-size:13px;color:#333;margin-bottom:6px;">${rec}</li>`).join('')}</ol>` : ''}
+
+${(r.NextReach||r.NextFollowers||r.NextEngagement||r.NextLeads) ? `
+<div class="section-title">09 — Next Month Goals</div>
+<div class="metrics">
+  ${r.NextReach ? `<div class="metric-box"><div class="metric-val">${r.NextReach}</div><div class="metric-lbl">Reach Target</div></div>` : ''}
+  ${r.NextFollowers ? `<div class="metric-box"><div class="metric-val">+${r.NextFollowers}</div><div class="metric-lbl">Follower Growth</div></div>` : ''}
+  ${r.NextEngagement ? `<div class="metric-box"><div class="metric-val">${r.NextEngagement}%</div><div class="metric-lbl">Engagement Rate</div></div>` : ''}
+  ${r.NextLeads ? `<div class="metric-box"><div class="metric-val">${r.NextLeads}</div><div class="metric-lbl">Leads Target</div></div>` : ''}
+</div>` : ''}
+
+${r.ExecutiveSummary ? `
+<div class="section-title">10 — Executive Summary</div>
+<div class="summary-box">${r.ExecutiveSummary}</div>` : ''}
+
+</div>
+<div class="footer">
+  <div class="footer-text">Prepared by FitFlux Studio · fitfluxstudio@gmail.com · ${today}</div>
+  <div class="footer-brand">FitFlux Studio</div>
+</div>
+</body></html>`;
+
+  const win = window.open('','_blank');
+  win.document.write(html);
+  win.document.close();
+  win.focus();
+  setTimeout(()=>{ win.print(); }, 500);
 }
 function renderReportDownload(){
   const el = document.getElementById('report-download-wrap');
