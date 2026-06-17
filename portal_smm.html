@@ -2037,8 +2037,8 @@ async function loadPerformance(){
   document.getElementById('perf-loading').style.display = 'none';
   document.getElementById('perf-content').style.display = '';
   if(data && data.performance){
-    data.performance.forEach(row=>{
-      const key = row.Platform+'_monthly';
+data.performance.forEach(row=>{
+  const key = (row.Platform||'').toLowerCase()+'_'+(row.PeriodType||'monthly').toLowerCase();
       if(!perfData[key]) perfData[key]={};
       perfData[key][row.Period] = row;
     });
