@@ -2150,18 +2150,79 @@ async function requestReport(){
 function renderPerformancePanel(platform){
   const el = document.getElementById('panel-'+platform);
   if(!el) return;
- const rows = perfData[platform+'_monthly'] || {};
-  const latest = Object.values(rows).sort((a,b)=>new Date(b.UpdatedAt)-new Date(a.UpdatedAt))[0];
+  
+  // Try monthly first, then weekly, then any data for this platform
+  const monthlyKey = platform + '_monthly';
+  const weeklyKey = platform + '_weekly';
+  
+  let rows = perfData[monthlyKey] || perfData[weeklyKey] || {};
+  
+  // Also check for capitalized platform name keys
+  Object.keys(perfData).forEach(key => {
+    if(key.toLowerCase().startsWith(platform.toLowerCase())){
+      if(!Object.keys(rows).length) rows = perfData[key];
+    }
+  });
+  
+  const allRows = Object.values(rows);
+  const latest = allRows.sort((a,b) => new Date(b.UpdatedAt||b.updatedat||0) - new Date(a.UpdatedAt||a.updatedat||0))[0] || {};
+  
+  // Normalize field names — handle both capitalized and lowercase
+  function getField(obj, ...keys){
+    for(const k of keys){
+      if(obj[k] !== undefined && obj[k] !== '' && obj[k] !== null) return obj[k];
+      // Try capitalized
+      const cap = k.charAt(0).toUpperCase() + k.slice(1);
+      if(obj[cap] !== undefined && obj[cap] !== '' && obj[cap] !== null) return obj[cap];
+    }
+    return 0;
+  }
+  
+  const followers = getField(latest, 'Followers','followers');
+  const reach = getField(latest, 'Reach','reach');
+  const engagement = getField(latest, 'Engagement','engagement');
+  const posts = getField(latest, 'Posts','posts');
+  const profileVisits = getField(latest, 'ProfileVisits','profilevisits','Profilevisits');
+  const enquiries = getField(latest, 'Enquiries','enquiries');
+  const videoPercent = getField(latest, 'VideoPercent','videopercent','Videopercent');
+  const graphicPercent = getField(latest, 'GraphicPercent','graphicpercent','Graphicpercent');
+  const storyPercent = getField(latest, 'StoryPercent','storypercent','Storypercent');
+  const note = latest.Note || latest.note || '';
+  const grade = latest.Grade || latest.grade || '—';
+  
   const labels = {
-    instagram:{icon:'&#x1F4F8;',followers:'Followers',metric2:'Reach',metric3:'Engagement Rate',metric4:'Posts Published',metric5:'Profile Visits',metric6:'Enquiries'},
-    tiktok:{icon:'&#x1F3B5;',followers:'Followers',metric2:'Total Views',metric3:'Likes',metric4:'Videos Posted',metric5:'Profile Visits',metric6:'Enquiries'},
-    facebook:{icon:'&#x1F4D8;',followers:'Page Likes',metric2:'Reach',metric3:'Engagement',metric4:'Posts Published',metric5:'Link Clicks',metric6:'Enquiries'},
-    youtube:{icon:'&#x25B6;',followers:'Subscribers',metric2:'Views',metric3:'Watch Time',metric4:'Videos Published',metric5:'CTR',metric6:'Enquiries'},
-    linkedin:{icon:'&#x1F4BC;',followers:'Connections',metric2:'Impressions',metric3:'Engagement Rate',metric4:'Posts Published',metric5:'Profile Views',metric6:'Enquiries'},
-    twitter:{icon:'&#x2715;',followers:'Followers',metric2:'Impressions',metric3:'Engagements',metric4:'Tweets Published',metric5:'Link Clicks',metric6:'Enquiries'}
-  }[platform] || {};
-  const d = latest || {};
-  el.innerHTML = '<div class="grade-card"><div class="grade-letter">'+(d.Grade||'\u2014')+'</div><div class="grade-info"><div class="grade-title">'+labels.icon+' '+platform.charAt(0).toUpperCase()+platform.slice(1)+' Performance</div><div class="grade-note">'+(d.Note||'No data yet. Your FitFlux team will update this when '+platform+' is active.')+'</div></div></div><div class="perf-grid"><div class="pcard"><div class="pcard-lbl">'+labels.followers+'</div><div class="pcard-val">'+(d.Followers||0)+'</div><div class="pcard-trend">&uarr; This '+(currentView==='weekly'?'week':'month')+'</div></div><div class="pcard"><div class="pcard-lbl">'+labels.metric2+'</div><div class="pcard-val">'+(d.Reach||0)+'</div><div class="pcard-trend">accounts reached</div></div><div class="pcard"><div class="pcard-lbl">'+labels.metric3+'</div><div class="pcard-val">'+(d.Engagement||0)+'</div><div class="pcard-trend">engagement</div></div><div class="pcard"><div class="pcard-lbl">'+labels.metric4+'</div><div class="pcard-val">'+(d.Posts||0)+'</div><div class="pcard-trend">this period</div></div><div class="pcard"><div class="pcard-lbl">'+labels.metric5+'</div><div class="pcard-val">'+(d.ProfileVisits||0)+'</div><div class="pcard-trend">profile activity</div></div><div class="pcard"><div class="pcard-lbl">'+labels.metric6+'</div><div class="pcard-val">'+(d.Enquiries||0)+'</div><div class="pcard-trend up">from content</div></div></div><div class="bar-section"><div class="bar-section-title">Content Performance Breakdown</div><div class="bar-row"><div class="bar-lbl">Videos / Reels</div><div class="bar-track"><div class="bar-fill" style="width:'+(d.VideoPercent||0)+'%"></div></div><div class="bar-val">'+(d.VideoPercent||0)+'%</div></div><div class="bar-row"><div class="bar-lbl">Graphics / Carousels</div><div class="bar-track"><div class="bar-fill blue" style="width:'+(d.GraphicPercent||0)+'%"></div></div><div class="bar-val">'+(d.GraphicPercent||0)+'%</div></div><div class="bar-row"><div class="bar-lbl">Stories</div><div class="bar-track"><div class="bar-fill amber" style="width:'+(d.StoryPercent||0)+'%"></div></div><div class="bar-val">'+(d.StoryPercent||0)+'%</div></div></div>';
+    instagram:{icon:'📸',f:'Followers',m2:'Reach',m3:'Engagement Rate',m4:'Posts Published',m5:'Profile Visits',m6:'Enquiries'},
+    tiktok:{icon:'🎵',f:'Followers',m2:'Total Views',m3:'Likes',m4:'Videos Posted',m5:'Profile Visits',m6:'Enquiries'},
+    facebook:{icon:'📘',f:'Page Likes',m2:'Reach',m3:'Engagement',m4:'Posts Published',m5:'Link Clicks',m6:'Enquiries'},
+    youtube:{icon:'▶',f:'Subscribers',m2:'Views',m3:'Watch Time',m4:'Videos Published',m5:'CTR',m6:'Enquiries'},
+    linkedin:{icon:'💼',f:'Connections',m2:'Impressions',m3:'Engagement Rate',m4:'Posts Published',m5:'Profile Views',m6:'Enquiries'},
+    twitter:{icon:'✕',f:'Followers',m2:'Impressions',m3:'Engagements',m4:'Tweets Published',m5:'Link Clicks',m6:'Enquiries'}
+  }[platform] || {icon:'📊',f:'Followers',m2:'Reach',m3:'Engagement',m4:'Posts',m5:'Visits',m6:'Enquiries'};
+
+  const hasData = followers || reach || engagement || posts;
+  
+  el.innerHTML = `
+    <div class="grade-card">
+      <div class="grade-letter">${grade}</div>
+      <div class="grade-info">
+        <div class="grade-title">${labels.icon} ${platform.charAt(0).toUpperCase()+platform.slice(1)} Performance</div>
+        <div class="grade-note">${note || (hasData ? 'Latest performance data loaded.' : 'No data yet. Your FitFlux team will update this when '+platform+' is active.')}</div>
+      </div>
+    </div>
+    <div class="perf-grid">
+      <div class="pcard"><div class="pcard-lbl">${labels.f}</div><div class="pcard-val">${followers || 0}</div><div class="pcard-trend">↑ This month</div></div>
+      <div class="pcard"><div class="pcard-lbl">${labels.m2}</div><div class="pcard-val">${reach || 0}</div><div class="pcard-trend">accounts reached</div></div>
+      <div class="pcard"><div class="pcard-lbl">${labels.m3}</div><div class="pcard-val">${engagement || 0}</div><div class="pcard-trend">engagement</div></div>
+      <div class="pcard"><div class="pcard-lbl">${labels.m4}</div><div class="pcard-val">${posts || 0}</div><div class="pcard-trend">this period</div></div>
+      <div class="pcard"><div class="pcard-lbl">${labels.m5}</div><div class="pcard-val">${profileVisits || 0}</div><div class="pcard-trend">profile activity</div></div>
+      <div class="pcard"><div class="pcard-lbl">${labels.m6}</div><div class="pcard-val">${enquiries || 0}</div><div class="pcard-trend up">from content</div></div>
+    </div>
+    <div class="bar-section">
+      <div class="bar-section-title">Content Performance Breakdown</div>
+      <div class="bar-row"><div class="bar-lbl">Videos / Reels</div><div class="bar-track"><div class="bar-fill" style="width:${videoPercent||0}%"></div></div><div class="bar-val">${videoPercent||0}%</div></div>
+      <div class="bar-row"><div class="bar-lbl">Graphics / Carousels</div><div class="bar-track"><div class="bar-fill blue" style="width:${graphicPercent||0}%"></div></div><div class="bar-val">${graphicPercent||0}%</div></div>
+      <div class="bar-row"><div class="bar-lbl">Stories</div><div class="bar-track"><div class="bar-fill amber" style="width:${storyPercent||0}%"></div></div><div class="bar-val">${storyPercent||0}%</div></div>
+    </div>`;
 }
 
 /* ── DELIVERABLES ── */
