@@ -2696,7 +2696,8 @@ async function savePerformance(btn){
 async function sendPerformanceReport(btn){
   if(!currentClient) return;
   const now = new Date();
-  if(now.getDate() < 30){ toast('Send Report unlocks on the 30th','error'); return; }
+  // TESTING — remove this bypass before going live
+  // if(now.getDate() < 30){ toast('Send Report unlocks on the 30th','error'); return; }
 
   if(!confirm('Send this performance report to '+currentClient.Name+'? They will receive an email and a portal notification.')){ return; }
 
