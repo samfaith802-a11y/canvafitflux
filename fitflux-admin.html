@@ -811,55 +811,171 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
 </div>
 
         <!-- PERFORMANCE TAB -->
-        <div class="detail-tab-content" id="dtab-performance">
-          <div class="perf-platform-tabs">
-            <button class="pptab active" onclick="selectPerfPlatform('Instagram',this)">Instagram</button>
-            <button class="pptab" onclick="selectPerfPlatform('TikTok',this)">TikTok</button>
-            <button class="pptab" onclick="selectPerfPlatform('Facebook',this)">Facebook</button>
-            <button class="pptab" onclick="selectPerfPlatform('YouTube',this)">YouTube</button>
-            <button class="pptab" onclick="selectPerfPlatform('LinkedIn',this)">LinkedIn</button>
-            <button class="pptab" onclick="selectPerfPlatform('Twitter',this)">Twitter/X</button>
-          </div>
-          <div class="perf-form">
-            <div style="display:flex;gap:12px;margin-bottom:14px;">
-       <div class="form-group" style="flex:1;">
-  <div class="perf-input-label">Month</div>
-  <select class="grade-select" id="p-period">
-    <option value="January">January</option>
-    <option value="February">February</option>
-    <option value="March">March</option>
-    <option value="April">April</option>
-    <option value="May">May</option>
-    <option value="June">June</option>
-    <option value="July">July</option>
-    <option value="August">August</option>
-    <option value="September">September</option>
-    <option value="October">October</option>
-    <option value="November">November</option>
-    <option value="December">December</option>
-  </select>
-  <div style="font-size:10px;color:var(--t3);margin-top:4px;">Saves as monthly report · sends client email automatically</div>
+       <div class="detail-tab-content" id="dtab-performance">
+  <div id="perf-reminder-banner" style="display:none;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);border-radius:10px;padding:14px 18px;margin-bottom:16px;font-size:13px;color:var(--amber);font-weight:600;"></div>
+
+  <div class="perf-platform-tabs">
+    <button class="pptab active" onclick="selectPerfPlatform('Instagram',this)">Instagram</button>
+    <button class="pptab" onclick="selectPerfPlatform('TikTok',this)">TikTok</button>
+    <button class="pptab" onclick="selectPerfPlatform('Facebook',this)">Facebook</button>
+    <button class="pptab" onclick="selectPerfPlatform('YouTube',this)">YouTube</button>
+    <button class="pptab" onclick="selectPerfPlatform('LinkedIn',this)">LinkedIn</button>
+    <button class="pptab" onclick="selectPerfPlatform('Twitter',this)">Twitter/X</button>
+  </div>
+
+  <div class="perf-form">
+    <!-- MONTH SELECTOR -->
+    <div style="margin-bottom:20px;">
+      <div class="perf-input-label" style="margin-bottom:8px;">Report Month</div>
+      <select class="grade-select" id="p-period" style="width:100%;"></select>
+      <div id="p-period-note" style="font-size:11px;color:var(--t3);margin-top:6px;"></div>
+    </div>
+
+    <!-- SECTION 1: AUDIENCE GROWTH -->
+    <div style="background:rgba(204,255,0,0.04);border:1px solid var(--bdr);border-radius:10px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:700;color:var(--lime);letter-spacing:.1em;text-transform:uppercase;margin-bottom:14px;">01 — Audience Growth</div>
+      <div class="perf-grid">
+        <div class="perf-input-group"><div class="perf-input-label">Total Followers</div><input class="perf-input" id="p-followers" type="number" placeholder="0"/></div>
+        <div class="perf-input-group"><div class="perf-input-label">New Followers</div><input class="perf-input" id="p-newFollowers" type="number" placeholder="0"/></div>
+        <div class="perf-input-group"><div class="perf-input-label">Growth Rate %</div><input class="perf-input" id="p-growthRate" type="number" placeholder="0.0" step="0.1"/></div>
+      </div>
+    </div>
+
+    <!-- SECTION 2: REACH & AWARENESS -->
+    <div style="background:rgba(204,255,0,0.04);border:1px solid var(--bdr);border-radius:10px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:700;color:var(--lime);letter-spacing:.1em;text-transform:uppercase;margin-bottom:14px;">02 — Reach & Awareness</div>
+      <div class="perf-grid">
+        <div class="perf-input-group"><div class="perf-input-label">Accounts Reached</div><input class="perf-input" id="p-reach" type="number" placeholder="0"/></div>
+        <div class="perf-input-group"><div class="perf-input-label">Impressions</div><input class="perf-input" id="p-impressions" type="number" placeholder="0"/></div>
+        <div class="perf-input-group"><div class="perf-input-label">Profile Visits</div><input class="perf-input" id="p-visits" type="number" placeholder="0"/></div>
+      </div>
+    </div>
+
+    <!-- SECTION 3: ENGAGEMENT -->
+    <div style="background:rgba(204,255,0,0.04);border:1px solid var(--bdr);border-radius:10px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:700;color:var(--lime);letter-spacing:.1em;text-transform:uppercase;margin-bottom:14px;">03 — Engagement</div>
+      <div class="perf-grid">
+        <div class="perf-input-group"><div class="perf-input-label">Likes</div><input class="perf-input" id="p-likes" type="number" placeholder="0"/></div>
+        <div class="perf-input-group"><div class="perf-input-label">Comments</div><input class="perf-input" id="p-comments" type="number" placeholder="0"/></div>
+        <div class="perf-input-group"><div class="perf-input-label">Shares</div><input class="perf-input" id="p-shares" type="number" placeholder="0"/></div>
+        <div class="perf-input-group"><div class="perf-input-label">Saves</div><input class="perf-input" id="p-saves" type="number" placeholder="0"/></div>
+        <div class="perf-input-group"><div class="perf-input-label">Engagement Rate %</div><input class="perf-input" id="p-engagement" type="number" placeholder="0.0" step="0.1"/></div>
+      </div>
+    </div>
+
+    <!-- SECTION 4: CONTENT PERFORMANCE -->
+    <div style="background:rgba(204,255,0,0.04);border:1px solid var(--bdr);border-radius:10px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:700;color:var(--lime);letter-spacing:.1em;text-transform:uppercase;margin-bottom:14px;">04 — Content Performance</div>
+      <div class="perf-grid">
+        <div class="perf-input-group"><div class="perf-input-label">Total Posts Published</div><input class="perf-input" id="p-posts" type="number" placeholder="0"/></div>
+        <div class="perf-input-group"><div class="perf-input-label">Reels / Videos</div><input class="perf-input" id="p-reelsPublished" type="number" placeholder="0"/></div>
+        <div class="perf-input-group"><div class="perf-input-label">Stories Published</div><input class="perf-input" id="p-storiesPublished" type="number" placeholder="0"/></div>
+      </div>
+      <div class="perf-input-group" style="margin-top:12px;"><div class="perf-input-label">Best Performing Content</div><input class="perf-input" id="p-bestContent" type="text" placeholder="e.g. Tuesday transformation reel"/></div>
+    </div>
+
+    <!-- SECTION 5: TOP CONTENT -->
+    <div style="background:rgba(204,255,0,0.04);border:1px solid var(--bdr);border-radius:10px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:700;color:var(--lime);letter-spacing:.1em;text-transform:uppercase;margin-bottom:14px;">05 — Top Content</div>
+      <div style="font-size:12px;font-weight:600;color:var(--t2);margin-bottom:10px;">Post #1</div>
+      <div class="perf-grid" style="margin-bottom:10px;">
+        <div class="perf-input-group"><div class="perf-input-label">Reach</div><input class="perf-input" id="p-post1Reach" type="number" placeholder="0"/></div>
+        <div class="perf-input-group"><div class="perf-input-label">Engagement</div><input class="perf-input" id="p-post1Engagement" type="number" placeholder="0"/></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;margin-bottom:16px;">
+        <div class="perf-input-label">Why it performed well (up to 3 bullets)</div>
+        <input class="perf-input" id="p-post1Why1" placeholder="Bullet 1"/>
+        <input class="perf-input" id="p-post1Why2" placeholder="Bullet 2 (optional)"/>
+        <input class="perf-input" id="p-post1Why3" placeholder="Bullet 3 (optional)"/>
+      </div>
+      <div style="font-size:12px;font-weight:600;color:var(--t2);margin-bottom:10px;">Post #2</div>
+      <div class="perf-grid" style="margin-bottom:10px;">
+        <div class="perf-input-group"><div class="perf-input-label">Reach</div><input class="perf-input" id="p-post2Reach" type="number" placeholder="0"/></div>
+        <div class="perf-input-group"><div class="perf-input-label">Engagement</div><input class="perf-input" id="p-post2Engagement" type="number" placeholder="0"/></div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:6px;">
+        <div class="perf-input-label">Why it performed well (up to 3 bullets)</div>
+        <input class="perf-input" id="p-post2Why1" placeholder="Bullet 1"/>
+        <input class="perf-input" id="p-post2Why2" placeholder="Bullet 2 (optional)"/>
+        <input class="perf-input" id="p-post2Why3" placeholder="Bullet 3 (optional)"/>
+      </div>
+    </div>
+
+    <!-- SECTION 6: INSIGHTS -->
+    <div style="background:rgba(204,255,0,0.04);border:1px solid var(--bdr);border-radius:10px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:700;color:var(--lime);letter-spacing:.1em;text-transform:uppercase;margin-bottom:14px;">06 — Insights & Observations</div>
+      <div style="margin-bottom:14px;">
+        <div class="perf-input-label" style="margin-bottom:6px;">What Worked (up to 3)</div>
+        <input class="perf-input" id="p-whatWorked1" placeholder="What worked #1" style="margin-bottom:6px;"/>
+        <input class="perf-input" id="p-whatWorked2" placeholder="What worked #2 (optional)" style="margin-bottom:6px;"/>
+        <input class="perf-input" id="p-whatWorked3" placeholder="What worked #3 (optional)"/>
+      </div>
+      <div style="margin-bottom:14px;">
+        <div class="perf-input-label" style="margin-bottom:6px;">Challenges (up to 3)</div>
+        <input class="perf-input" id="p-challenges1" placeholder="Challenge #1" style="margin-bottom:6px;"/>
+        <input class="perf-input" id="p-challenges2" placeholder="Challenge #2 (optional)" style="margin-bottom:6px;"/>
+        <input class="perf-input" id="p-challenges3" placeholder="Challenge #3 (optional)"/>
+      </div>
+      <div class="perf-grid">
+        <div class="perf-input-group"><div class="perf-input-label">Peak Engagement Time</div><input class="perf-input" id="p-peakTime" placeholder="e.g. Tue 7pm"/></div>
+        <div class="perf-input-group"><div class="perf-input-label">Most Engaged Content Type</div><input class="perf-input" id="p-mostEngagedType" placeholder="e.g. Reels"/></div>
+        <div class="perf-input-group"><div class="perf-input-label">Audience Interests</div><input class="perf-input" id="p-audienceInterests" placeholder="e.g. Transformation content"/></div>
+      </div>
+    </div>
+
+    <!-- SECTION 7: ACTIONS TAKEN -->
+    <div style="background:rgba(204,255,0,0.04);border:1px solid var(--bdr);border-radius:10px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:700;color:var(--lime);letter-spacing:.1em;text-transform:uppercase;margin-bottom:14px;">07 — Actions Taken This Month</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--t2);cursor:pointer;"><input type="checkbox" id="p-actionContent" style="width:15px;height:15px;cursor:pointer;"/> Content Creation</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--t2);cursor:pointer;"><input type="checkbox" id="p-actionCommunity" style="width:15px;height:15px;cursor:pointer;"/> Community Management</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--t2);cursor:pointer;"><input type="checkbox" id="p-actionComments" style="width:15px;height:15px;cursor:pointer;"/> Comment Replies</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--t2);cursor:pointer;"><input type="checkbox" id="p-actionDMs" style="width:15px;height:15px;cursor:pointer;"/> DM Management</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--t2);cursor:pointer;"><input type="checkbox" id="p-actionHashtags" style="width:15px;height:15px;cursor:pointer;"/> Hashtag Optimisation</label>
+        <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:var(--t2);cursor:pointer;"><input type="checkbox" id="p-actionMonitoring" style="width:15px;height:15px;cursor:pointer;"/> Performance Monitoring</label>
+      </div>
+    </div>
+
+    <!-- SECTION 8: RECOMMENDATIONS -->
+    <div style="background:rgba(204,255,0,0.04);border:1px solid var(--bdr);border-radius:10px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:700;color:var(--lime);letter-spacing:.1em;text-transform:uppercase;margin-bottom:14px;">08 — Recommendations for Next Month</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <div style="display:flex;align-items:center;gap:8px;"><span style="font-size:12px;color:var(--t3);width:20px;flex-shrink:0;">1.</span><input class="perf-input" id="p-rec1" placeholder="Recommendation 1" style="flex:1;"/></div>
+        <div style="display:flex;align-items:center;gap:8px;"><span style="font-size:12px;color:var(--t3);width:20px;flex-shrink:0;">2.</span><input class="perf-input" id="p-rec2" placeholder="Recommendation 2" style="flex:1;"/></div>
+        <div style="display:flex;align-items:center;gap:8px;"><span style="font-size:12px;color:var(--t3);width:20px;flex-shrink:0;">3.</span><input class="perf-input" id="p-rec3" placeholder="Recommendation 3" style="flex:1;"/></div>
+        <div style="display:flex;align-items:center;gap:8px;"><span style="font-size:12px;color:var(--t3);width:20px;flex-shrink:0;">4.</span><input class="perf-input" id="p-rec4" placeholder="Recommendation 4" style="flex:1;"/></div>
+        <div style="display:flex;align-items:center;gap:8px;"><span style="font-size:12px;color:var(--t3);width:20px;flex-shrink:0;">5.</span><input class="perf-input" id="p-rec5" placeholder="Recommendation 5" style="flex:1;"/></div>
+      </div>
+    </div>
+
+    <!-- SECTION 9: NEXT MONTH GOALS -->
+    <div style="background:rgba(204,255,0,0.04);border:1px solid var(--bdr);border-radius:10px;padding:16px;margin-bottom:16px;">
+      <div style="font-size:11px;font-weight:700;color:var(--lime);letter-spacing:.1em;text-transform:uppercase;margin-bottom:14px;">09 — Next Month Goals</div>
+      <div class="perf-grid">
+        <div class="perf-input-group"><div class="perf-input-label">Reach Target</div><input class="perf-input" id="p-nextReach" type="number" placeholder="0"/></div>
+        <div class="perf-input-group"><div class="perf-input-label">Follower Growth Target</div><input class="perf-input" id="p-nextFollowers" type="number" placeholder="0"/></div>
+        <div class="perf-input-group"><div class="perf-input-label">Engagement Rate Target %</div><input class="perf-input" id="p-nextEngagement" type="number" placeholder="0.0" step="0.1"/></div>
+        <div class="perf-input-group"><div class="perf-input-label">Leads / Conversions Target</div><input class="perf-input" id="p-nextLeads" type="number" placeholder="0"/></div>
+      </div>
+    </div>
+
+    <!-- SECTION 10: EXECUTIVE SUMMARY PREVIEW -->
+    <div style="background:rgba(204,255,0,0.04);border:1px solid var(--bdr);border-radius:10px;padding:16px;margin-bottom:16px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;">
+        <div style="font-size:11px;font-weight:700;color:var(--lime);letter-spacing:.1em;text-transform:uppercase;">10 — Executive Summary</div>
+        <button onclick="generateExecSummary()" style="background:var(--lime-dim);border:1px solid var(--lime-bdr);color:var(--lime);border-radius:6px;padding:5px 12px;font-family:var(--fb);font-size:11px;font-weight:700;cursor:pointer;">Auto Generate</button>
+      </div>
+      <textarea class="form-textarea" id="p-executiveSummary" style="min-height:100px;font-size:12px;" placeholder="Click Auto Generate or type manually..."></textarea>
+    </div>
+
+    <!-- SAVE + SEND BUTTONS -->
+    <div style="display:flex;gap:10px;">
+      <button class="form-submit" id="perf-save-btn" onclick="savePerformance(this)" style="flex:1;">SAVE DRAFT</button>
+      <button id="perf-send-btn" onclick="sendPerformanceReport(this)" style="flex:1;background:rgba(61,214,140,0.15);border:1px solid rgba(61,214,140,0.3);color:var(--green);border-radius:8px;padding:11px 24px;font-family:var(--fh);font-size:16px;letter-spacing:.06em;cursor:pointer;transition:all .2s;">SEND REPORT TO CLIENT</button>
+    </div>
+    <div id="perf-send-note" style="margin-top:8px;font-size:11px;color:var(--t3);text-align:center;"></div>
+  </div>
 </div>
-             
-            </div>
-            <div class="perf-grid">
-              <div class="perf-input-group"><div class="perf-input-label">Followers</div><input class="perf-input" id="p-followers" type="number" placeholder="0"/></div>
-              <div class="perf-input-group"><div class="perf-input-label">Reach</div><input class="perf-input" id="p-reach" type="number" placeholder="0"/></div>
-              <div class="perf-input-group"><div class="perf-input-label">Engagement</div><input class="perf-input" id="p-engagement" type="number" placeholder="0"/></div>
-              <div class="perf-input-group"><div class="perf-input-label">Posts</div><input class="perf-input" id="p-posts" type="number" placeholder="0"/></div>
-              <div class="perf-input-group"><div class="perf-input-label">Profile Visits</div><input class="perf-input" id="p-visits" type="number" placeholder="0"/></div>
-              <div class="perf-input-group"><div class="perf-input-label">Enquiries</div><input class="perf-input" id="p-enquiries" type="number" placeholder="0"/></div>
-              <div class="perf-input-group"><div class="perf-input-label">Video %</div><input class="perf-input" id="p-video" type="number" placeholder="0" min="0" max="100"/></div>
-              <div class="perf-input-group"><div class="perf-input-label">Graphic %</div><input class="perf-input" id="p-graphic" type="number" placeholder="0" min="0" max="100"/></div>
-              <div class="perf-input-group"><div class="perf-input-label">Story %</div><input class="perf-input" id="p-story" type="number" placeholder="0" min="0" max="100"/></div>
-            </div>
-            <div class="form-group form-full" style="margin-bottom:14px;">
-              <div class="perf-input-label">Performance Note</div>
-              <textarea class="form-textarea" id="p-note" placeholder="Brief performance summary for the client..." style="min-height:70px;"></textarea>
-            </div>
-           <button class="form-submit" id="perf-save-btn" onclick="savePerformance(this)">SAVE PERFORMANCE DATA</button>
-          </div>
-        </div>
 
         <!-- DELIVERABLES TAB -->
         <div class="detail-tab-content" id="dtab-deliverables">
@@ -1560,6 +1676,7 @@ function switchDetailTab(id, btn){
   if(id==='milestones') loadAdminMilestones();
   if(id==='documents') loadAdminDocuments();
   if(id==='revenue-client') loadClientRevenue();
+  if(id==='performance') initPerfMonthDropdown();
 }
 
 // ── ROADMAP ──────────────────────────────────────────────────
@@ -2491,55 +2608,188 @@ function selectPerfPlatform(p, btn){
 }
 function updatePeriodLabel(sel){ /* removed - monthly only */ }
 
+function initPerfMonthDropdown(){
+  const sel = document.getElementById('p-period');
+  const note = document.getElementById('p-period-note');
+  const sendBtn = document.getElementById('perf-send-btn');
+  const reminder = document.getElementById('perf-reminder-banner');
+  if(!sel) return;
+
+  const allMonths = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const now = new Date();
+  const currentMonthIdx = now.getMonth();
+  const currentDay = now.getDate();
+  const currentMonthName = allMonths[currentMonthIdx];
+
+  sel.innerHTML = allMonths.map((m,i)=>{
+    const isCurrentMonth = i === currentMonthIdx;
+    return `<option value="${m}" ${isCurrentMonth?'':'disabled'} style="${isCurrentMonth?'':'color:var(--t3);'}">${m}${isCurrentMonth?' (Current)':''}</option>`;
+  }).join('');
+  sel.value = currentMonthName;
+
+  // Reminder from 27th
+  if(currentDay >= 27 && reminder){
+    const daysUntil30 = Math.max(0, 30 - currentDay);
+    if(currentDay >= 30){
+      reminder.style.display = 'block';
+      reminder.innerHTML = '📊 TODAY is the day — fill and send this client\'s performance report now.';
+    } else {
+      reminder.style.display = 'block';
+      reminder.innerHTML = `⏰ Reminder: Performance reports are due on the 30th. ${daysUntil30} day${daysUntil30!==1?'s':''} remaining. Start filling the data now.`;
+    }
+  }
+
+  // Lock send button until 30th
+  if(sendBtn){
+    if(currentDay < 30){
+      sendBtn.disabled = true;
+      sendBtn.style.opacity = '0.4';
+      sendBtn.style.cursor = 'not-allowed';
+      const note2 = document.getElementById('perf-send-note');
+      if(note2) note2.textContent = `Send Report unlocks on the 30th. ${30-currentDay} day${30-currentDay!==1?'s':''} remaining.`;
+    } else {
+      sendBtn.disabled = false;
+      sendBtn.style.opacity = '1';
+      sendBtn.style.cursor = 'pointer';
+    }
+  }
+}
+
+function generateExecSummary(){
+  const followers = document.getElementById('p-followers')?.value || '—';
+  const newFollowers = document.getElementById('p-newFollowers')?.value || '—';
+  const reach = document.getElementById('p-reach')?.value || '—';
+  const likes = parseInt(document.getElementById('p-likes')?.value||0);
+  const comments = parseInt(document.getElementById('p-comments')?.value||0);
+  const shares = parseInt(document.getElementById('p-shares')?.value||0);
+  const saves = parseInt(document.getElementById('p-saves')?.value||0);
+  const totalEngagements = likes+comments+shares+saves || '—';
+  const bestContent = document.getElementById('p-bestContent')?.value || '—';
+  const mostEngagedType = document.getElementById('p-mostEngagedType')?.value || '—';
+  const nextReach = document.getElementById('p-nextReach')?.value || '—';
+  const nextFollowers = document.getElementById('p-nextFollowers')?.value || '—';
+  const nextEngagement = document.getElementById('p-nextEngagement')?.value || '—';
+  const period = document.getElementById('p-period')?.value || 'this month';
+  const clientName = currentClient?.Name?.split(' ')[0] || 'the client';
+
+  const summary = `This month, ${clientName}'s account achieved ${reach} accounts reached, generated ${totalEngagements} total engagements, and grew by ${newFollowers} new followers bringing the total to ${followers}. The strongest-performing content was ${bestContent}, indicating the audience responds best to ${mostEngagedType}. Next month, efforts will focus on reaching ${nextReach} accounts, growing by ${nextFollowers} new followers, and achieving ${nextEngagement}% engagement rate.`;
+
+  const el = document.getElementById('p-executiveSummary');
+  if(el) el.value = summary;
+}
+
 async function savePerformance(btn){
   if(!currentClient) return;
   if(!btn) btn = document.getElementById('perf-save-btn');
-
- const period = document.getElementById('p-period').value;
-  if(!period){ toast('Select a month','error'); return; }
-
   btn.textContent = 'Saving...';
-  btn.style.transform = 'scale(0.97)';
-  btn.style.opacity = '0.8';
   btn.disabled = true;
 
-  const body = {
-    token: currentClient.Token,
-    platform: currentPerfPlatform,
-    periodType: 'monthly',
-    period,
-    followers: document.getElementById('p-followers').value||0,
-    reach: document.getElementById('p-reach').value||0,
-    engagement: document.getElementById('p-engagement').value||0,
-    posts: document.getElementById('p-posts').value||0,
-    profileVisits: document.getElementById('p-visits').value||0,
-    enquiries: document.getElementById('p-enquiries').value||0,
-    videoPercent: document.getElementById('p-video').value||0,
-    graphicPercent: document.getElementById('p-graphic').value||0,
-    storyPercent: document.getElementById('p-story').value||0,
-    note: document.getElementById('p-note').value.trim()
-  };
-
+  const body = buildPerfBody(false);
   await apiPost('updatePerformance', body);
 
   btn.textContent = '✅ Saved!';
-  btn.style.transform = '';
-  btn.style.opacity = '';
   btn.style.background = 'rgba(61,214,140,0.3)';
+  setTimeout(()=>{ btn.textContent='SAVE DRAFT'; btn.style.background=''; btn.disabled=false; }, 2500);
+  toast('✅ Draft saved');
+}
 
-  setTimeout(()=>{
-    btn.textContent = 'SAVE PERFORMANCE DATA';
-    btn.style.background = '';
+async function sendPerformanceReport(btn){
+  if(!currentClient) return;
+  const now = new Date();
+  if(now.getDate() < 30){ toast('Send Report unlocks on the 30th','error'); return; }
+
+  if(!confirm('Send this performance report to '+currentClient.Name+'? They will receive an email and a portal notification.')){ return; }
+
+  btn.textContent = 'Sending...';
+  btn.disabled = true;
+
+  const body = buildPerfBody(true);
+  const result = await apiPost('updatePerformance', body);
+
+  if(result && result.status === 'saved'){
+    btn.textContent = '✅ Report Sent!';
+    btn.style.background = 'rgba(61,214,140,0.3)';
+    btn.style.color = 'var(--green)';
+    setTimeout(()=>{ btn.textContent='SEND REPORT TO CLIENT'; btn.style.background=''; btn.disabled=false; }, 3000);
+    toast('✅ Report sent — client emailed and portal updated');
+  } else {
+    btn.textContent = 'SEND REPORT TO CLIENT';
     btn.disabled = false;
-  }, 2500);
+    toast('❌ Send failed','error');
+  }
+}
 
-['p-followers','p-reach','p-engagement','p-posts','p-visits','p-enquiries',
-   'p-video','p-graphic','p-story','p-note'].forEach(id=>{
-    const el = document.getElementById(id);
-    if(el) el.value = '';
-  });
+function buildPerfBody(isSend){
+  const p1why = [
+    document.getElementById('p-post1Why1')?.value||'',
+    document.getElementById('p-post1Why2')?.value||'',
+    document.getElementById('p-post1Why3')?.value||''
+  ].filter(Boolean).join('||');
 
-  toast('✅ Performance saved — client portal updated + email sent');
+  const p2why = [
+    document.getElementById('p-post2Why1')?.value||'',
+    document.getElementById('p-post2Why2')?.value||'',
+    document.getElementById('p-post2Why3')?.value||''
+  ].filter(Boolean).join('||');
+
+  return {
+    token: currentClient.Token,
+    platform: currentPerfPlatform,
+    periodType: 'monthly',
+    period: document.getElementById('p-period')?.value||'',
+    followers: document.getElementById('p-followers')?.value||0,
+    reach: document.getElementById('p-reach')?.value||0,
+    engagement: document.getElementById('p-engagement')?.value||0,
+    posts: document.getElementById('p-posts')?.value||0,
+    profileVisits: document.getElementById('p-visits')?.value||0,
+    enquiries: document.getElementById('p-enquiries')?.value||0,
+    videoPercent: 0,
+    graphicPercent: 0,
+    storyPercent: 0,
+    note: document.getElementById('p-executiveSummary')?.value||'',
+    newFollowers: document.getElementById('p-newFollowers')?.value||0,
+    growthRate: document.getElementById('p-growthRate')?.value||0,
+    impressions: document.getElementById('p-impressions')?.value||0,
+    likes: document.getElementById('p-likes')?.value||0,
+    comments: document.getElementById('p-comments')?.value||0,
+    shares: document.getElementById('p-shares')?.value||0,
+    saves: document.getElementById('p-saves')?.value||0,
+    reelsPublished: document.getElementById('p-reelsPublished')?.value||0,
+    storiesPublished: document.getElementById('p-storiesPublished')?.value||0,
+    bestContent: document.getElementById('p-bestContent')?.value||'',
+    post1Reach: document.getElementById('p-post1Reach')?.value||0,
+    post1Engagement: document.getElementById('p-post1Engagement')?.value||0,
+    post1Why: p1why,
+    post2Reach: document.getElementById('p-post2Reach')?.value||0,
+    post2Engagement: document.getElementById('p-post2Engagement')?.value||0,
+    post2Why: p2why,
+    whatWorked1: document.getElementById('p-whatWorked1')?.value||'',
+    whatWorked2: document.getElementById('p-whatWorked2')?.value||'',
+    whatWorked3: document.getElementById('p-whatWorked3')?.value||'',
+    challenges1: document.getElementById('p-challenges1')?.value||'',
+    challenges2: document.getElementById('p-challenges2')?.value||'',
+    challenges3: document.getElementById('p-challenges3')?.value||'',
+    peakTime: document.getElementById('p-peakTime')?.value||'',
+    mostEngagedType: document.getElementById('p-mostEngagedType')?.value||'',
+    audienceInterests: document.getElementById('p-audienceInterests')?.value||'',
+    actionContent: document.getElementById('p-actionContent')?.checked||false,
+    actionCommunity: document.getElementById('p-actionCommunity')?.checked||false,
+    actionComments: document.getElementById('p-actionComments')?.checked||false,
+    actionDMs: document.getElementById('p-actionDMs')?.checked||false,
+    actionHashtags: document.getElementById('p-actionHashtags')?.checked||false,
+    actionMonitoring: document.getElementById('p-actionMonitoring')?.checked||false,
+    rec1: document.getElementById('p-rec1')?.value||'',
+    rec2: document.getElementById('p-rec2')?.value||'',
+    rec3: document.getElementById('p-rec3')?.value||'',
+    rec4: document.getElementById('p-rec4')?.value||'',
+    rec5: document.getElementById('p-rec5')?.value||'',
+    nextReach: document.getElementById('p-nextReach')?.value||0,
+    nextFollowers: document.getElementById('p-nextFollowers')?.value||0,
+    nextEngagement: document.getElementById('p-nextEngagement')?.value||0,
+    nextLeads: document.getElementById('p-nextLeads')?.value||0,
+    executiveSummary: document.getElementById('p-executiveSummary')?.value||'',
+    sendReport: isSend
+  };
 }
 
 // ── DELIVERABLES ─────────────────────────────────────────────
