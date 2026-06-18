@@ -2622,18 +2622,18 @@ function initPerfMonthDropdown(){
   const currentMonthName = allMonths[currentMonthIdx];
   const currentYear = now.getFullYear();
 
-  // Last day of this month — correct for all months including Feb
+  // Correct last day for every month including Feb
   const lastDayOfMonth = new Date(currentYear, currentMonthIdx + 1, 0).getDate();
 
   // Reminder starts 3 days before last day
-  // Feb=28 → day 25, Apr=30 → day 27, Mar=31 → day 28
+  // Feb(28)=day25, Apr(30)=day27, Mar(31)=day28, Jun(30)=day27
   const REMINDER_START_DAY = lastDayOfMonth - 3;
 
-  // Send button unlocks 2 days before last day
-  // Feb=28 → day 26, Apr=30 → day 28, Mar=31 → day 29
+  // Send unlocks 2 days before last day
+  // Feb(28)=day26, Apr(30)=day28, Mar(31)=day29, Jun(30)=day28
   const SEND_UNLOCK_DAY = lastDayOfMonth - 2;
 
-  // Build month dropdown — only current month enabled
+  // Build month dropdown — only current month selectable
   sel.innerHTML = allMonths.map((m, i) => {
     const isCurrent = i === currentMonthIdx;
     return `<option value="${m}" ${isCurrent ? '' : 'disabled'}
@@ -2643,36 +2643,27 @@ function initPerfMonthDropdown(){
 
   // --- REMINDER BANNER ---
   if(reminder){
-    const daysUntilSend = SEND_UNLOCK_DAY - currentDay;
-    const daysUntilLastDay = lastDayOfMonth - currentDay;
-
     if(currentDay >= REMINDER_START_DAY){
       reminder.style.display = 'block';
+      const daysUntilSend = SEND_UNLOCK_DAY - currentDay;
 
       if(currentDay >= SEND_UNLOCK_DAY){
-        // Send button is already unlocked
-        reminder.style.cssText += ';background:rgba(204,255,0,0.08);border-color:rgba(204,255,0,0.35);color:var(--lime);';
-        reminder.innerHTML = `
-          📊 <strong>Send button is now unlocked.</strong>
-          Fill in this client's ${currentMonthName} performance data and click
-          <strong>SEND REPORT TO CLIENT</strong> before the end of the month
-          (${currentMonthName} ${lastDayOfMonth}).`;
+        // Send is unlocked — try to load draft
+        reminder.style.cssText = 'display:block;background:rgba(204,255,0,0.08);border:1px solid rgba(204,255,0,0.35);border-radius:10px;padding:14px 18px;margin-bottom:16px;font-size:13px;color:var(--lime);font-weight:600;';
+        reminder.innerHTML = `📊 <strong>Send button is unlocked.</strong> Checking for saved draft...`;
+        // Load draft after showing banner
+        loadPerfDraft(currentMonthName, SEND_UNLOCK_DAY, lastDayOfMonth);
       } else {
-        // Still in preparation window
-        reminder.style.cssText += ';background:rgba(245,158,11,0.12);border-color:rgba(245,158,11,0.3);color:var(--amber);';
-        reminder.innerHTML = `
-          ⏰ <strong>Prepare now.</strong>
-          Start filling this client's ${currentMonthName} performance data.
-          The Send button unlocks in <strong>${daysUntilSend} day${daysUntilSend !== 1 ? 's' : ''}</strong>
-          (${currentMonthName} ${SEND_UNLOCK_DAY}).
-          Save Draft anytime to avoid losing data.`;
+        // Still preparing
+        reminder.style.cssText = 'display:block;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);border-radius:10px;padding:14px 18px;margin-bottom:16px;font-size:13px;color:var(--amber);font-weight:600;';
+        reminder.innerHTML = `⏰ <strong>Prepare now.</strong> Start filling this client's ${currentMonthName} performance data. Send button unlocks in <strong>${daysUntilSend} day${daysUntilSend !== 1 ? 's' : ''}</strong> (${currentMonthName} ${SEND_UNLOCK_DAY}). Save Draft anytime to keep your data safe.`;
       }
     } else {
       reminder.style.display = 'none';
     }
   }
 
-  // --- SEND BUTTON ---
+  // --- SEND BUTTON STATE ---
   const sendNote = document.getElementById('perf-send-note');
   if(sendBtn){
     if(currentDay < SEND_UNLOCK_DAY){
@@ -2691,6 +2682,139 @@ function initPerfMonthDropdown(){
       }
     }
   }
+}
+
+  async function loadPerfDraft(currentMonthName, SEND_UNLOCK_DAY, lastDayOfMonth){
+  const reminder = document.getElementById('perf-reminder-banner');
+  const sendNote = document.getElementById('perf-send-note');
+  if(!currentClient) return;
+
+  const result = await apiGet('getDraftPerformance', currentClient.Token);
+
+  if(!result || !result.draft){
+    // No draft found
+    if(reminder){
+      reminder.style.cssText = 'display:block;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);border-radius:10px;padding:14px 18px;margin-bottom:16px;font-size:13px;color:var(--amber);font-weight:600;';
+      reminder.innerHTML = `📊 <strong>Send button is unlocked.</strong> No saved draft found for ${currentMonthName}. Fill in all fields below and click Send Report.`;
+    }
+    return;
+  }
+
+  const d = result.draft;
+
+  // Helper to safely set input value
+  function setVal(id, val){
+    const el = document.getElementById(id);
+    if(el && val !== undefined && val !== null && val !== '') el.value = val;
+  }
+
+  // Helper to safely set checkbox
+  function setCheck(id, val){
+    const el = document.getElementById(id);
+    if(el) el.checked = (val === 'TRUE' || val === true || val === 'true');
+  }
+
+  // Section 01 — Audience Growth
+  setVal('p-followers', d.Followers);
+  setVal('p-newFollowers', d.NewFollowers);
+  setVal('p-growthRate', d.GrowthRate);
+
+  // Section 02 — Reach & Awareness
+  setVal('p-reach', d.Reach);
+  setVal('p-impressions', d.Impressions);
+  setVal('p-visits', d.ProfileVisits);
+
+  // Section 03 — Engagement
+  setVal('p-likes', d.Likes);
+  setVal('p-comments', d.Comments);
+  setVal('p-shares', d.Shares);
+  setVal('p-saves', d.Saves);
+  setVal('p-engagement', d.Engagement);
+
+  // Section 04 — Content Performance
+  setVal('p-posts', d.Posts);
+  setVal('p-reelsPublished', d.ReelsPublished);
+  setVal('p-storiesPublished', d.StoriesPublished);
+  setVal('p-bestContent', d.BestContent);
+
+  // Section 05 — Top Content
+  setVal('p-post1Reach', d.Post1Reach);
+  setVal('p-post1Engagement', d.Post1Engagement);
+  // Post1Why stored as bullet1||bullet2||bullet3
+  if(d.Post1Why){
+    const bullets = d.Post1Why.split('||');
+    setVal('p-post1Why1', bullets[0]||'');
+    setVal('p-post1Why2', bullets[1]||'');
+    setVal('p-post1Why3', bullets[2]||'');
+  }
+  setVal('p-post2Reach', d.Post2Reach);
+  setVal('p-post2Engagement', d.Post2Engagement);
+  if(d.Post2Why){
+    const bullets = d.Post2Why.split('||');
+    setVal('p-post2Why1', bullets[0]||'');
+    setVal('p-post2Why2', bullets[1]||'');
+    setVal('p-post2Why3', bullets[2]||'');
+  }
+
+  // Section 06 — Insights
+  setVal('p-whatWorked1', d.WhatWorked1);
+  setVal('p-whatWorked2', d.WhatWorked2);
+  setVal('p-whatWorked3', d.WhatWorked3);
+  setVal('p-challenges1', d.Challenges1);
+  setVal('p-challenges2', d.Challenges2);
+  setVal('p-challenges3', d.Challenges3);
+  setVal('p-peakTime', d.PeakTime);
+  setVal('p-mostEngagedType', d.MostEngagedType);
+  setVal('p-audienceInterests', d.AudienceInterests);
+
+  // Section 07 — Actions
+  setCheck('p-actionContent', d.ActionContent);
+  setCheck('p-actionCommunity', d.ActionCommunity);
+  setCheck('p-actionComments', d.ActionComments);
+  setCheck('p-actionDMs', d.ActionDMs);
+  setCheck('p-actionHashtags', d.ActionHashtags);
+  setCheck('p-actionMonitoring', d.ActionMonitoring);
+
+  // Section 08 — Recommendations
+  setVal('p-rec1', d.Rec1);
+  setVal('p-rec2', d.Rec2);
+  setVal('p-rec3', d.Rec3);
+  setVal('p-rec4', d.Rec4);
+  setVal('p-rec5', d.Rec5);
+
+  // Section 09 — Next Month Goals
+  setVal('p-nextReach', d.NextReach);
+  setVal('p-nextFollowers', d.NextFollowers);
+  setVal('p-nextEngagement', d.NextEngagement);
+  setVal('p-nextLeads', d.NextLeads);
+
+  // Section 10 — Executive Summary
+  setVal('p-executiveSummary', d.ExecutiveSummary);
+
+  // Also set platform tab if saved
+  if(d.Platform){
+    currentPerfPlatform = d.Platform;
+    document.querySelectorAll('.pptab').forEach(t => {
+      t.classList.toggle('active', t.textContent.trim().toLowerCase().includes(d.Platform.toLowerCase()));
+    });
+  }
+
+  // Update banner to confirm draft loaded
+  const savedAt = d.UpdatedAt ? new Date(d.UpdatedAt).toLocaleDateString('en-GB',{
+    day:'2-digit', month:'short', year:'numeric',
+    hour:'2-digit', minute:'2-digit'
+  }) : 'unknown time';
+
+  if(reminder){
+    reminder.style.cssText = 'display:block;background:rgba(204,255,0,0.08);border:1px solid rgba(204,255,0,0.35);border-radius:10px;padding:14px 18px;margin-bottom:16px;font-size:13px;color:var(--lime);font-weight:600;';
+    reminder.innerHTML = `✅ <strong>Draft auto-loaded</strong> from ${savedAt}. Review all sections below then click <strong>SEND REPORT TO CLIENT</strong>. Send button is unlocked.`;
+  }
+
+  if(sendNote){
+    sendNote.textContent = `✅ Draft loaded. Send is unlocked — report goes to client immediately on click.`;
+  }
+
+  toast('✅ Draft auto-loaded — review and send');
 }
 
 function generateExecSummary(){
@@ -2733,30 +2857,48 @@ async function savePerformance(btn){
 
 async function sendPerformanceReport(btn){
   if(!currentClient) return;
+
   const now = new Date();
   const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
   const SEND_UNLOCK_DAY = lastDayOfMonth - 2;
+
   if(now.getDate() < SEND_UNLOCK_DAY){
-    toast('Send unlocks on ' + now.toLocaleString('default',{month:'long'}) + ' ' + SEND_UNLOCK_DAY, 'error');
+    toast('Send Report unlocks on ' + now.toLocaleString('default',{month:'long'}) + ' ' + SEND_UNLOCK_DAY, 'error');
     return;
   }
+
   if(!confirm('Send this performance report to ' + currentClient.Name + '? They will receive an email and a portal notification.')){
     return;
   }
+
   btn.textContent = 'Sending...';
   btn.disabled = true;
+
   const body = buildPerfBody(true);
   const result = await apiPost('updatePerformance', body);
+
   if(result && result.status === 'saved'){
     btn.textContent = '✅ Report Sent!';
     btn.style.background = 'rgba(61,214,140,0.3)';
     btn.style.color = 'var(--green)';
-    setTimeout(()=>{ btn.textContent='SEND REPORT TO CLIENT'; btn.style.background=''; btn.disabled=false; }, 3000);
+    setTimeout(()=>{
+      btn.textContent = 'SEND REPORT TO CLIENT';
+      btn.style.background = '';
+      btn.style.color = '';
+      btn.disabled = false;
+    }, 3000);
     toast('✅ Report sent — client emailed and portal updated');
+
+    // Update banner after send
+    const reminder = document.getElementById('perf-reminder-banner');
+    if(reminder){
+      reminder.style.cssText = 'display:block;background:rgba(61,214,140,0.08);border:1px solid rgba(61,214,140,0.3);border-radius:10px;padding:14px 18px;margin-bottom:16px;font-size:13px;color:var(--green);font-weight:600;';
+      reminder.innerHTML = `🚀 <strong>Report sent successfully.</strong> Client has been emailed and their portal is updated. Nothing more to do this month.`;
+    }
   } else {
     btn.textContent = 'SEND REPORT TO CLIENT';
     btn.disabled = false;
-    toast('❌ Send failed','error');
+    toast('❌ Send failed — check your connection and try again', 'error');
   }
 }
 
