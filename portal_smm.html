@@ -2236,7 +2236,6 @@ function startSilentReportChecker(){
         const seenKey = 'ff_seen_report_'+(window.FF_TOKEN||urlToken).slice(-8);
         localStorage.setItem(seenKey, newSentAt);
       }
-      }
     }catch(e){}
   }, 60000); // Check every 60 seconds
 }
