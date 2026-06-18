@@ -2610,49 +2610,85 @@ function updatePeriodLabel(sel){ /* removed - monthly only */ }
 
 function initPerfMonthDropdown(){
   const sel = document.getElementById('p-period');
-  const note = document.getElementById('p-period-note');
   const sendBtn = document.getElementById('perf-send-btn');
   const reminder = document.getElementById('perf-reminder-banner');
   if(!sel) return;
 
-  const allMonths = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  const allMonths = ['January','February','March','April','May',
+    'June','July','August','September','October','November','December'];
   const now = new Date();
   const currentMonthIdx = now.getMonth();
   const currentDay = now.getDate();
   const currentMonthName = allMonths[currentMonthIdx];
+  const currentYear = now.getFullYear();
 
-  sel.innerHTML = allMonths.map((m,i)=>{
-    const isCurrentMonth = i === currentMonthIdx;
-    return `<option value="${m}" ${isCurrentMonth?'':'disabled'} style="${isCurrentMonth?'':'color:var(--t3);'}">${m}${isCurrentMonth?' (Current)':''}</option>`;
+  // Last day of this month — correct for all months including Feb
+  const lastDayOfMonth = new Date(currentYear, currentMonthIdx + 1, 0).getDate();
+
+  // Reminder starts 3 days before last day
+  // Feb=28 → day 25, Apr=30 → day 27, Mar=31 → day 28
+  const REMINDER_START_DAY = lastDayOfMonth - 3;
+
+  // Send button unlocks 2 days before last day
+  // Feb=28 → day 26, Apr=30 → day 28, Mar=31 → day 29
+  const SEND_UNLOCK_DAY = lastDayOfMonth - 2;
+
+  // Build month dropdown — only current month enabled
+  sel.innerHTML = allMonths.map((m, i) => {
+    const isCurrent = i === currentMonthIdx;
+    return `<option value="${m}" ${isCurrent ? '' : 'disabled'}
+      style="${isCurrent ? '' : 'color:var(--t3);'}">${m}${isCurrent ? ' (' + currentYear + ')' : ''}</option>`;
   }).join('');
   sel.value = currentMonthName;
 
-// Unlock day = last 2 days of THIS actual month — fixes Feb having no day 30
-  const daysInMonth = new Date(now.getFullYear(), currentMonthIdx+1, 0).getDate();
-  const unlockDay = daysInMonth - 1;
+  // --- REMINDER BANNER ---
+  if(reminder){
+    const daysUntilSend = SEND_UNLOCK_DAY - currentDay;
+    const daysUntilLastDay = lastDayOfMonth - currentDay;
 
-  if(currentDay >= unlockDay - 3 && reminder){
-    const daysUntilUnlock = Math.max(0, unlockDay - currentDay);
-    if(currentDay >= unlockDay){
+    if(currentDay >= REMINDER_START_DAY){
       reminder.style.display = 'block';
-      reminder.innerHTML = '📊 TODAY is the day — fill and send this client\'s performance report now.';
+
+      if(currentDay >= SEND_UNLOCK_DAY){
+        // Send button is already unlocked
+        reminder.style.cssText += ';background:rgba(204,255,0,0.08);border-color:rgba(204,255,0,0.35);color:var(--lime);';
+        reminder.innerHTML = `
+          📊 <strong>Send button is now unlocked.</strong>
+          Fill in this client's ${currentMonthName} performance data and click
+          <strong>SEND REPORT TO CLIENT</strong> before the end of the month
+          (${currentMonthName} ${lastDayOfMonth}).`;
+      } else {
+        // Still in preparation window
+        reminder.style.cssText += ';background:rgba(245,158,11,0.12);border-color:rgba(245,158,11,0.3);color:var(--amber);';
+        reminder.innerHTML = `
+          ⏰ <strong>Prepare now.</strong>
+          Start filling this client's ${currentMonthName} performance data.
+          The Send button unlocks in <strong>${daysUntilSend} day${daysUntilSend !== 1 ? 's' : ''}</strong>
+          (${currentMonthName} ${SEND_UNLOCK_DAY}).
+          Save Draft anytime to avoid losing data.`;
+      }
     } else {
-      reminder.style.display = 'block';
-      reminder.innerHTML = `⏰ Reminder: Performance reports are due in ${daysUntilUnlock} day${daysUntilUnlock!==1?'s':''}. Start filling the data now.`;
+      reminder.style.display = 'none';
     }
   }
 
+  // --- SEND BUTTON ---
+  const sendNote = document.getElementById('perf-send-note');
   if(sendBtn){
-    if(currentDay < unlockDay){
+    if(currentDay < SEND_UNLOCK_DAY){
       sendBtn.disabled = true;
       sendBtn.style.opacity = '0.4';
       sendBtn.style.cursor = 'not-allowed';
-      const note2 = document.getElementById('perf-send-note');
-      if(note2) note2.textContent = `Send Report unlocks in ${unlockDay-currentDay} day${unlockDay-currentDay!==1?'s':''}.`;
+      if(sendNote){
+        sendNote.textContent = `Send unlocks on ${currentMonthName} ${SEND_UNLOCK_DAY} — ${SEND_UNLOCK_DAY - currentDay} day${SEND_UNLOCK_DAY - currentDay !== 1 ? 's' : ''} away. Save Draft to keep your data.`;
+      }
     } else {
       sendBtn.disabled = false;
       sendBtn.style.opacity = '1';
       sendBtn.style.cursor = 'pointer';
+      if(sendNote){
+        sendNote.textContent = `✅ Send is unlocked. Report will be emailed to the client immediately.`;
+      }
     }
   }
 }
@@ -2697,19 +2733,20 @@ async function savePerformance(btn){
 
 async function sendPerformanceReport(btn){
   if(!currentClient) return;
-const now = new Date();
-  const daysInMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
-  const unlockDay = daysInMonth - 1;
-  if(now.getDate() < unlockDay){ toast('Send Report unlocks in '+(unlockDay-now.getDate())+' day(s)','error'); return; }
-
-  if(!confirm('Send this performance report to '+currentClient.Name+'? They will receive an email and a portal notification.')){ return; }
-
+  const now = new Date();
+  const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const SEND_UNLOCK_DAY = lastDayOfMonth - 2;
+  if(now.getDate() < SEND_UNLOCK_DAY){
+    toast('Send unlocks on ' + now.toLocaleString('default',{month:'long'}) + ' ' + SEND_UNLOCK_DAY, 'error');
+    return;
+  }
+  if(!confirm('Send this performance report to ' + currentClient.Name + '? They will receive an email and a portal notification.')){
+    return;
+  }
   btn.textContent = 'Sending...';
   btn.disabled = true;
-
   const body = buildPerfBody(true);
   const result = await apiPost('updatePerformance', body);
-
   if(result && result.status === 'saved'){
     btn.textContent = '✅ Report Sent!';
     btn.style.background = 'rgba(61,214,140,0.3)';
