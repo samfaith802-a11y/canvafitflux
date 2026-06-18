@@ -3413,7 +3413,7 @@ function openRenewal(){
   document.body.appendChild(popup);
   setTimeout(()=>{ if(popup.parentNode) popup.remove(); }, 10000);
 }
-}
+  
 async function sendDirectMessage(){
   const text = document.getElementById('notes-area').value.trim();
   if(!text){ document.getElementById('notes-area').focus(); return; }
