@@ -827,9 +827,8 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     <div id="submitted-list" style="display:flex;flex-wrap:wrap;gap:6px;min-height:24px;font-size:12px;color:var(--t3);">Loading...</div>
   </div>
 
-  <!-- LOGIN STATUS -->
+<!-- LOGIN STATUS -->
   <div style="margin-bottom:20px;">
-    <div style="font-size:9px;font-weight:700;color:var(--gold);letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px;">Login Status</div>
     <div id="login-status-section"></div>
   </div>
 
@@ -1234,8 +1233,30 @@ loadMilestones();
   initGrowthJourney();
   const saved = await apiGet('getNotes', activeToken);
   checkRenewalReminder();
-  loadSubmittedPlatforms();
+loadSubmittedPlatforms();
   showCredentialStatusPopup();
+  // Silent credential status watcher — triggers popup if admin updates while client is live
+  if(!window._credStatusWatcher){
+    let _lastCredHash = '';
+    window._credStatusWatcher = setInterval(async()=>{
+      if(document.visibilityState !== 'visible') return;
+      const data = await apiGet('getCredentials', window.FF_TOKEN || urlToken);
+      if(!data || !data.credentials) return;
+      const hash = data.credentials.map(c=>c.Platform+'|'+(c.LoginStatus||'')).join(',');
+      if(_lastCredHash && hash !== _lastCredHash){
+        // Something changed — show popup and refresh
+        const changed = data.credentials.filter((c,i)=>{
+          const old = (_lastCredHash.split(',')[i]||'').split('|');
+          return old[1] !== (c.LoginStatus||'');
+        });
+        if(changed.length){
+          showLoginStatusLivePopup(changed);
+          loadSubmittedPlatforms();
+        }
+      }
+      _lastCredHash = hash;
+    }, 8000);
+  }
 // Silent refresh when client returns to browser tab
 document.addEventListener('visibilitychange', async ()=>{
   if(document.visibilityState === 'visible'){
@@ -3097,11 +3118,13 @@ async function submitCredentials(){
     const timestamp = new Date().toLocaleString('en-GB');
     await sendTelegram('🔒 SECURE CREDENTIALS RECEIVED\n\nClient: '+(CLIENT.name||'—')+'\nPlatform: '+platform+'\nTime: '+timestamp+'\n\n[ENCRYPTED PAYLOAD]\nIV: '+ivB64+'\nData: '+encryptedB64);
     await apiPost('saveCredentials',{token:window.FF_TOKEN||urlToken, platform, encryptedData:encryptedB64, iv:ivB64, timestamp});
-    status.style.color='var(--green)'; status.textContent='✅ Received securely at '+timestamp+'. Only your FitFlux team can decrypt this.';
+   status.style.color='var(--green)'; status.textContent='✅ Received securely at '+timestamp+'. Only your FitFlux team can decrypt this.';
     document.getElementById('cred-platform').value='';
     document.getElementById('cred-username').value='';
     document.getElementById('cred-password').value='';
     document.getElementById('cred-notes').value='';
+    // Immediately update submitted list and show pending status — no reload needed
+    await loadSubmittedPlatforms();
   } catch(e){
     status.style.color='var(--red)'; status.textContent='Something went wrong. Please try again.';
   }
@@ -3438,41 +3461,137 @@ async function sendDirectMessage(){
   status.style.color='var(--green)'; status.textContent='✅ Message sent! We\'ll respond within 24 hours.';
   document.getElementById('notes-area').value='';
 }
-  async function loadSubmittedPlatforms(){
+async function loadSubmittedPlatforms(){
   const data = await apiGet('getCredentials', window.FF_TOKEN || urlToken);
   const el = document.getElementById('submitted-list');
   if(!el) return;
+
   if(!data || !data.credentials || !data.credentials.length){
-    el.textContent = 'No accounts submitted yet.';
+    el.innerHTML = '<span style="font-size:12px;color:var(--t3);">No accounts submitted yet.</span>';
+    const statusEl = document.getElementById('login-status-section');
+    if(statusEl) statusEl.innerHTML = '';
     return;
   }
+
+  // Update submitted platforms chips
   el.innerHTML = data.credentials.map(c=>
     `<span style="display:inline-flex;align-items:center;gap:5px;background:rgba(61,214,140,0.1);border:1px solid rgba(61,214,140,0.2);border-radius:20px;padding:3px 10px;margin:3px;font-size:11px;color:var(--green);">✓ ${c.Platform}</span>`
   ).join('');
-    
-const statusEl = document.getElementById('login-status-section');
-if(statusEl && data.credentials){
+
+  // Build login status section as collapsible dropdown
+  const statusEl = document.getElementById('login-status-section');
+  if(!statusEl) return;
+
   const statusItems = data.credentials.filter(c => c.LoginStatus && c.LoginStatus !== '');
-  if(statusItems.length){
-    statusEl.innerHTML = '<div style="font-size:10px;font-weight:700;color:var(--gold);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;">Login Status</div>'
-    + statusItems.map(c=>{
+  const pendingItems = data.credentials.filter(c => !c.LoginStatus || c.LoginStatus === '');
+
+  // Count statuses for summary pill
+  const failCount = statusItems.filter(c=>c.LoginStatus==='failed').length;
+  const reloginCount = statusItems.filter(c=>c.LoginStatus==='relogin').length;
+  const okCount = statusItems.filter(c=>c.LoginStatus==='confirmed').length;
+  const pendingCount = pendingItems.length;
+
+  const summaryColor = failCount > 0 ? 'var(--red)' : reloginCount > 0 ? 'var(--amber)' : okCount > 0 ? 'var(--green)' : 'var(--t3)';
+  const summaryEmoji = failCount > 0 ? '🔴' : reloginCount > 0 ? '🔄' : okCount > 0 ? '🟢' : '🟡';
+  const summaryText = failCount > 0 ? `${failCount} Failed` : reloginCount > 0 ? `${reloginCount} Relogin Needed` : okCount > 0 ? `${okCount} Confirmed` : `${pendingCount} Awaiting`;
+
+  const allItems = [
+    ...statusItems.map(c => {
       const confirmed = c.LoginStatus === 'confirmed';
       const failed = c.LoginStatus === 'failed';
-      const color = confirmed ? 'var(--green)' : 'var(--red)';
-      const emoji = confirmed ? '🟢' : '🔴';
-      const label = confirmed ? 'Login Successful' : 'Login Attempt Failed — please review and submit updated login credentials';
-      const bg = confirmed ? 'rgba(61,214,140,0.08)' : 'rgba(255,85,85,0.08)';
-      const border = confirmed ? 'rgba(61,214,140,0.2)' : 'rgba(255,85,85,0.2)';
-      const btn = failed ? `<button onclick="scrollToSection('credentials')" style="display:block;margin-top:8px;background:rgba(255,85,85,0.15);border:1px solid rgba(255,85,85,0.3);color:var(--red);font-family:var(--fb);font-size:11px;font-weight:700;padding:7px 14px;border-radius:7px;cursor:pointer;">🔴 Send Updated Login Credentials</button>` : '';
-      return `<div style="padding:8px 12px;background:${bg};border:1px solid ${border};border-radius:8px;margin-bottom:6px;font-size:12px;color:${color};">
-        ${emoji} <strong>${c.Platform}</strong> — ${label}${btn}
+      const relogin = c.LoginStatus === 'relogin';
+      const color = confirmed ? 'var(--green)' : relogin ? 'var(--amber)' : 'var(--red)';
+      const emoji = confirmed ? '🟢' : relogin ? '🔄' : '🔴';
+      const bg = confirmed ? 'rgba(61,214,140,0.08)' : relogin ? 'rgba(245,158,11,0.08)' : 'rgba(255,85,85,0.08)';
+      const border = confirmed ? 'rgba(61,214,140,0.2)' : relogin ? 'rgba(245,158,11,0.2)' : 'rgba(255,85,85,0.2)';
+      const label = confirmed ? 'Login Successful' : relogin ? 'Relogin Requested — please submit new credentials below' : 'Login Attempt Failed — please submit updated credentials';
+      const btn = (failed || relogin) ? `<button onclick="scrollToSection('credentials')" style="display:inline-block;margin-top:6px;background:rgba(255,85,85,0.15);border:1px solid rgba(255,85,85,0.3);color:var(--red);font-family:var(--fb);font-size:11px;font-weight:700;padding:6px 12px;border-radius:7px;cursor:pointer;">🔴 Submit Updated Credentials</button>` : '';
+      return `<div style="padding:10px 14px;background:${bg};border:1px solid ${border};border-radius:9px;margin-bottom:6px;font-size:12px;color:${color};">
+        ${emoji} <strong>${c.Platform}</strong> — ${label}${btn?`<div>${btn}</div>`:''}
       </div>`;
-    }).join('');
-  } else {
-    statusEl.innerHTML = '<div style="padding:8px 12px;background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.2);border-radius:8px;font-size:12px;color:var(--amber);">🟡 Awaiting Login Attempt — your FitFlux team will review shortly</div>';
-  }
-  }
+    }),
+    ...pendingItems.map(c => `<div style="padding:10px 14px;background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.15);border-radius:9px;margin-bottom:6px;font-size:12px;color:var(--amber);">
+      🟡 <strong>${c.Platform}</strong> — Awaiting Login Attempt
+    </div>`)
+  ];
+
+  statusEl.innerHTML = `
+    <div style="border:1px solid var(--bdr);border-radius:10px;overflow:hidden;">
+      <div onclick="toggleLoginStatusDropdown()" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--card);cursor:pointer;user-select:none;">
+        <span style="font-size:9px;font-weight:700;color:var(--gold);letter-spacing:.14em;text-transform:uppercase;">Login Status</span>
+        <span style="font-size:12px;font-weight:700;color:${summaryColor};margin-left:4px;">${summaryEmoji} ${summaryText}</span>
+        <span id="login-status-arrow" style="margin-left:auto;font-size:10px;color:var(--t3);">▼</span>
+      </div>
+      <div id="login-status-body" style="display:none;padding:10px 14px;background:var(--card2);">
+        ${allItems.join('')}
+      </div>
+    </div>`;
 }
+
+function toggleLoginStatusDropdown(){
+  const body = document.getElementById('login-status-body');
+  const arrow = document.getElementById('login-status-arrow');
+  if(!body) return;
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  if(arrow) arrow.textContent = isOpen ? '▼' : '▲';
+}
+
+  function showLoginStatusLivePopup(changedCreds){
+  const existing = document.getElementById('cred-live-popup');
+  if(existing) existing.remove();
+
+  const hasFailure = changedCreds.some(c=>c.LoginStatus==='failed');
+  const hasRelogin = changedCreds.some(c=>c.LoginStatus==='relogin');
+  const hasSuccess = changedCreds.some(c=>c.LoginStatus==='confirmed');
+
+  const icon = hasFailure ? '🔴' : hasRelogin ? '🔄' : '🟢';
+  const color = hasFailure ? 'rgba(255,77,77,0.35)' : hasRelogin ? 'rgba(245,158,11,0.35)' : 'rgba(61,214,140,0.35)';
+  const titleColor = hasFailure ? 'var(--red)' : hasRelogin ? 'var(--amber)' : 'var(--green)';
+  const title = hasFailure ? 'Login Attempt Failed' : hasRelogin ? 'Relogin Requested' : 'Login Successful';
+  const subtitle = hasFailure
+    ? 'FitFlux could not access your account. Tap to submit updated credentials.'
+    : hasRelogin
+    ? 'FitFlux needs you to resubmit credentials. Tap to go there now.'
+    : 'FitFlux successfully accessed your account.';
+
+  const popup = document.createElement('div');
+  popup.id = 'cred-live-popup';
+  popup.style.cssText = `position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);z-index:99999;max-width:380px;width:calc(100% - 40px);background:#0d1f0a;border:1.5px solid ${color};border-radius:16px;padding:18px 20px;box-shadow:0 8px 40px rgba(0,0,0,0.6);opacity:0;transition:all .35s ease;cursor:pointer;`;
+  popup.innerHTML = `
+    <div style="display:flex;align-items:flex-start;gap:12px;">
+      <div style="font-size:26px;flex-shrink:0;">${icon}</div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:700;color:${titleColor};margin-bottom:4px;">${title}</div>
+        ${changedCreds.map(c=>`<div style="font-size:11px;color:var(--t3);margin-bottom:2px;">• ${c.Platform}</div>`).join('')}
+        <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:6px;line-height:1.5;">${subtitle}</div>
+      </div>
+      <button onclick="event.stopPropagation();document.getElementById('cred-live-popup').remove()" style="background:none;border:none;color:rgba(255,255,255,0.3);font-size:18px;cursor:pointer;padding:0;flex-shrink:0;line-height:1;">×</button>
+    </div>`;
+
+  popup.onclick = function(){
+    scrollToSection('credentials');
+    // Open the dropdown
+    const body = document.getElementById('login-status-body');
+    const arrow = document.getElementById('login-status-arrow');
+    if(body){ body.style.display='block'; if(arrow) arrow.textContent='▲'; }
+    popup.remove();
+  };
+
+  document.body.appendChild(popup);
+
+  // Animate in
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      popup.style.transform = 'translateX(-50%) translateY(0)';
+      popup.style.opacity = '1';
+    });
+  });
+
+  // Auto dismiss after 12 seconds
+  setTimeout(()=>{ if(popup.parentNode){ popup.style.opacity='0'; popup.style.transform='translateX(-50%) translateY(80px)'; setTimeout(()=>popup.remove(),400); } }, 12000);
+}
+  
 async function sendDelivChat(id, name){
   const input = document.getElementById('chat-input-'+id);
   const text = input ? input.value.trim() : '';
