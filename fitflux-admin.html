@@ -1244,9 +1244,129 @@ function clientRevenue(c){
   const tier = (c.Tier||'').toLowerCase().replace(/[\s\/]/g,'');
   return TIER_PRICE[tier] || 0;
 }
+function checkPerformanceReminder(){
+  // Remove any existing banner first
+  const existing = document.getElementById('perf-reminder-dashboard');
+  if(existing) existing.remove();
 
+  const now = new Date();
+  const currentDay = now.getDate();
+  const currentMonthIdx = now.getMonth();
+  const currentYear = now.getFullYear();
+  const currentMonthName = ['January','February','March','April','May','June',
+    'July','August','September','October','November','December'][currentMonthIdx];
+  const lastDayOfMonth = new Date(currentYear, currentMonthIdx + 1, 0).getDate();
+  const REMINDER_START_DAY = lastDayOfMonth - 3;
+  const SEND_UNLOCK_DAY = lastDayOfMonth - 2;
+
+  // Only show if we are in reminder window
+  if(currentDay < REMINDER_START_DAY) return;
+
+  const daysUntilSend = SEND_UNLOCK_DAY - currentDay;
+  const isSendUnlocked = currentDay >= SEND_UNLOCK_DAY;
+
+  // Count active clients
+  const activeClients = allClients.filter(c => (c.Status||'Active') === 'Active');
+  const totalClients = activeClients.length;
+  if(totalClients === 0) return;
+
+  // Build banner
+  const banner = document.createElement('div');
+  banner.id = 'perf-reminder-dashboard';
+
+  if(isSendUnlocked){
+    banner.style.cssText = `
+      background:rgba(204,255,0,0.08);
+      border:1px solid rgba(204,255,0,0.4);
+      border-left:4px solid var(--lime);
+      border-radius:12px;
+      padding:16px 22px;
+      margin-bottom:24px;
+      display:flex;
+      align-items:center;
+      gap:16px;
+      flex-wrap:wrap;
+    `;
+    banner.innerHTML = `
+      <div style="font-size:24px;flex-shrink:0;">📊</div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:700;color:var(--lime);margin-bottom:4px;">
+          SEND PERFORMANCE REPORTS NOW — ${currentMonthName} ${currentYear}
+        </div>
+        <div style="font-size:12px;color:var(--t2);line-height:1.7;">
+          You have <strong style="color:var(--lime);">${totalClients} active client${totalClients !== 1 ? 's' : ''}</strong> who need their ${currentMonthName} performance report sent today.
+          Send button is now unlocked. Open each client → Performance tab → Send Report.
+        </div>
+      </div>
+      <button onclick="goToFirstClientPerformance()" style="
+        background:var(--lime);
+        color:#080c08;
+        border:none;
+        border-radius:8px;
+        padding:10px 20px;
+        font-family:var(--fb);
+        font-size:12px;
+        font-weight:700;
+        cursor:pointer;
+        white-space:nowrap;
+        flex-shrink:0;
+      ">Start Sending Reports →</button>
+    `;
+  } else {
+    banner.style.cssText = `
+      background:rgba(245,158,11,0.08);
+      border:1px solid rgba(245,158,11,0.3);
+      border-left:4px solid var(--amber);
+      border-radius:12px;
+      padding:16px 22px;
+      margin-bottom:24px;
+      display:flex;
+      align-items:center;
+      gap:16px;
+      flex-wrap:wrap;
+    `;
+    banner.innerHTML = `
+      <div style="font-size:24px;flex-shrink:0;">⏰</div>
+      <div style="flex:1;">
+        <div style="font-size:13px;font-weight:700;color:var(--amber);margin-bottom:4px;">
+          PREPARE PERFORMANCE REPORTS — ${currentMonthName} ${currentYear}
+        </div>
+        <div style="font-size:12px;color:var(--t2);line-height:1.7;">
+          You have <strong style="color:var(--amber);">${totalClients} active client${totalClients !== 1 ? 's' : ''}</strong> who need their ${currentMonthName} performance report filled.
+          Send button unlocks in <strong style="color:var(--amber);">${daysUntilSend} day${daysUntilSend !== 1 ? 's' : ''}</strong> (${currentMonthName} ${SEND_UNLOCK_DAY}).
+          Open each client now and start filling data. Save Draft to avoid losing work.
+        </div>
+      </div>
+      <button onclick="goToFirstClientPerformance()" style="
+        background:rgba(245,158,11,0.15);
+        border:1px solid rgba(245,158,11,0.4);
+        color:var(--amber);
+        border-radius:8px;
+        padding:10px 20px;
+        font-family:var(--fb);
+        font-size:12px;
+        font-weight:700;
+        cursor:pointer;
+        white-space:nowrap;
+        flex-shrink:0;
+      ">Start Filling Reports →</button>
+    `;
+  }
+
+  // Insert at very top of dashboard page before everything else
+  const dashPage = document.getElementById('page-dashboard');
+  if(dashPage) dashPage.insertBefore(banner, dashPage.firstChild);
+}
+
+function goToFirstClientPerformance(){
+  // Navigate to All Clients so admin can pick which client to start with
+  showPage('all-clients', document.querySelector('.nav-item:nth-child(3)'));
+  // Show a toast guiding them
+  toast('Open any client → click Performance tab → fill and send');
+}
 // ── LOAD DASHBOARD ──────────────────────────────────────────
 async function loadDashboard(){
+  checkPerformanceReminder();
   const data = await apiGet('getAllClients');
   if(!data || !data.clients){ allClients = []; return; }
   allClients = data.clients.filter(c=>c.Token&&c.Name);
