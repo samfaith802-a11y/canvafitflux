@@ -2047,11 +2047,18 @@ async function loadPerformance(){
     return;
   }
 
-  const r = data.report;
+const r = data.report;
   window._latestReport = r;
   window._lastReportSentAt = r.ReportSentAt || '';
   renderFullReport(r);
   startSilentReportChecker();
+
+  const seenKey = 'ff_seen_report_'+(window.FF_TOKEN||urlToken).slice(-8);
+  const lastSeen = localStorage.getItem(seenKey);
+  if(r.ReportSentAt && r.ReportSentAt !== lastSeen){
+    localStorage.setItem(seenKey, r.ReportSentAt);
+    showReportPopup(r);
+  }
 }
 
 function renderFullReport(r){
@@ -2221,11 +2228,14 @@ function startSilentReportChecker(){
       const data = await apiGet('getLatestPerformanceReport', window.FF_TOKEN || urlToken);
       if(!data || !data.report) return;
       const newSentAt = data.report.ReportSentAt || '';
-      if(newSentAt && newSentAt !== window._lastReportSentAt){
+   if(newSentAt && newSentAt !== window._lastReportSentAt){
         window._lastReportSentAt = newSentAt;
         window._latestReport = data.report;
         showReportPopup(data.report);
         renderFullReport(data.report);
+        const seenKey = 'ff_seen_report_'+(window.FF_TOKEN||urlToken).slice(-8);
+        localStorage.setItem(seenKey, newSentAt);
+      }
       }
     }catch(e){}
   }, 60000); // Check every 60 seconds
