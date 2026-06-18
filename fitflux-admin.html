@@ -4072,8 +4072,8 @@ el.innerHTML = `
       ? '<span style="color:var(--red);">❌ Login Failed — client notified</span>'
       : '<span style="color:var(--t3);">⚪ Login not yet tested</span>'}
   </div>
-  <button onclick="markLoginStatus(${idx},'confirmed')" style="background:rgba(61,214,140,0.1);border:1px solid rgba(61,214,140,0.25);color:var(--green);border-radius:6px;padding:6px 14px;font-family:var(--fb);font-size:11px;font-weight:700;cursor:pointer;">✅ Login Works</button>
-  <button onclick="markLoginStatus(${idx},'failed')" style="background:rgba(255,77,77,0.1);border:1px solid rgba(255,77,77,0.2);color:var(--red);border-radius:6px;padding:6px 14px;font-family:var(--fb);font-size:11px;font-weight:700;cursor:pointer;">❌ Login Failed</button>
+<button onclick="markLoginStatus(${idx},'failed')" style="background:rgba(255,77,77,0.1);border:1px solid rgba(255,77,77,0.2);color:var(--red);border-radius:6px;padding:6px 14px;font-family:var(--fb);font-size:11px;font-weight:700;cursor:pointer;">❌ Login Failed</button>
+<button onclick="markLoginStatus(${idx},'relogin')" style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);color:var(--amber);border-radius:6px;padding:6px 14px;font-family:var(--fb);font-size:11px;font-weight:700;cursor:pointer;">🔄 Request Relogin</button>
 </div>
   </div>`).join('')}`;
 
@@ -4120,17 +4120,25 @@ async function markLoginStatus(idx, status){
   });
 
   const statusDiv = document.getElementById('login-status-'+idx);
+if(status === 'relogin'){
+    const subject = `🔄 Action Required — Please resubmit your ${c.Platform} credentials`;
+    const message = `Hi ${(currentClient.Name||'there').split(' ')[0]},\n\nWe need you to resubmit your ${c.Platform} login credentials as we are no longer able to access your account.\n\nPlease go to your portal → Secure Login Credentials and submit updated details.\n\nFitFlux Team`;
+    await apiPost('sendLoginStatusEmail',{
+      token: currentClient.Token,
+      email: currentClient.Email,
+      name: currentClient.Name,
+      platform: c.Platform,
+      subject,
+      message
+    });
+    await apiPost('updateCredentialLoginStatus',{token:currentClient.Token, platform:c.Platform, loginStatus:'relogin'});
+    if(statusDiv) statusDiv.innerHTML = '<span style="color:var(--amber);">🔄 Relogin Requested — client notified</span>';
+    toast('🔄 Relogin request sent to '+currentClient.Email);
+    window._currentCredentials[idx].LoginStatus = 'relogin';
+    return;
+  }
   if(status === 'confirmed'){
     if(statusDiv) statusDiv.innerHTML = '<span style="color:var(--green);">🟢 Login Successful</span>';
-    if(confirmBtn){ confirmBtn.textContent = '🟢 Login Successful'; confirmBtn.style.opacity='1'; confirmBtn.disabled=true; }
-    if(failBtn){ failBtn.textContent = '❌ Login Failed'; failBtn.style.opacity='1'; failBtn.disabled=false; }
-  } else {
-    if(statusDiv) statusDiv.innerHTML = '<span style="color:var(--red);">🔴 Login Attempt Failed — client asked to resubmit</span>';
-    if(failBtn){ failBtn.textContent = '🔴 Login Failed'; failBtn.style.opacity='1'; failBtn.disabled=true; }
-    if(confirmBtn){ confirmBtn.textContent = '✅ Login Works'; confirmBtn.style.opacity='1'; confirmBtn.disabled=false; }
-  }
-
-  if(emailResult && emailResult.status==='sent'){
     toast('✅ Status updated — email sent to '+currentClient.Email);
   } else {
     toast('⚠️ Status saved but email failed to send','error');
