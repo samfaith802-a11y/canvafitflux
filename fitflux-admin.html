@@ -4072,9 +4072,9 @@ el.innerHTML = `
       ? '<span style="color:var(--red);">❌ Login Failed — client notified</span>'
       : '<span style="color:var(--t3);">⚪ Login not yet tested</span>'}
   </div>
+<button onclick="markLoginStatus(${idx},'confirmed')" style="background:rgba(61,214,140,0.1);border:1px solid rgba(61,214,140,0.25);color:var(--green);border-radius:6px;padding:6px 14px;font-family:var(--fb);font-size:11px;font-weight:700;cursor:pointer;">✅ Login Works</button>
 <button onclick="markLoginStatus(${idx},'failed')" style="background:rgba(255,77,77,0.1);border:1px solid rgba(255,77,77,0.2);color:var(--red);border-radius:6px;padding:6px 14px;font-family:var(--fb);font-size:11px;font-weight:700;cursor:pointer;">❌ Login Failed</button>
 <button onclick="markLoginStatus(${idx},'relogin')" style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);color:var(--amber);border-radius:6px;padding:6px 14px;font-family:var(--fb);font-size:11px;font-weight:700;cursor:pointer;">🔄 Request Relogin</button>
-</div>
   </div>`).join('')}`;
 
 // Store credentials data for decryption
@@ -4085,30 +4085,45 @@ async function markLoginStatus(idx, status){
   if(!creds || !creds[idx]) return;
   const c = creds[idx];
 
-  const confirmBtn = document.querySelector(`button[onclick="markLoginStatus(${idx},'confirmed')"]`);
-  const failBtn = document.querySelector(`button[onclick="markLoginStatus(${idx},'failed')"]`);
-  const activeBtn = status === 'confirmed' ? confirmBtn : failBtn;
-
-  if(activeBtn){
-    activeBtn.textContent = '⏳ Sending...';
-    activeBtn.style.opacity = '0.7';
-    activeBtn.disabled = true;
-  }
-
-  const result = await apiPost('updateCredentialLoginStatus',{
-    token: currentClient.Token,
-    platform: c.Platform,
-    loginStatus: status
-  });
+  // Button feedback
+  const allBtns = document.querySelectorAll(`button[onclick*="markLoginStatus(${idx},"]`);
+  allBtns.forEach(b=>{ b.style.opacity='0.5'; b.disabled=true; });
+  const activeBtn = document.querySelector(`button[onclick="markLoginStatus(${idx},'${status}')"]`);
+  if(activeBtn){ activeBtn.textContent='⏳ Sending...'; }
 
   const clientFirstName = (currentClient.Name||'there').split(' ')[0];
-  const subject = status === 'confirmed'
-    ? `✅ Your ${c.Platform} login was successful — FitFlux`
-    : `🔴 Action needed — your ${c.Platform} login failed`;
 
+  // Handle relogin separately
+  if(status === 'relogin'){
+    const subject = `Action Required — Please resubmit your ${c.Platform} credentials`;
+    const message = `Hi ${clientFirstName},\n\nWe need you to resubmit your ${c.Platform} login credentials as we are no longer able to access your account.\n\nPlease go to your portal, open Secure Login Credentials, and submit updated details.\n\nFitFlux Team`;
+    await apiPost('updateCredentialLoginStatus',{token:currentClient.Token, platform:c.Platform, loginStatus:'relogin'});
+    await apiPost('sendLoginStatusEmail',{
+      token: currentClient.Token,
+      email: currentClient.Email,
+      name: currentClient.Name,
+      platform: c.Platform,
+      subject,
+      message
+    });
+    const statusDiv = document.getElementById('login-status-'+idx);
+    if(statusDiv) statusDiv.innerHTML = '<span style="color:var(--amber);">🔄 Relogin Requested — client notified</span>';
+    allBtns.forEach(b=>{ b.style.opacity='1'; b.disabled=false; });
+    if(activeBtn) activeBtn.textContent='🔄 Request Relogin';
+    toast('🔄 Relogin request sent to '+currentClient.Email);
+    window._currentCredentials[idx].LoginStatus = 'relogin';
+    return;
+  }
+
+  // confirmed or failed
+  await apiPost('updateCredentialLoginStatus',{token:currentClient.Token, platform:c.Platform, loginStatus:status});
+
+  const subject = status === 'confirmed'
+    ? `Your ${c.Platform} login was successful — FitFlux`
+    : `Action needed — your ${c.Platform} login failed`;
   const message = status === 'confirmed'
     ? `Hi ${clientFirstName},\n\nGood news — we successfully logged into your ${c.Platform} account. Your content is now being managed.\n\nFitFlux Team`
-    : `Hi ${clientFirstName},\n\nWe could not access your ${c.Platform} account using the submitted credentials.\n\nPlease go to your portal -> Secure Login Details and resubmit your updated login credentials for ${c.Platform}.\n\nFitFlux Team`;
+    : `Hi ${clientFirstName},\n\nWe could not access your ${c.Platform} account using the submitted credentials.\n\nPlease go to your portal, open Secure Login Credentials, and resubmit your updated ${c.Platform} login details.\n\nFitFlux Team`;
 
   const emailResult = await apiPost('sendLoginStatusEmail',{
     token: currentClient.Token,
@@ -4120,30 +4135,20 @@ async function markLoginStatus(idx, status){
   });
 
   const statusDiv = document.getElementById('login-status-'+idx);
-if(status === 'relogin'){
-    const subject = `🔄 Action Required — Please resubmit your ${c.Platform} credentials`;
-    const message = `Hi ${(currentClient.Name||'there').split(' ')[0]},\n\nWe need you to resubmit your ${c.Platform} login credentials as we are no longer able to access your account.\n\nPlease go to your portal → Secure Login Credentials and submit updated details.\n\nFitFlux Team`;
-    await apiPost('sendLoginStatusEmail',{
-      token: currentClient.Token,
-      email: currentClient.Email,
-      name: currentClient.Name,
-      platform: c.Platform,
-      subject,
-      message
-    });
-    await apiPost('updateCredentialLoginStatus',{token:currentClient.Token, platform:c.Platform, loginStatus:'relogin'});
-    if(statusDiv) statusDiv.innerHTML = '<span style="color:var(--amber);">🔄 Relogin Requested — client notified</span>';
-    toast('🔄 Relogin request sent to '+currentClient.Email);
-    window._currentCredentials[idx].LoginStatus = 'relogin';
-    return;
-  }
   if(status === 'confirmed'){
-    if(statusDiv) statusDiv.innerHTML = '<span style="color:var(--green);">🟢 Login Successful</span>';
-    toast('✅ Status updated — email sent to '+currentClient.Email);
+    if(statusDiv) statusDiv.innerHTML = '<span style="color:var(--green);">🟢 Login Confirmed — client notified</span>';
+    toast('✅ Status saved — email sent to '+currentClient.Email);
   } else {
-    toast('⚠️ Status saved but email failed to send','error');
+    if(statusDiv) statusDiv.innerHTML = '<span style="color:var(--red);">🔴 Login Failed — client asked to resubmit</span>';
+    if(emailResult && emailResult.status==='sent'){
+      toast('📧 Login failed status sent to client');
+    } else {
+      toast('⚠️ Status saved — but email failed. Check Apps Script logs','error');
+    }
   }
 
+  allBtns.forEach(b=>{ b.style.opacity='1'; b.disabled=false; });
+  if(activeBtn) activeBtn.textContent = status==='confirmed' ? '✅ Login Works' : status==='failed' ? '❌ Login Failed' : '🔄 Request Relogin';
   window._currentCredentials[idx].LoginStatus = status;
 }
 async function sendCredentialReminder(){
