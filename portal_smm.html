@@ -814,26 +814,26 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
         <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px;">
           <div style="font-size:28px;">🔒</div>
           <div>
-            <div id="submitted-platforms" style="margin-bottom:16px;padding:12px 14px;background:rgba(204,255,0,0.04);border:1px solid rgba(204,255,0,0.12);border-radius:10px;">
-  <div style="font-size:10px;font-weight:700;color:var(--gold);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;">Accounts Already Submitted</div>
-  <div id="submitted-list" style="font-size:12px;color:var(--t3);">Loading...</div>
+       <!-- SUBMITTED ACCOUNTS -->
+<div style="margin-bottom:14px;">
+  <div style="font-size:10px;font-weight:700;color:var(--gold);letter-spacing:.12em;text-transform:uppercase;margin-bottom:8px;">✓ Accounts Submitted</div>
+  <div id="submitted-list" style="display:flex;flex-wrap:wrap;gap:6px;min-height:24px;font-size:12px;color:var(--t3);">Loading...</div>
 </div>
-<div id="login-status-section" style="margin-top:12px;"></div>
-            <div style="font-size:13px;font-weight:700;color:var(--t1);margin-bottom:4px;">256-bit Encrypted · FitFlux Eyes Only</div>
-            <div style="font-size:12px;color:var(--t3);line-height:1.6;">Your login details are encrypted on your device before they leave. Only your FitFlux team holds the decryption key. We never store plain-text passwords. This channel is more secure than email.</div>
-          </div>
-        </div>
-        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
-          <input class="d-input" id="cred-platform" placeholder="Platform (e.g. Instagram, Facebook)"/>
-          <input class="d-input" id="cred-username" placeholder="Username or Email"/>
-          <input class="d-input" id="cred-password" type="password" placeholder="Password"/>
-          <input class="d-input" id="cred-notes" placeholder="Notes (optional)"/>
-        </div>
-        <button onclick="submitCredentials()" style="width:100%;background:var(--purple);border:none;color:#0a1a00;font-family:var(--fb);font-size:13px;font-weight:700;padding:12px;border-radius:8px;cursor:pointer;transition:opacity .2s;">🔒 Send Securely to FitFlux</button>
-        <div id="cred-status" style="display:none;margin-top:10px;font-size:12px;text-align:center;"></div>
-      </div>
-    </div>
-    <div class="dvd"></div>
+
+<!-- LOGIN STATUS -->
+<div id="login-status-section" style="margin-bottom:16px;"></div>
+
+<!-- SECURITY BADGE -->
+<div style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:rgba(61,214,140,0.05);border:1px solid rgba(61,214,140,0.15);border-radius:10px;margin-bottom:20px;">
+  <span style="font-size:20px;flex-shrink:0;">🔒</span>
+  <div>
+    <div style="font-size:12px;font-weight:700;color:var(--t1);">256-bit Encrypted · FitFlux Eyes Only</div>
+    <div style="font-size:11px;color:var(--t3);margin-top:2px;line-height:1.5;">Encrypted on your device before sending. We never store plain-text passwords.</div>
+  </div>
+</div>
+
+<!-- SUBMIT NEW CREDENTIALS LABEL -->
+<div style="font-size:10px;font-weight:700;color:var(--gold);letter-spacing:.12em;text-transform:uppercase;margin-bottom:10px;">Submit New Account</div>
 <!-- 05 CONTENT APPROVAL -->
 <div id="approvals" style="margin-top:60px;">
   <div class="sec-head"><div class="sec-num">06</div><div class="sec-title">Content Approval</div><div class="sec-line"></div></div>
