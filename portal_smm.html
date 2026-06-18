@@ -3109,6 +3109,10 @@ async function confirmTermination(btn){
   const box = btn.closest('div[style]');
   box.querySelector('div').innerHTML=`<div style="font-size:40px;margin-bottom:16px;">✅</div><div style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;color:#fff;margin-bottom:12px;">Message Sent</div><div style="font-size:13px;color:rgba(255,255,255,.5);line-height:1.8;margin-bottom:24px;">Your termination request has been received. Your account will be revoked within 24 hours. We're sorry to see you go.</div><button onclick="this.closest('div[style]').remove()" style="width:100%;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.1);color:rgba(255,255,255,0.6);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;padding:13px;border-radius:9px;cursor:pointer;">Close</button>`;
 }  
+  function togglePasswordVisibility(){
+  const input = document.getElementById('cred-password');
+  input.type = input.type === 'password' ? 'text' : 'password';
+}
 async function submitCredentials(){
   const platform = document.getElementById('cred-platform').value.trim();
   const username = document.getElementById('cred-username').value.trim();
