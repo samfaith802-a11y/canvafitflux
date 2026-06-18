@@ -4085,37 +4085,32 @@ async function markLoginStatus(idx, status){
   if(!creds || !creds[idx]) return;
   const c = creds[idx];
 
-  // Get both buttons
   const confirmBtn = document.querySelector(`button[onclick="markLoginStatus(${idx},'confirmed')"]`);
   const failBtn = document.querySelector(`button[onclick="markLoginStatus(${idx},'failed')"]`);
   const activeBtn = status === 'confirmed' ? confirmBtn : failBtn;
 
-  // Press animation
   if(activeBtn){
     activeBtn.textContent = '⏳ Sending...';
     activeBtn.style.opacity = '0.7';
-    activeBtn.style.transform = 'scale(0.96)';
     activeBtn.disabled = true;
   }
 
-  // Save to sheet
-  await apiPost('updateCredentialLoginStatus',{
+  const result = await apiPost('updateCredentialLoginStatus',{
     token: currentClient.Token,
     platform: c.Platform,
     loginStatus: status
   });
 
-  // Send email
   const clientFirstName = (currentClient.Name||'there').split(' ')[0];
   const subject = status === 'confirmed'
-    ? `✅ Your ${c.Platform} login is confirmed — FitFlux`
-    : `⚠️ Your ${c.Platform} login details need updating — FitFlux`;
+    ? `✅ Your ${c.Platform} login was successful — FitFlux`
+    : `🔴 Action needed — your ${c.Platform} login failed`;
 
   const message = status === 'confirmed'
-    ? `Hi ${clientFirstName},\n\nGreat news — we've successfully logged into your ${c.Platform} account. Your content is now being managed.\n\nIf you ever change your password, please resubmit your login details through the portal.\n\nFitFlux Team`
-    : `Hi ${clientFirstName},\n\nWe tried logging into your ${c.Platform} account but the details don't seem to be working.\n\nPlease go to your portal → Secure Login Details and resubmit the correct login for ${c.Platform}.\n\nFitFlux Team`;
+    ? `Hi ${clientFirstName},\n\nGood news — we successfully logged into your ${c.Platform} account. Your content is now being managed.\n\nFitFlux Team`
+    : `Hi ${clientFirstName},\n\nWe could not access your ${c.Platform} account using the submitted credentials.\n\nPlease go to your portal -> Secure Login Details and resubmit your updated login credentials for ${c.Platform}.\n\nFitFlux Team`;
 
-  await apiPost('sendLoginStatusEmail',{
+  const emailResult = await apiPost('sendLoginStatusEmail',{
     token: currentClient.Token,
     email: currentClient.Email,
     name: currentClient.Name,
@@ -4124,44 +4119,23 @@ async function markLoginStatus(idx, status){
     message
   });
 
-  // Update button states
   const statusDiv = document.getElementById('login-status-'+idx);
   if(status === 'confirmed'){
-    if(statusDiv) statusDiv.innerHTML = '<span style="color:var(--green);">✅ Login Confirmed — client notified</span>';
-    // Change confirm button to Re-Login
-    if(confirmBtn){
-      confirmBtn.textContent = '🔄 Re-Login';
-      confirmBtn.style.opacity = '1';
-      confirmBtn.style.transform = 'scale(1)';
-      confirmBtn.disabled = false;
-      confirmBtn.setAttribute('onclick', `markLoginStatus(${idx},'confirmed')`);
-    }
-    // Keep fail button as Login Failed
-    if(failBtn){
-      failBtn.textContent = '❌ Login Failed';
-      failBtn.disabled = false;
-    }
-    toast('✅ Login confirmed — email sent to '+currentClient.Name);
+    if(statusDiv) statusDiv.innerHTML = '<span style="color:var(--green);">🟢 Login Successful</span>';
+    if(confirmBtn){ confirmBtn.textContent = '🟢 Login Successful'; confirmBtn.style.opacity='1'; confirmBtn.disabled=true; }
+    if(failBtn){ failBtn.textContent = '❌ Login Failed'; failBtn.style.opacity='1'; failBtn.disabled=false; }
   } else {
-    if(statusDiv) statusDiv.innerHTML = '<span style="color:var(--red);">❌ Login Failed — client asked to resubmit</span>';
-    // Change fail button to Decline/Re-Login
-    if(failBtn){
-      failBtn.textContent = '🔄 Decline / Re-Login';
-      failBtn.style.opacity = '1';
-      failBtn.style.transform = 'scale(1)';
-      failBtn.disabled = false;
-    }
-    // Change confirm button to Login Works
-    if(confirmBtn){
-      confirmBtn.textContent = '✅ Login Works';
-      confirmBtn.style.opacity = '1';
-      confirmBtn.style.transform = 'scale(1)';
-      confirmBtn.disabled = false;
-    }
-    toast('📨 Login failed — client asked to resubmit credentials');
+    if(statusDiv) statusDiv.innerHTML = '<span style="color:var(--red);">🔴 Login Attempt Failed — client asked to resubmit</span>';
+    if(failBtn){ failBtn.textContent = '🔴 Login Failed'; failBtn.style.opacity='1'; failBtn.disabled=true; }
+    if(confirmBtn){ confirmBtn.textContent = '✅ Login Works'; confirmBtn.style.opacity='1'; confirmBtn.disabled=false; }
   }
 
-  // Update stored credentials with new status
+  if(emailResult && emailResult.status==='sent'){
+    toast('✅ Status updated — email sent to '+currentClient.Email);
+  } else {
+    toast('⚠️ Status saved but email failed to send','error');
+  }
+
   window._currentCredentials[idx].LoginStatus = status;
 }
 async function sendCredentialReminder(){
