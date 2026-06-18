@@ -4072,9 +4072,15 @@ el.innerHTML = `
       ? '<span style="color:var(--red);">❌ Login Failed — client notified</span>'
       : '<span style="color:var(--t3);">⚪ Login not yet tested</span>'}
   </div>
-<button onclick="markLoginStatus(${idx},'confirmed')" style="background:rgba(61,214,140,0.1);border:1px solid rgba(61,214,140,0.25);color:var(--green);border-radius:6px;padding:6px 14px;font-family:var(--fb);font-size:11px;font-weight:700;cursor:pointer;">✅ Login Works</button>
-<button onclick="markLoginStatus(${idx},'failed')" style="background:rgba(255,77,77,0.1);border:1px solid rgba(255,77,77,0.2);color:var(--red);border-radius:6px;padding:6px 14px;font-family:var(--fb);font-size:11px;font-weight:700;cursor:pointer;">❌ Login Failed</button>
-<button onclick="markLoginStatus(${idx},'relogin')" style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);color:var(--amber);border-radius:6px;padding:6px 14px;font-family:var(--fb);font-size:11px;font-weight:700;cursor:pointer;">🔄 Request Relogin</button>
+<div id="login-btns-${idx}">
+  ${c.LoginStatus === 'confirmed' ? `
+    <button onclick="markLoginStatus(${idx},'relogin')" style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);color:var(--amber);border-radius:6px;padding:6px 14px;font-family:var(--fb);font-size:11px;font-weight:700;cursor:pointer;">🔄 Request Relogin</button>
+    <button onclick="markLoginStatus(${idx},'failed')" style="background:rgba(255,77,77,0.1);border:1px solid rgba(255,77,77,0.2);color:var(--red);border-radius:6px;padding:6px 14px;font-family:var(--fb);font-size:11px;font-weight:700;cursor:pointer;">❌ Login Failed</button>
+  ` : `
+    <button onclick="markLoginStatus(${idx},'confirmed')" style="background:rgba(61,214,140,0.1);border:1px solid rgba(61,214,140,0.25);color:var(--green);border-radius:6px;padding:6px 14px;font-family:var(--fb);font-size:11px;font-weight:700;cursor:pointer;">✅ Login Works</button>
+    <button onclick="markLoginStatus(${idx},'failed')" style="background:rgba(255,77,77,0.1);border:1px solid rgba(255,77,77,0.2);color:var(--red);border-radius:6px;padding:6px 14px;font-family:var(--fb);font-size:11px;font-weight:700;cursor:pointer;">❌ Login Failed</button>
+  `}
+</div>
   </div>`).join('')}`;
 
 // Store credentials data for decryption
@@ -4085,8 +4091,9 @@ async function markLoginStatus(idx, status){
   if(!creds || !creds[idx]) return;
   const c = creds[idx];
 
-  // Button feedback
-  const allBtns = document.querySelectorAll(`button[onclick*="markLoginStatus(${idx},"]`);
+// Button feedback
+  const btnContainer = document.getElementById('login-btns-'+idx);
+  const allBtns = btnContainer ? btnContainer.querySelectorAll('button') : [];
   allBtns.forEach(b=>{ b.style.opacity='0.5'; b.disabled=true; });
   const activeBtn = document.querySelector(`button[onclick="markLoginStatus(${idx},'${status}')"]`);
   if(activeBtn){ activeBtn.textContent='⏳ Sending...'; }
@@ -4106,10 +4113,14 @@ async function markLoginStatus(idx, status){
       subject,
       message
     });
-    const statusDiv = document.getElementById('login-status-'+idx);
+ const statusDiv = document.getElementById('login-status-'+idx);
     if(statusDiv) statusDiv.innerHTML = '<span style="color:var(--amber);">🔄 Relogin Requested — client notified</span>';
-    allBtns.forEach(b=>{ b.style.opacity='1'; b.disabled=false; });
-    if(activeBtn) activeBtn.textContent='🔄 Request Relogin';
+    if(btnContainer){
+      btnContainer.innerHTML = `
+        <button onclick="markLoginStatus(${idx},'relogin')" style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);color:var(--amber);border-radius:6px;padding:6px 14px;font-family:var(--fb);font-size:11px;font-weight:700;cursor:pointer;">🔄 Request Relogin</button>
+        <button onclick="markLoginStatus(${idx},'failed')" style="background:rgba(255,77,77,0.1);border:1px solid rgba(255,77,77,0.2);color:var(--red);border-radius:6px;padding:6px 14px;font-family:var(--fb);font-size:11px;font-weight:700;cursor:pointer;">❌ Login Failed</button>
+      `;
+    }
     toast('🔄 Relogin request sent to '+currentClient.Email);
     window._currentCredentials[idx].LoginStatus = 'relogin';
     return;
@@ -4147,8 +4158,17 @@ async function markLoginStatus(idx, status){
     }
   }
 
-  allBtns.forEach(b=>{ b.style.opacity='1'; b.disabled=false; });
-  if(activeBtn) activeBtn.textContent = status==='confirmed' ? '✅ Login Works' : status==='failed' ? '❌ Login Failed' : '🔄 Request Relogin';
+if(status === 'confirmed' && btnContainer){
+    btnContainer.innerHTML = `
+      <button onclick="markLoginStatus(${idx},'relogin')" style="background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);color:var(--amber);border-radius:6px;padding:6px 14px;font-family:var(--fb);font-size:11px;font-weight:700;cursor:pointer;">🔄 Request Relogin</button>
+      <button onclick="markLoginStatus(${idx},'failed')" style="background:rgba(255,77,77,0.1);border:1px solid rgba(255,77,77,0.2);color:var(--red);border-radius:6px;padding:6px 14px;font-family:var(--fb);font-size:11px;font-weight:700;cursor:pointer;">❌ Login Failed</button>
+    `;
+  } else if(status === 'failed' && btnContainer){
+    btnContainer.innerHTML = `
+      <button onclick="markLoginStatus(${idx},'confirmed')" style="background:rgba(61,214,140,0.1);border:1px solid rgba(61,214,140,0.25);color:var(--green);border-radius:6px;padding:6px 14px;font-family:var(--fb);font-size:11px;font-weight:700;cursor:pointer;">✅ Login Works</button>
+      <button onclick="markLoginStatus(${idx},'failed')" style="background:rgba(255,77,77,0.1);border:1px solid rgba(255,77,77,0.2);color:var(--red);border-radius:6px;padding:6px 14px;font-family:var(--fb);font-size:11px;font-weight:700;cursor:pointer;">❌ Login Failed</button>
+    `;
+  }
   window._currentCredentials[idx].LoginStatus = status;
 }
 async function sendCredentialReminder(){
