@@ -904,20 +904,11 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     <!-- 06 PERFORMANCE -->
     <div id="performance" style="margin-top:55px;">
       <div class="sec-head"><div class="sec-num">08</div><div class="sec-title">Performance Dashboard</div><div class="sec-line"></div></div>
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:20px;background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:16px 20px;">
-  <div style="flex:1;">
-    <div style="font-size:11px;font-weight:700;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;">Download Monthly Report</div>
-    <select id="report-month-select" style="background:var(--card2);border:1px solid var(--bdr);border-radius:8px;padding:8px 12px;color:var(--t1);font-family:var(--fb);font-size:13px;outline:none;cursor:pointer;min-width:200px;">
-      <option value="">Select a month...</option>
-    </select>
-  </div>
-  <button onclick="downloadMonthlyReport()" style="background:#CCFF00;color:#0D1F00;border:none;border-radius:10px;padding:12px 24px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;margin-top:18px;">⬇ Download Report</button>
-</div>
-      <div class="callout">
+ <div class="callout">
         <div class="callout-icon">&#x1F4CA;</div>
         <div>
           <div class="callout-title">Your Growth Intelligence</div>
-          <div class="callout-text">Updated monthly by your FitFlux team. Select a platform to view your monthly report.</div>
+          <div class="callout-text">Updated on the 30th every month by your FitFlux team. Select a platform below to view and download that platform's report.</div>
         </div>
       </div>
       
@@ -1478,10 +1469,8 @@ function updateJourneyValues(){
 function switchPlatform(p, el){
   currentPlatform = p;
   document.querySelectorAll('.ptab').forEach(t=>t.classList.remove('active'));
-  document.querySelectorAll('.platform-panel').forEach(pp=>pp.classList.remove('active'));
   el.classList.add('active');
-  document.getElementById('panel-'+p).classList.add('active');
-  renderPerformancePanel(p);
+  renderPlatformReport(p);
 }
 function switchView(v, el){
   currentView = 'monthly';
@@ -2031,29 +2020,38 @@ function openMedia(url){
 
 /* ── PERFORMANCE ── */
 let perfData = {};
+let platformReports = {};
+
 async function loadPerformance(){
   document.getElementById('perf-loading').style.display = 'flex';
   const data = await apiGet('getLatestPerformanceReport', window.FF_TOKEN || urlToken);
   document.getElementById('perf-loading').style.display = 'none';
   document.getElementById('perf-content').style.display = '';
 
-  if(!data || !data.report){
+  platformReports = (data && data.reports) ? data.reports : {};
+  renderPlatformReport(currentPlatform);
+  startSilentReportChecker();
+}
+
+function renderPlatformReport(platform){
+  const key = (platform||'').toLowerCase();
+  const r = platformReports[key];
+  const label = key.charAt(0).toUpperCase()+key.slice(1);
+
+  if(!r){
     document.getElementById('perf-content').innerHTML = `
       <div style="text-align:center;padding:40px 20px;color:var(--t3);">
         <div style="font-size:36px;margin-bottom:12px;opacity:.3;">📊</div>
-        <div style="font-size:14px;font-weight:600;color:var(--t2);margin-bottom:6px;">No report yet</div>
-        <div style="font-size:12px;color:var(--t3);line-height:1.7;">Your FitFlux team will send your first performance report at the end of the month.</div>
+        <div style="font-size:14px;font-weight:600;color:var(--t2);margin-bottom:6px;">No ${label} report yet</div>
+        <div style="font-size:12px;color:var(--t3);line-height:1.7;">Your FitFlux team hasn't sent a ${label} report yet. Try another platform tab, or check back at the end of the month.</div>
       </div>`;
     return;
   }
 
-const r = data.report;
   window._latestReport = r;
-  window._lastReportSentAt = r.ReportSentAt || '';
   renderFullReport(r);
-  startSilentReportChecker();
 
-  const seenKey = 'ff_seen_report_'+(window.FF_TOKEN||urlToken).slice(-8);
+  const seenKey = 'ff_seen_report_'+(window.FF_TOKEN||urlToken).slice(-8)+'_'+key;
   const lastSeen = localStorage.getItem(seenKey);
   if(r.ReportSentAt && r.ReportSentAt !== lastSeen){
     localStorage.setItem(seenKey, r.ReportSentAt);
@@ -2207,8 +2205,8 @@ function renderFullReport(r){
     <!-- DOWNLOAD BUTTON -->
     <div style="margin-top:8px;">
       ${canDownload ? `
-      <button onclick="downloadFullReport()" style="width:100%;background:#CCFF00;color:#0a1a00;border:none;border-radius:10px;padding:14px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.06em;">⬇ Download PDF Report</button>
-      <div style="font-size:11px;color:var(--t3);text-align:center;margin-top:6px;">Download available until the 7th of next month</div>
+      <button onclick="downloadFullReport()" style="width:100%;background:#CCFF00;color:#0a1a00;border:none;border-radius:10px;padding:14px;font-family:'Syne',sans-serif;font-size:14px;font-weight:700;cursor:pointer;letter-spacing:.06em;">⬇ Download Report</button>
+      <div style="font-size:11px;color:var(--t3);text-align:center;margin-top:6px;">Includes your full report — available until the 7th of next month</div>
       ` : isPreviousMonth ? `
       <div style="background:rgba(255,255,255,0.03);border:1px solid var(--bdr);border-radius:10px;padding:14px;text-align:center;font-size:12px;color:var(--t3);">Download window closed — contact FitFlux if you need a copy</div>
       ` : ''}
@@ -2218,26 +2216,24 @@ function renderFullReport(r){
 function startSilentReportChecker(){
   if(window._reportChecker) clearInterval(window._reportChecker);
 
-  const now = new Date();
-  const day = now.getDate();
-  if(day < 27) return; // Only start checking from 27th
-
   window._reportChecker = setInterval(async()=>{
     if(document.visibilityState !== 'visible') return;
     try{
       const data = await apiGet('getLatestPerformanceReport', window.FF_TOKEN || urlToken);
-      if(!data || !data.report) return;
-      const newSentAt = data.report.ReportSentAt || '';
-   if(newSentAt && newSentAt !== window._lastReportSentAt){
-        window._lastReportSentAt = newSentAt;
-        window._latestReport = data.report;
-        showReportPopup(data.report);
-        renderFullReport(data.report);
-        const seenKey = 'ff_seen_report_'+(window.FF_TOKEN||urlToken).slice(-8);
-        localStorage.setItem(seenKey, newSentAt);
+      if(!data || !data.reports) return;
+      platformReports = data.reports;
+      const key = (currentPlatform||'').toLowerCase();
+      const r = platformReports[key];
+      if(!r) return;
+      const seenKey = 'ff_seen_report_'+(window.FF_TOKEN||urlToken).slice(-8)+'_'+key;
+      const lastSeen = localStorage.getItem(seenKey);
+      if(r.ReportSentAt && r.ReportSentAt !== lastSeen){
+        localStorage.setItem(seenKey, r.ReportSentAt);
+        showReportPopup(r);
+        renderFullReport(r);
       }
     }catch(e){}
-  }, 60000); // Check every 60 seconds
+  }, 60000);
 }
 
 function showReportPopup(r){
@@ -3481,28 +3477,6 @@ async function sendDelivChat(id, name){
   await loadContent(true);
   await initGrowthJourney();
 });
-
-// Silent performance refresh every 10 seconds when on performance section
-if(!window._perfRefresh){
-  window._perfRefresh = setInterval(async()=>{
-    if(document.visibilityState !== 'visible') return;
-    const perfNav = document.querySelector('.nv[data-target="performance"]');
-    if(!perfNav || !perfNav.classList.contains('act')) return;
-    const prev = JSON.stringify(perfData);
-    const data = await apiGet('getPerformance', window.FF_TOKEN || urlToken);
-    if(!data || !data.performance) return;
-    const newData = {};
-    data.performance.forEach(row=>{
-      const key = row.Platform+'_monthly';
-      if(!newData[key]) newData[key]={};
-      newData[key][row.Period] = row;
-    });
-    if(JSON.stringify(newData) !== prev){
-      perfData = newData;
-      ['instagram','tiktok','facebook','youtube','linkedin','twitter'].forEach(p=>renderPerformancePanel(p));
-    }
-  }, 10000);
-}
 </script>
 </body>
 </html>
