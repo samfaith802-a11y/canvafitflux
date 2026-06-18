@@ -2627,26 +2627,28 @@ function initPerfMonthDropdown(){
   }).join('');
   sel.value = currentMonthName;
 
-  // Reminder from 27th
-  if(currentDay >= 27 && reminder){
-    const daysUntil30 = Math.max(0, 30 - currentDay);
-    if(currentDay >= 30){
+// Unlock day = last 2 days of THIS actual month — fixes Feb having no day 30
+  const daysInMonth = new Date(now.getFullYear(), currentMonthIdx+1, 0).getDate();
+  const unlockDay = daysInMonth - 1;
+
+  if(currentDay >= unlockDay - 3 && reminder){
+    const daysUntilUnlock = Math.max(0, unlockDay - currentDay);
+    if(currentDay >= unlockDay){
       reminder.style.display = 'block';
       reminder.innerHTML = '📊 TODAY is the day — fill and send this client\'s performance report now.';
     } else {
       reminder.style.display = 'block';
-      reminder.innerHTML = `⏰ Reminder: Performance reports are due on the 30th. ${daysUntil30} day${daysUntil30!==1?'s':''} remaining. Start filling the data now.`;
+      reminder.innerHTML = `⏰ Reminder: Performance reports are due in ${daysUntilUnlock} day${daysUntilUnlock!==1?'s':''}. Start filling the data now.`;
     }
   }
 
-  // Lock send button until 30th
   if(sendBtn){
-    if(currentDay < 30){
+    if(currentDay < unlockDay){
       sendBtn.disabled = true;
       sendBtn.style.opacity = '0.4';
       sendBtn.style.cursor = 'not-allowed';
       const note2 = document.getElementById('perf-send-note');
-      if(note2) note2.textContent = `Send Report unlocks on the 30th. ${30-currentDay} day${30-currentDay!==1?'s':''} remaining.`;
+      if(note2) note2.textContent = `Send Report unlocks in ${unlockDay-currentDay} day${unlockDay-currentDay!==1?'s':''}.`;
     } else {
       sendBtn.disabled = false;
       sendBtn.style.opacity = '1';
@@ -2695,8 +2697,10 @@ async function savePerformance(btn){
 
 async function sendPerformanceReport(btn){
   if(!currentClient) return;
-  const now = new Date();
-  if(now.getDate() < 30){ toast('Send Report unlocks on the 30th','error'); return; }
+const now = new Date();
+  const daysInMonth = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+  const unlockDay = daysInMonth - 1;
+  if(now.getDate() < unlockDay){ toast('Send Report unlocks in '+(unlockDay-now.getDate())+' day(s)','error'); return; }
 
   if(!confirm('Send this performance report to '+currentClient.Name+'? They will receive an email and a portal notification.')){ return; }
 
