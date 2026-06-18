@@ -836,9 +836,20 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
   <div style="border-top:1px solid var(--bdr);padding-top:20px;">
     <div style="font-size:9px;font-weight:700;color:var(--gold);letter-spacing:.14em;text-transform:uppercase;margin-bottom:12px;">Submit Account Credentials</div>
     <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
-      <input class="d-input" id="cred-platform" placeholder="Platform (e.g. Instagram, Facebook)"/>
+     <select class="d-select" id="cred-platform" style="background:#0b1209;border:1px solid rgba(204,255,0,0.3);border-radius:8px;padding:11px 14px;color:#fff;font-family:var(--fb);font-size:15px;outline:none;width:100%;transition:border .15s;">
+  <option value="">Select Platform...</option>
+  <option value="Instagram">Instagram</option>
+  <option value="Facebook">Facebook</option>
+  <option value="TikTok">TikTok</option>
+  <option value="YouTube">YouTube</option>
+  <option value="Twitter/X">Twitter/X</option>
+  <option value="LinkedIn">LinkedIn</option>
+</select>
       <input class="d-input" id="cred-username" placeholder="Username or Email"/>
-      <input class="d-input" id="cred-password" type="password" placeholder="Password"/>
+      <div style="position:relative;">
+  <input class="d-input" id="cred-password" type="password" placeholder="Password" style="padding-right:40px;"/>
+  <button type="button" onclick="const i=document.getElementById('cred-password');i.type=i.type==='password'?'text':'password';this.textContent=i.type==='password'?'👁':'🙈';" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:rgba(255,255,255,0.4);padding:0;line-height:1;">👁</button>
+</div>
       <input class="d-input" id="cred-notes" placeholder="Notes (optional)"/>
     </div>
     <button onclick="submitCredentials()" style="width:100%;background:var(--purple);border:none;color:#0a1a00;font-family:var(--fb);font-size:13px;font-weight:700;padding:12px;border-radius:8px;cursor:pointer;transition:opacity .2s;">🔒 Send Securely to FitFlux</button>
