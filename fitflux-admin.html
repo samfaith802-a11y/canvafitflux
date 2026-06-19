@@ -1366,10 +1366,10 @@ function goToFirstClientPerformance(){
 }
 // ── LOAD DASHBOARD ──────────────────────────────────────────
 async function loadDashboard(){
-  checkPerformanceReminder();
   const data = await apiGet('getAllClients');
   if(!data || !data.clients){ allClients = []; return; }
   allClients = data.clients.filter(c=>c.Token&&c.Name);
+  checkPerformanceReminder();
 
   const now = new Date();
   const thisMonth = now.toLocaleString('default',{month:'long'});
