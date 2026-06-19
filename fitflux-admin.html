@@ -867,9 +867,10 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     <div style="background:rgba(204,255,0,0.04);border:1px solid var(--bdr);border-radius:10px;padding:16px;margin-bottom:16px;">
       <div style="font-size:11px;font-weight:700;color:var(--lime);letter-spacing:.1em;text-transform:uppercase;margin-bottom:14px;">04 — Content Performance</div>
       <div class="perf-grid">
-        <div class="perf-input-group"><div class="perf-input-label">Total Posts Published</div><input class="perf-input" id="p-posts" type="number" placeholder="0"/></div>
-        <div class="perf-input-group"><div class="perf-input-label">Reels / Videos</div><input class="perf-input" id="p-reelsPublished" type="number" placeholder="0"/></div>
-        <div class="perf-input-group"><div class="perf-input-label">Stories Published</div><input class="perf-input" id="p-storiesPublished" type="number" placeholder="0"/></div>
+        <div class="perf-input-group"><div class="perf-input-label">Reels / Videos</div><input class="perf-input" id="p-reelsPublished" type="number" placeholder="0" oninput="autoCalcPosts()"/></div>
+    <div class="perf-input-group"><div class="perf-input-label">Graphics / Images</div><input class="perf-input" id="p-graphicsPublished" type="number" placeholder="0" oninput="autoCalcPosts()"/></div>
+    <div class="perf-input-group"><div class="perf-input-label">Stories Published</div><input class="perf-input" id="p-storiesPublished" type="number" placeholder="0" oninput="autoCalcPosts()"/></div>
+    <div class="perf-input-group"><div class="perf-input-label">Total Posts Published</div><input class="perf-input" id="p-posts" type="number" placeholder="Auto-calculated" style="background:rgba(204,255,0,0.04);color:var(--lime);font-weight:600;" readonly/></div>
       </div>
       <div class="perf-input-group" style="margin-top:12px;"><div class="perf-input-label">Best Performing Content</div><input class="perf-input" id="p-bestContent" type="text" placeholder="e.g. Tuesday transformation reel"/></div>
     </div>
@@ -2728,6 +2729,15 @@ function selectPerfPlatform(p, btn){
 }
 function updatePeriodLabel(sel){ /* removed - monthly only */ }
 
+function autoCalcPosts(){
+  const reels = parseInt(document.getElementById('p-reelsPublished')?.value||0);
+  const graphics = parseInt(document.getElementById('p-graphicsPublished')?.value||0);
+  const stories = parseInt(document.getElementById('p-storiesPublished')?.value||0);
+  const total = reels + graphics + stories;
+  const postsEl = document.getElementById('p-posts');
+  if(postsEl) postsEl.value = total > 0 ? total : '';
+}
+
 function initPerfMonthDropdown(){
   const sel = document.getElementById('p-period');
   const sendBtn = document.getElementById('perf-send-btn');
@@ -2853,8 +2863,10 @@ function initPerfMonthDropdown(){
 
   // Section 04 — Content Performance
   setVal('p-posts', d.Posts);
-  setVal('p-reelsPublished', d.ReelsPublished);
+setVal('p-reelsPublished', d.ReelsPublished);
+  setVal('p-graphicsPublished', d.GraphicsPublished);
   setVal('p-storiesPublished', d.StoriesPublished);
+  autoCalcPosts();
   setVal('p-bestContent', d.BestContent);
 
   // Section 05 — Top Content
@@ -3057,7 +3069,8 @@ function buildPerfBody(isSend){
     comments: document.getElementById('p-comments')?.value||0,
     shares: document.getElementById('p-shares')?.value||0,
     saves: document.getElementById('p-saves')?.value||0,
-    reelsPublished: document.getElementById('p-reelsPublished')?.value||0,
+ reelsPublished: document.getElementById('p-reelsPublished')?.value||0,
+    graphicsPublished: document.getElementById('p-graphicsPublished')?.value||0,
     storiesPublished: document.getElementById('p-storiesPublished')?.value||0,
     bestContent: document.getElementById('p-bestContent')?.value||'',
     post1Reach: document.getElementById('p-post1Reach')?.value||0,
