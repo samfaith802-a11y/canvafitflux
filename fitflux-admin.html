@@ -505,11 +505,41 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
           <span class="nav-icon">✅</span> Content Queue
         </button>
       </div>
-      <div class="sb-section-lbl">Messages</div>
-<button class="nav-item" onclick="openInbox()">
-  <span class="nav-icon">💬</span> Client Messages
+    <div class="sb-section-lbl">Messages</div>
+<button class="nav-item" onclick="toggleFeedbackTree()" id="feedback-nav-btn">
+  <span class="nav-icon">💬</span> Client Feedback
   <span class="nav-badge" id="inbox-badge" style="display:none;">0</span>
+  <span id="feedback-arrow" style="margin-left:auto;font-size:9px;color:var(--t3);transition:transform .2s;">▶</span>
 </button>
+<div id="feedback-tree" style="display:none;padding:4px 0 4px 10px;">
+  <!-- Content Chat folder -->
+  <div>
+    <div id="folder-content" onclick="toggleFolder('content')" style="display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;cursor:pointer;font-size:11px;color:var(--t2);" onmouseover="this.style.background='var(--lime-dim)'" onmouseout="this.style.background='transparent'">
+      <span style="font-size:9px;color:var(--t3);transition:transform .2s;" id="farr-content">▶</span>
+      <span>💬 Content Chat</span>
+      <span id="fbadge-content" style="margin-left:auto;background:rgba(245,158,11,0.2);color:var(--amber);font-size:9px;font-weight:700;padding:1px 5px;border-radius:6px;display:none;">0</span>
+    </div>
+    <div id="fitems-content" style="display:none;padding-left:14px;"></div>
+  </div>
+  <!-- Deliverable Chat folder -->
+  <div>
+    <div id="folder-deliverable" onclick="toggleFolder('deliverable')" style="display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;cursor:pointer;font-size:11px;color:var(--t2);" onmouseover="this.style.background='var(--lime-dim)'" onmouseout="this.style.background='transparent'">
+      <span style="font-size:9px;color:var(--t3);transition:transform .2s;" id="farr-deliverable">▶</span>
+      <span>📦 Deliverable Chat</span>
+      <span id="fbadge-deliverable" style="margin-left:auto;background:rgba(245,158,11,0.2);color:var(--amber);font-size:9px;font-weight:700;padding:1px 5px;border-radius:6px;display:none;">0</span>
+    </div>
+    <div id="fitems-deliverable" style="display:none;padding-left:14px;"></div>
+  </div>
+  <!-- Credentials folder -->
+  <div>
+    <div id="folder-credentials" onclick="toggleFolder('credentials')" style="display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;cursor:pointer;font-size:11px;color:var(--t2);" onmouseover="this.style.background='var(--lime-dim)'" onmouseout="this.style.background='transparent'">
+      <span style="font-size:9px;color:var(--t3);transition:transform .2s;" id="farr-credentials">▶</span>
+      <span>🔒 Credentials</span>
+      <span id="fbadge-credentials" style="margin-left:auto;background:rgba(245,158,11,0.2);color:var(--amber);font-size:9px;font-weight:700;padding:1px 5px;border-radius:6px;display:none;">0</span>
+    </div>
+    <div id="fitems-credentials" style="display:none;padding-left:14px;"></div>
+  </div>
+</div>
       <div class="sb-footer">
         <button class="sb-logout" onclick="adminLogout()">🔒 Lock Admin</button>
       </div>
@@ -4546,116 +4576,196 @@ async function addAdminDocument(){
   loadAdminDocuments();
 }
 let inboxMessages = [];
+let inboxData = { content: [], deliverable: [], credentials: [] };
 
 async function loadInbox(){
   if(!allClients.length) return;
-  inboxMessages = [];
+  inboxData = { content: [], deliverable: [], credentials: [] };
 
   await Promise.all(allClients.map(async c=>{
-    // Content chat messages
+    // Content chat — unread only (last message not from FitFlux)
     const contentData = await apiGet('getContent', c.Token);
     if(contentData && contentData.content){
       contentData.content.forEach(post=>{
-        (post.ChatMessages||[]).forEach(m=>{
-          if(m.author !== 'FitFlux'){
-            inboxMessages.push({
-              type: 'content',
-              clientName: c.Name,
-              clientToken: c.Token,
-              subject: post.Title+' · '+post.Platform,
-              message: m.text,
-              time: m.time
-            });
-          }
-        });
+        const msgs = post.ChatMessages||[];
+        const clientMsgs = msgs.filter(m=>m.author!=='FitFlux');
+        const lastMsg = msgs[msgs.length-1];
+        const isUnread = lastMsg && lastMsg.author !== 'FitFlux';
+        if(clientMsgs.length && isUnread){
+          inboxData.content.push({
+            clientName: c.Name,
+            clientToken: c.Token,
+            subject: post.Title+' · '+(post.Platform||''),
+            message: lastMsg.text,
+            time: lastMsg.time,
+            allMessages: msgs,
+            contentTitle: post.Title,
+            platform: post.Platform
+          });
+        }
       });
     }
 
-    // Deliverable chat messages
+    // Deliverable chat — unread only
     const delivData = await apiGet('getDeliverables', c.Token);
     if(delivData && delivData.deliverables){
       delivData.deliverables.forEach(d=>{
-        (d.ChatMessages||[]).forEach(m=>{
-          if(m.author !== 'FitFlux'){
-            inboxMessages.push({
-              type: 'deliverable',
-              clientName: c.Name,
-              clientToken: c.Token,
-              subject: 'Deliverable: '+(d.Name||d.name||'—'),
-              message: m.text,
-              time: m.time
-            });
-          }
-        });
+        const msgs = d.ChatMessages||[];
+        const lastMsg = msgs[msgs.length-1];
+        const isUnread = lastMsg && lastMsg.author !== 'FitFlux';
+        if(msgs.length && isUnread){
+          inboxData.deliverable.push({
+            clientName: c.Name,
+            clientToken: c.Token,
+            subject: (d.Name||d.name||'Deliverable'),
+            message: lastMsg.text,
+            time: lastMsg.time,
+            allMessages: msgs,
+            delivId: d.ID||d.id,
+            delivName: d.Name||d.name||''
+          });
+        }
       });
     }
 
-    // Credential submissions
+    // Credentials — any submission counts
     const credData = await apiGet('getCredentials', c.Token);
     if(credData && credData.credentials && credData.credentials.length){
-      inboxMessages.push({
-        type: 'credentials',
+      inboxData.credentials.push({
         clientName: c.Name,
         clientToken: c.Token,
         subject: 'Secure Credentials Submitted',
-        message: credData.credentials.length+' platform'+(credData.credentials.length!==1?'s':'')+' submitted — click to decrypt',
+        message: credData.credentials.length+' platform'+(credData.credentials.length!==1?'s':'')+' submitted',
         time: credData.credentials[0].Timestamp||''
       });
     }
   }));
+
+  const total = inboxData.content.length + inboxData.deliverable.length + inboxData.credentials.length;
   const badge = document.getElementById('inbox-badge');
-  if(inboxMessages.length > 0){
-    badge.textContent = inboxMessages.length;
-    badge.style.display = '';
-  } else {
-    badge.style.display = 'none';
-  }
+  if(total > 0){ badge.textContent = total; badge.style.display = ''; }
+  else badge.style.display = 'none';
+
+  // Update folder badges
+  const updateFBadge = (type, count) => {
+    const el = document.getElementById('fbadge-'+type);
+    if(!el) return;
+    if(count>0){ el.textContent=count; el.style.display=''; }
+    else el.style.display='none';
+  };
+  updateFBadge('content', inboxData.content.length);
+  updateFBadge('deliverable', inboxData.deliverable.length);
+  updateFBadge('credentials', inboxData.credentials.length);
+
+  // Render folder items
+  renderFolderItems('content');
+  renderFolderItems('deliverable');
+  renderFolderItems('credentials');
 }
 
-function openInbox(){
-  // Show all pages hidden, show inbox modal
-  const existing = document.getElementById('inbox-modal');
+function renderFolderItems(type){
+  const el = document.getElementById('fitems-'+type);
+  if(!el) return;
+  const items = inboxData[type]||[];
+  if(!items.length){ el.innerHTML='<div style="font-size:10px;color:var(--t3);padding:4px 8px;">No unread messages</div>'; return; }
+  el.innerHTML = items.map(m=>`
+    <div onclick="openFeedbackModal('${type}','${m.clientToken}')" style="display:flex;flex-direction:column;gap:2px;padding:5px 8px;border-radius:6px;cursor:pointer;transition:background .1s;" onmouseover="this.style.background='var(--lime-dim)'" onmouseout="this.style.background='transparent'">
+      <div style="font-size:11px;font-weight:600;color:var(--lime);">${m.clientName||'—'}</div>
+      <div style="font-size:10px;color:var(--t3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px;">${m.subject||'—'}</div>
+    </div>`).join('');
+}
+
+function toggleFeedbackTree(){
+  const tree = document.getElementById('feedback-tree');
+  const arrow = document.getElementById('feedback-arrow');
+  const isOpen = tree.style.display !== 'none';
+  tree.style.display = isOpen ? 'none' : 'block';
+  if(arrow) arrow.style.transform = isOpen ? '' : 'rotate(90deg)';
+}
+
+function toggleFolder(type){
+  const items = document.getElementById('fitems-'+type);
+  const arrow = document.getElementById('farr-'+type);
+  if(!items) return;
+  const isOpen = items.style.display !== 'none';
+  items.style.display = isOpen ? 'none' : 'block';
+  if(arrow) arrow.style.transform = isOpen ? '' : 'rotate(90deg)';
+}
+
+function openFeedbackModal(type, clientToken){
+  const items = inboxData[type]||[];
+  const item = items.find(m=>m.clientToken===clientToken);
+  if(!item) return;
+
+  const existing = document.getElementById('feedback-modal');
   if(existing) existing.remove();
 
-  const modal = document.createElement('div');
-  modal.id = 'inbox-modal';
-  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:1000;display:flex;align-items:center;justify-content:center;';
-  
- const typeIcon = {content:'💬', deliverable:'📦', credentials:'🔒'};
-const msgs = inboxMessages.length ? inboxMessages.map(m=>`
-  <div style="background:var(--bg3);border:1px solid var(--bdr3);border-radius:10px;padding:14px 16px;cursor:pointer;transition:border-color .15s;" onclick="goToClientMessage('${m.clientToken}','${m.type}');document.getElementById('inbox-modal').remove();" onmouseover="this.style.borderColor='var(--lime)'" onmouseout="this.style.borderColor='var(--bdr3)'">
-    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
-      <span style="font-size:14px;">${typeIcon[m.type]||'💬'}</span>
-      <span style="font-size:12px;font-weight:700;color:var(--lime);">${m.clientName||'—'}</span>
-      <span style="font-size:11px;color:var(--t3);">${m.subject||'—'}</span>
-      <span style="margin-left:auto;font-size:10px;color:var(--t3);">${m.time||''}</span>
-    </div>
-    <div style="font-size:13px;color:var(--t2);">${m.message||''}</div>
-  </div>`).join('')
-: '<div style="text-align:center;padding:40px;color:var(--t3);">No messages</div>';
+  const typeIcon = {content:'💬',deliverable:'📦',credentials:'🔒'};
+  const chatHtml = (item.allMessages||[]).map(m=>`
+    <div style="background:${m.author==='FitFlux'?'rgba(204,255,0,0.06)':'rgba(255,255,255,0.04)'};border-radius:8px;padding:9px 12px;${m.author!=='FitFlux'?'border-left:2px solid var(--amber);':''}">
+      <div style="font-size:10px;font-weight:700;color:${m.author==='FitFlux'?'var(--lime)':'var(--amber)'};margin-bottom:3px;">${m.author||'Client'}</div>
+      <div style="font-size:12px;color:var(--t2);">${m.text||''}</div>
+      <div style="font-size:10px;color:var(--t3);margin-top:3px;">${m.time||''}</div>
+    </div>`).join('');
 
+  const replyBox = type !== 'credentials' ? `
+    <div style="margin-top:14px;display:flex;gap:8px;">
+      <input id="feedback-reply-input" class="form-input" placeholder="Reply to ${item.clientName}..." style="flex:1;padding:9px 12px;font-size:12px;"/>
+      <button onclick="sendFeedbackReply('${type}','${clientToken}')" style="background:var(--lime);border:none;color:#080c08;font-family:var(--fb);font-size:12px;font-weight:700;padding:9px 16px;border-radius:7px;cursor:pointer;">Reply →</button>
+    </div>` : `
+    <div style="margin-top:14px;">
+      <button onclick="goToClientFromFeedback('${clientToken}','credentials');document.getElementById('feedback-modal').remove();" style="background:var(--lime);border:none;color:#080c08;font-family:var(--fb);font-size:12px;font-weight:700;padding:10px 20px;border-radius:7px;cursor:pointer;width:100%;">🔒 Go to Credentials Tab →</button>
+    </div>`;
+
+  const modal = document.createElement('div');
+  modal.id = 'feedback-modal';
+  modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:1001;display:flex;align-items:center;justify-content:center;';
   modal.innerHTML = `
     <div style="background:var(--bg2);border:1px solid var(--bdr2);border-radius:16px;width:560px;max-width:95vw;max-height:80vh;overflow-y:auto;padding:28px 32px;">
-      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;">
-        <div style="font-family:var(--fh);font-size:22px;color:var(--lime);">💬 CLIENT MESSAGES</div>
-        <button onclick="document.getElementById('inbox-modal').remove()" style="background:none;border:none;color:var(--t3);font-size:22px;cursor:pointer;">×</button>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div style="font-family:var(--fh);font-size:20px;color:var(--lime);">${typeIcon[type]} ${item.clientName}</div>
+        <button onclick="document.getElementById('feedback-modal').remove()" style="background:none;border:none;color:var(--t3);font-size:22px;cursor:pointer;">×</button>
       </div>
-      <div style="display:flex;flex-direction:column;gap:10px;">${msgs}</div>
+      <div style="font-size:11px;color:var(--t3);margin-bottom:16px;">${item.subject}</div>
+      <div style="display:flex;gap:8px;margin-bottom:16px;">
+        <button onclick="goToClientFromFeedback('${clientToken}','${type}');document.getElementById('feedback-modal').remove();" style="background:var(--bg3);border:1px solid var(--bdr);color:var(--t2);border-radius:7px;padding:6px 14px;font-family:var(--fb);font-size:11px;font-weight:600;cursor:pointer;">Open Client →</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:8px;max-height:300px;overflow-y:auto;">${chatHtml||'<div style="color:var(--t3);font-size:12px;text-align:center;padding:20px;">No messages yet</div>'}</div>
+      ${replyBox}
     </div>`;
-  
   modal.onclick = e=>{ if(e.target===modal) modal.remove(); };
   document.body.appendChild(modal);
+
+  // Scroll chat to bottom
+  const chatEl = modal.querySelector('[style*="max-height:300px"]');
+  if(chatEl) setTimeout(()=>{ chatEl.scrollTop = chatEl.scrollHeight; }, 50);
 }
 
-async function goToClientMessage(token, type){
-  await openClient(token);
-  if(type==='credentials'){
-    switchDetailTab('credentials', document.querySelector('.dtab:last-child'));
+async function sendFeedbackReply(type, clientToken){
+  const input = document.getElementById('feedback-reply-input');
+  const text = input ? input.value.trim() : '';
+  if(!text){ if(input) input.focus(); return; }
+  const item = (inboxData[type]||[]).find(m=>m.clientToken===clientToken);
+  if(!item) return;
+  const time = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  if(type==='content'){
+    await apiPost('addContentChat',{token:clientToken, contentTitle:item.contentTitle, platform:item.platform, text, author:'FitFlux', time});
   } else if(type==='deliverable'){
-    switchDetailTab('deliverables', document.querySelector('.dtab:nth-child(7)'));
-  } else {
-    switchDetailTab('content', document.querySelector('.dtab:nth-child(4)'));
+    await apiPost('addDelivChat',{token:clientToken, id:item.delivId, text, author:'FitFlux', time});
   }
+  await sendTelegramAdmin('💬 ADMIN REPLIED VIA CLIENT FEEDBACK\n\nClient: '+item.clientName+'\nType: '+type+'\nSubject: '+item.subject+'\nReply: '+text);
+  if(input) input.value='';
+  toast('✅ Reply sent');
+  document.getElementById('feedback-modal').remove();
+  await loadInbox();
+}
+
+async function goToClientFromFeedback(token, type){
+  await openClient(token);
+  if(type==='credentials') switchDetailTab('credentials', document.querySelector('.dtab:last-child'));
+  else if(type==='deliverable') switchDetailTab('deliverables', document.querySelector('.dtab:nth-child(6)'));
+  else switchDetailTab('content', document.querySelector('.dtab:nth-child(4)'));
+}
 }
 </script>
 </body>
