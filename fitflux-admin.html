@@ -1246,115 +1246,68 @@ function clientRevenue(c){
   return TIER_PRICE[tier] || 0;
 }
 function checkPerformanceReminder(){
-  // Remove any existing banner first
   const existing = document.getElementById('perf-reminder-dashboard');
   if(existing) existing.remove();
 
-  const now = new Date();
-  const currentDay = now.getDate();
-  const currentMonthIdx = now.getMonth();
-  const currentYear = now.getFullYear();
-  const currentMonthName = ['January','February','March','April','May','June',
-    'July','August','September','October','November','December'][currentMonthIdx];
-  const lastDayOfMonth = new Date(currentYear, currentMonthIdx + 1, 0).getDate();
-  const REMINDER_START_DAY = lastDayOfMonth - 3;
-  const SEND_UNLOCK_DAY = lastDayOfMonth - 2;
-
-  // Only show if we are in reminder window
-  if(currentDay < REMINDER_START_DAY) return;
-
-  const daysUntilSend = SEND_UNLOCK_DAY - currentDay;
-  const isSendUnlocked = currentDay >= SEND_UNLOCK_DAY;
-
-  // Count active clients
   const activeClients = allClients.filter(c => (c.Status||'Active') === 'Active');
-  const totalClients = activeClients.length;
-  if(totalClients === 0) return;
+  if(!activeClients.length) return;
 
-  // Build banner
+  const now = new Date();
+  const needSend = [];
+  const needPrepare = [];
+
+  activeClients.forEach(c => {
+    const anchor = new Date(c.PaymentConfirmedAt || c.CreatedAt || '');
+    if(isNaN(anchor)) return;
+    const nextDue = new Date(anchor);
+    while(nextDue <= now) nextDue.setDate(nextDue.getDate() + 30);
+    const daysUntilDue = Math.ceil((nextDue - now) / (1000*60*60*24));
+    if(daysUntilDue <= 2)      needSend.push({c, nextDue, daysUntilDue});
+    else if(daysUntilDue <= 5) needPrepare.push({c, nextDue, daysUntilDue});
+  });
+
+  if(!needSend.length && !needPrepare.length) return;
+
   const banner = document.createElement('div');
   banner.id = 'perf-reminder-dashboard';
 
-  if(isSendUnlocked){
-    banner.style.cssText = `
-      background:rgba(204,255,0,0.08);
-      border:1px solid rgba(204,255,0,0.4);
-      border-left:4px solid var(--lime);
-      border-radius:12px;
-      padding:16px 22px;
-      margin-bottom:24px;
-      display:flex;
-      align-items:center;
-      gap:16px;
-      flex-wrap:wrap;
-    `;
+  if(needSend.length > 0){
+    banner.style.cssText = `background:rgba(204,255,0,0.08);border:1px solid rgba(204,255,0,0.4);border-left:4px solid var(--lime);border-radius:12px;padding:16px 22px;margin-bottom:24px;`;
     banner.innerHTML = `
-      <div style="font-size:24px;flex-shrink:0;">📊</div>
-      <div style="flex:1;">
-        <div style="font-size:13px;font-weight:700;color:var(--lime);margin-bottom:4px;">
-          SEND PERFORMANCE REPORTS NOW — ${currentMonthName} ${currentYear}
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+        <div style="font-size:24px;flex-shrink:0;">📊</div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:700;color:var(--lime);margin-bottom:4px;">SEND PERFORMANCE REPORTS NOW</div>
+          <div style="font-size:12px;color:var(--t2);line-height:1.7;">
+            <strong style="color:var(--lime);">${needSend.length} client${needSend.length!==1?'s':''}</strong> ${needSend.length!==1?'have':'has'} their report due today or within 2 days. Send button is unlocked for each.
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;">
+            ${needSend.map(({c, daysUntilDue})=>`<span onclick="openClient('${c.Token}')" style="cursor:pointer;background:rgba(204,255,0,0.1);border:1px solid rgba(204,255,0,0.25);color:var(--lime);font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;">${c.Name||'—'} · ${daysUntilDue<=0?'Due today':daysUntilDue+'d'}</span>`).join('')}
+          </div>
         </div>
-        <div style="font-size:12px;color:var(--t2);line-height:1.7;">
-          You have <strong style="color:var(--lime);">${totalClients} active client${totalClients !== 1 ? 's' : ''}</strong> who need their ${currentMonthName} performance report sent today.
-          Send button is now unlocked. Open each client → Performance tab → Send Report.
-        </div>
+        <button onclick="goToFirstClientPerformance()" style="background:var(--lime);color:#080c08;border:none;border-radius:8px;padding:10px 20px;font-family:var(--fb);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;">Send Reports →</button>
       </div>
-      <button onclick="goToFirstClientPerformance()" style="
-        background:var(--lime);
-        color:#080c08;
-        border:none;
-        border-radius:8px;
-        padding:10px 20px;
-        font-family:var(--fb);
-        font-size:12px;
-        font-weight:700;
-        cursor:pointer;
-        white-space:nowrap;
-        flex-shrink:0;
-      ">Start Sending Reports →</button>
+      ${needPrepare.length > 0 ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid rgba(204,255,0,0.12);font-size:12px;color:var(--t3);">Also coming up: ${needPrepare.map(({c,daysUntilDue})=>`<strong style="color:var(--amber);">${c.Name||'—'}</strong> in ${daysUntilDue}d`).join(', ')}</div>` : ''}
     `;
   } else {
-    banner.style.cssText = `
-      background:rgba(245,158,11,0.08);
-      border:1px solid rgba(245,158,11,0.3);
-      border-left:4px solid var(--amber);
-      border-radius:12px;
-      padding:16px 22px;
-      margin-bottom:24px;
-      display:flex;
-      align-items:center;
-      gap:16px;
-      flex-wrap:wrap;
-    `;
+    banner.style.cssText = `background:rgba(245,158,11,0.08);border:1px solid rgba(245,158,11,0.3);border-left:4px solid var(--amber);border-radius:12px;padding:16px 22px;margin-bottom:24px;`;
     banner.innerHTML = `
-      <div style="font-size:24px;flex-shrink:0;">⏰</div>
-      <div style="flex:1;">
-        <div style="font-size:13px;font-weight:700;color:var(--amber);margin-bottom:4px;">
-          PREPARE PERFORMANCE REPORTS — ${currentMonthName} ${currentYear}
+      <div style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;">
+        <div style="font-size:24px;flex-shrink:0;">⏰</div>
+        <div style="flex:1;">
+          <div style="font-size:13px;font-weight:700;color:var(--amber);margin-bottom:4px;">PREPARE PERFORMANCE REPORTS</div>
+          <div style="font-size:12px;color:var(--t2);line-height:1.7;">
+            <strong style="color:var(--amber);">${needPrepare.length} client${needPrepare.length!==1?'s':''}</strong> ${needPrepare.length!==1?'have':'has'} reports due soon. Open each client and start filling data now.
+          </div>
+          <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;">
+            ${needPrepare.map(({c,daysUntilDue})=>`<span onclick="openClient('${c.Token}')" style="cursor:pointer;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.25);color:var(--amber);font-size:11px;font-weight:600;padding:3px 10px;border-radius:20px;">${c.Name||'—'} · ${daysUntilDue}d</span>`).join('')}
+          </div>
         </div>
-        <div style="font-size:12px;color:var(--t2);line-height:1.7;">
-          You have <strong style="color:var(--amber);">${totalClients} active client${totalClients !== 1 ? 's' : ''}</strong> who need their ${currentMonthName} performance report filled.
-          Send button unlocks in <strong style="color:var(--amber);">${daysUntilSend} day${daysUntilSend !== 1 ? 's' : ''}</strong> (${currentMonthName} ${SEND_UNLOCK_DAY}).
-          Open each client now and start filling data. Save Draft to avoid losing work.
-        </div>
+        <button onclick="goToFirstClientPerformance()" style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.4);color:var(--amber);border-radius:8px;padding:10px 20px;font-family:var(--fb);font-size:12px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0;">Start Filling Reports →</button>
       </div>
-      <button onclick="goToFirstClientPerformance()" style="
-        background:rgba(245,158,11,0.15);
-        border:1px solid rgba(245,158,11,0.4);
-        color:var(--amber);
-        border-radius:8px;
-        padding:10px 20px;
-        font-family:var(--fb);
-        font-size:12px;
-        font-weight:700;
-        cursor:pointer;
-        white-space:nowrap;
-        flex-shrink:0;
-      ">Start Filling Reports →</button>
     `;
   }
 
-  // Insert at very top of dashboard page before everything else
   const dashPage = document.getElementById('page-dashboard');
   if(dashPage) dashPage.insertBefore(banner, dashPage.firstChild);
 }
@@ -2748,73 +2701,89 @@ function initPerfMonthDropdown(){
     'June','July','August','September','October','November','December'];
   const now = new Date();
   const currentMonthIdx = now.getMonth();
-  const currentDay = now.getDate();
   const currentMonthName = allMonths[currentMonthIdx];
   const currentYear = now.getFullYear();
 
-  // Correct last day for every month including Feb
-  const lastDayOfMonth = new Date(currentYear, currentMonthIdx + 1, 0).getDate();
-
-  // Reminder starts 3 days before last day
-  // Feb(28)=day25, Apr(30)=day27, Mar(31)=day28, Jun(30)=day27
-  const REMINDER_START_DAY = lastDayOfMonth - 3;
-
-  // Send unlocks 2 days before last day
-  // Feb(28)=day26, Apr(30)=day28, Mar(31)=day29, Jun(30)=day28
-  const SEND_UNLOCK_DAY = lastDayOfMonth - 2;
-
-  // Build month dropdown — only current month selectable
   sel.innerHTML = allMonths.map((m, i) => {
     const isCurrent = i === currentMonthIdx;
-    return `<option value="${m}" ${isCurrent ? '' : 'disabled'}
-      style="${isCurrent ? '' : 'color:var(--t3);'}">${m}${isCurrent ? ' (' + currentYear + ')' : ''}</option>`;
+    return `<option value="${m}" ${isCurrent ? '' : 'disabled'} style="${isCurrent ? '' : 'color:var(--t3);'}">${m}${isCurrent ? ' (' + currentYear + ')' : ''}</option>`;
   }).join('');
   sel.value = currentMonthName;
 
-  // --- REMINDER BANNER ---
-  if(reminder){
-    if(currentDay >= REMINDER_START_DAY){
-      reminder.style.display = 'block';
-      const daysUntilSend = SEND_UNLOCK_DAY - currentDay;
-
-      if(currentDay >= SEND_UNLOCK_DAY){
-        // Send is unlocked — try to load draft
-        reminder.style.cssText = 'display:block;background:rgba(204,255,0,0.08);border:1px solid rgba(204,255,0,0.35);border-radius:10px;padding:14px 18px;margin-bottom:16px;font-size:13px;color:var(--lime);font-weight:600;';
-        reminder.innerHTML = `📊 <strong>Send button is unlocked.</strong> Checking for saved draft...`;
-        // Load draft after showing banner
-        loadPerfDraft(currentMonthName, SEND_UNLOCK_DAY, lastDayOfMonth);
-      } else {
-        // Still preparing
-        reminder.style.cssText = 'display:block;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);border-radius:10px;padding:14px 18px;margin-bottom:16px;font-size:13px;color:var(--amber);font-weight:600;';
-        reminder.innerHTML = `⏰ <strong>Prepare now.</strong> Start filling this client's ${currentMonthName} performance data. Send button unlocks in <strong>${daysUntilSend} day${daysUntilSend !== 1 ? 's' : ''}</strong> (${currentMonthName} ${SEND_UNLOCK_DAY}). Save Draft anytime to keep your data safe.`;
-      }
-    } else {
-      reminder.style.display = 'none';
-    }
-  }
-
-  // --- SEND BUTTON STATE ---
+  // Per-client cycle — anchor is PaymentConfirmedAt or CreatedAt
+  const anchor = currentClient ? new Date(currentClient.PaymentConfirmedAt || currentClient.CreatedAt || '') : null;
   const sendNote = document.getElementById('perf-send-note');
-  if(sendBtn){
-    if(currentDay < SEND_UNLOCK_DAY){
-      sendBtn.disabled = true;
-      sendBtn.style.opacity = '0.4';
-      sendBtn.style.cursor = 'not-allowed';
+
+  let isSendUnlocked = false;
+  let daysUntilDue = null;
+  let dueFmt = '';
+
+  if(anchor && !isNaN(anchor)){
+    const nextDue = new Date(anchor);
+    while(nextDue <= now) nextDue.setDate(nextDue.getDate() + 30);
+    daysUntilDue = Math.ceil((nextDue - now) / (1000*60*60*24));
+    dueFmt = nextDue.toLocaleDateString('en-GB', {day:'2-digit', month:'long'});
+    isSendUnlocked = daysUntilDue <= 2;
+    const inWindow = daysUntilDue <= 5;
+
+    if(sendBtn){
+      sendBtn.disabled = !isSendUnlocked;
+      sendBtn.style.opacity = isSendUnlocked ? '1' : '0.4';
+      sendBtn.style.cursor = isSendUnlocked ? 'pointer' : 'not-allowed';
       if(sendNote){
-        sendNote.textContent = `Send unlocks on ${currentMonthName} ${SEND_UNLOCK_DAY} — ${SEND_UNLOCK_DAY - currentDay} day${SEND_UNLOCK_DAY - currentDay !== 1 ? 's' : ''} away. Save Draft to keep your data.`;
+        sendNote.textContent = isSendUnlocked
+          ? '✅ Send is unlocked. Report will be emailed to the client immediately.'
+          : `Send unlocks in ${daysUntilDue} day${daysUntilDue!==1?'s':''} — due ${dueFmt}. Save Draft to keep your data.`;
       }
-    } else {
-      sendBtn.disabled = false;
-      sendBtn.style.opacity = '1';
-      sendBtn.style.cursor = 'pointer';
-      if(sendNote){
-        sendNote.textContent = `✅ Send is unlocked. Report will be emailed to the client immediately.`;
+    }
+
+    if(reminder){
+      if(inWindow){
+        reminder.style.display = 'block';
+        if(isSendUnlocked){
+          reminder.style.cssText = 'display:block;background:rgba(204,255,0,0.08);border:1px solid rgba(204,255,0,0.35);border-radius:10px;padding:14px 18px;margin-bottom:16px;font-size:13px;color:var(--lime);font-weight:600;';
+          reminder.innerHTML = `📊 <strong>Send button is unlocked.</strong> Checking for saved draft...`;
+          loadPerfDraft(currentMonthName);
+        } else {
+          reminder.style.cssText = 'display:block;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);border-radius:10px;padding:14px 18px;margin-bottom:16px;font-size:13px;color:var(--amber);font-weight:600;';
+          reminder.innerHTML = `⏰ <strong>Prepare now.</strong> This client's report is due in <strong>${daysUntilDue} day${daysUntilDue!==1?'s':''}</strong> (${dueFmt}). Fill in the data below and Save Draft.`;
+        }
+      } else {
+        reminder.style.display = 'none';
+      }
+    }
+  } else {
+    // No anchor — fallback to calendar-based
+    const lastDay = new Date(currentYear, currentMonthIdx+1, 0).getDate();
+    const UNLOCK = lastDay - 2;
+    const REMIND = lastDay - 3;
+    const today = now.getDate();
+    isSendUnlocked = today >= UNLOCK;
+    if(sendBtn){
+      sendBtn.disabled = !isSendUnlocked;
+      sendBtn.style.opacity = isSendUnlocked ? '1' : '0.4';
+      sendBtn.style.cursor = isSendUnlocked ? 'pointer' : 'not-allowed';
+      if(sendNote) sendNote.textContent = isSendUnlocked ? '✅ Send is unlocked.' : `Send unlocks on ${currentMonthName} ${UNLOCK}. Save Draft to keep your data.`;
+    }
+    if(reminder){
+      if(today >= REMIND){
+        reminder.style.display = 'block';
+        if(isSendUnlocked){
+          reminder.style.cssText = 'display:block;background:rgba(204,255,0,0.08);border:1px solid rgba(204,255,0,0.35);border-radius:10px;padding:14px 18px;margin-bottom:16px;font-size:13px;color:var(--lime);font-weight:600;';
+          reminder.innerHTML = `📊 <strong>Send button is unlocked.</strong> Checking for saved draft...`;
+          loadPerfDraft(currentMonthName);
+        } else {
+          reminder.style.cssText = 'display:block;background:rgba(245,158,11,0.12);border:1px solid rgba(245,158,11,0.3);border-radius:10px;padding:14px 18px;margin-bottom:16px;font-size:13px;color:var(--amber);font-weight:600;';
+          reminder.innerHTML = `⏰ <strong>Prepare now.</strong> Send unlocks in <strong>${UNLOCK-today} day${UNLOCK-today!==1?'s':''}</strong> (${currentMonthName} ${UNLOCK}). Save Draft.`;
+        }
+      } else {
+        reminder.style.display = 'none';
       }
     }
   }
 }
 
-  async function loadPerfDraft(currentMonthName, SEND_UNLOCK_DAY, lastDayOfMonth){
+ async function loadPerfDraft(currentMonthName){
   const reminder = document.getElementById('perf-reminder-banner');
   const sendNote = document.getElementById('perf-send-note');
   if(!currentClient) return;
@@ -2990,12 +2959,19 @@ async function savePerformance(btn){
 async function sendPerformanceReport(btn){
   if(!currentClient) return;
 
-  const now = new Date();
-  const lastDayOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
-  const SEND_UNLOCK_DAY = lastDayOfMonth - 2;
-
-  if(now.getDate() < SEND_UNLOCK_DAY){
-    toast('Send Report unlocks on ' + now.toLocaleString('default',{month:'long'}) + ' ' + SEND_UNLOCK_DAY, 'error');
+const now = new Date();
+  const anchor = new Date(currentClient.PaymentConfirmedAt || currentClient.CreatedAt || '');
+  let canSend = false;
+  if(!isNaN(anchor)){
+    const nextDue = new Date(anchor);
+    while(nextDue <= now) nextDue.setDate(nextDue.getDate() + 30);
+    canSend = Math.ceil((nextDue - now) / (1000*60*60*24)) <= 2;
+  } else {
+    const lastDay = new Date(now.getFullYear(), now.getMonth()+1, 0).getDate();
+    canSend = now.getDate() >= lastDay - 2;
+  }
+  if(!canSend){
+    toast('Send Report unlocks within 2 days of this client\'s billing cycle due date', 'error');
     return;
   }
 
