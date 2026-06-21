@@ -1054,11 +1054,17 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
 
     <!-- 13 NOTES -->
 
-    <div id="notes">
+  <div id="notes">
 
 <div style="margin-bottom:14px;">
 
-  <div style="font-size:12px;color:var(--t3);margin-bottom:10px;">Use this to send a direct message to your FitFlux team. It will notify us by email and Telegram instantly.</div>
+  <div style="font-size:12px;color:var(--t3);margin-bottom:16px;">Send a message directly to your FitFlux team. Your team will reply here — you'll also get an email notification.</div>
+
+  <!-- MESSAGE THREAD -->
+  <div id="dm-loading" class="loading" style="display:none;"><div class="spinner"></div>Loading messages...</div>
+  <div id="dm-no-messages" style="display:none;font-size:12px;color:var(--t3);text-align:center;padding:16px 0 8px;">No messages yet. Send your first message below.</div>
+  <div id="dm-thread" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;max-height:340px;overflow-y:auto;"></div>
+  <!-- END THREAD -->
 
   <textarea class="notes-area" id="notes-area" placeholder="Type your message, question, or request here…" style="min-height:100px;"></textarea>
 
@@ -1242,9 +1248,10 @@ loadPerformance();
 loadPayments();
 loadMilestones();
   initGrowthJourney();
-  const saved = await apiGet('getNotes', activeToken);
+const saved = await apiGet('getNotes', activeToken);
   checkRenewalReminder();
-loadSubmittedPlatforms();
+  loadSubmittedPlatforms();
+  loadDirectMessagesThread();
   showCredentialStatusPopup();
   // Silent credential status watcher — triggers popup if admin updates while client is live
   if(!window._credStatusWatcher){
@@ -1275,14 +1282,14 @@ document.addEventListener('visibilitychange', async ()=>{
   }
 });
   if(saved && saved.notes) document.getElementById('notes-area').value = saved.notes;
-  if(!window._clientChatRefresh){
+if(!window._clientChatRefresh){
   window._clientChatRefresh = setInterval(async()=>{
     if(document.visibilityState !== 'visible') return;
     const approvalsNav = document.querySelector('.nv[data-target="approvals"]');
-    if(!approvalsNav || !approvalsNav.classList.contains('act')) return;
-    await loadContent(true);
+    if(approvalsNav && approvalsNav.classList.contains('act')) await loadContent(true);
+    const contactNav = document.querySelector('.nv[data-target="contact"]');
+    if(contactNav && contactNav.classList.contains('act')) await loadDirectMessagesThread(true);
   }, 4000);
-}
 }
 
 
@@ -3471,10 +3478,60 @@ async function sendDirectMessage(){
   if(!text){ document.getElementById('notes-area').focus(); return; }
   const status = document.getElementById('msg-status');
   status.style.display='block'; status.style.color='var(--t3)'; status.textContent='Sending...';
-  await sendTelegram('📨 DIRECT MESSAGE FROM CLIENT\n\nClient: '+(CLIENT.name||'—')+'\nEmail: '+(CLIENT.email||'—')+'\nMessage: '+text);
-  await apiPost('saveNotes',{token:window.FF_TOKEN||urlToken, notes:text});
-  status.style.color='var(--green)'; status.textContent='✅ Message sent! We\'ll respond within 24 hours.';
-  document.getElementById('notes-area').value='';
+
+  const time = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  const result = await apiPost('saveDirectMessage',{
+    token: window.FF_TOKEN || urlToken,
+    author: CLIENT.name || 'Client',
+    text,
+    time
+  });
+
+  if(result && result.status === 'sent'){
+    status.style.color='var(--green)'; status.textContent='✅ Message sent! We\'ll respond within 24 hours.';
+    document.getElementById('notes-area').value='';
+    // Optimistic append to thread
+    const thread = document.getElementById('dm-thread');
+    const nomsg  = document.getElementById('dm-no-messages');
+    if(nomsg)  nomsg.style.display = 'none';
+    if(thread){
+      thread.insertAdjacentHTML('beforeend', `
+        <div style="background:rgba(255,255,255,0.04);border-radius:8px;padding:10px 12px;border-left:2px solid var(--blue);">
+          <div style="font-size:10px;font-weight:700;color:var(--blue);margin-bottom:4px;">${CLIENT.name||'You'}</div>
+          <div style="font-size:13px;color:var(--t2);line-height:1.6;">${text}</div>
+          <div style="font-size:10px;color:var(--t3);margin-top:4px;">${time}</div>
+        </div>`);
+      thread.scrollTop = thread.scrollHeight;
+    }
+  } else {
+    status.style.color='var(--red)'; status.textContent='❌ Failed to send. Please try again.';
+  }
+}
+
+async function loadDirectMessagesThread(silent=false){
+  const thread   = document.getElementById('dm-thread');
+  const loading  = document.getElementById('dm-loading');
+  const nomsg    = document.getElementById('dm-no-messages');
+  if(!thread) return;
+
+  if(!silent && loading) loading.style.display='flex';
+
+  const data = await apiGet('getDirectMessages', window.FF_TOKEN || urlToken);
+
+  if(!silent && loading) loading.style.display='none';
+
+  const messages = (data && data.messages) ? data.messages : [];
+  if(!messages.length){ if(nomsg) nomsg.style.display='block'; return; }
+  if(nomsg) nomsg.style.display = 'none';
+
+  thread.innerHTML = messages.map(m=>`
+    <div style="background:${m.AuthorRole==='admin'?'rgba(204,255,0,0.06)':'rgba(255,255,255,0.04)'};border-radius:8px;padding:10px 12px;border-left:2px solid ${m.AuthorRole==='admin'?'var(--gold)':'var(--blue)'};">
+      <div style="font-size:10px;font-weight:700;color:${m.AuthorRole==='admin'?'var(--gold)':'var(--blue)'};margin-bottom:4px;">${m.AuthorRole==='admin'?'FitFlux Team':CLIENT.name||'You'}</div>
+      <div style="font-size:13px;color:var(--t2);line-height:1.6;">${m.Text||''}</div>
+      <div style="font-size:10px;color:var(--t3);margin-top:4px;">${m.Time||''}</div>
+    </div>`).join('');
+
+  thread.scrollTop = thread.scrollHeight;
 }
 async function loadSubmittedPlatforms(){
   const data = await apiGet('getCredentials', window.FF_TOKEN || urlToken);
