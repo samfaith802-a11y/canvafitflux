@@ -540,6 +540,15 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     <div id="fitems-credentials" style="display:none;padding-left:14px;"></div>
   </div>
 </div>
+      <!-- Client Complaints folder -->
+  <div>
+    <div id="folder-complaints" onclick="toggleFolder('complaints')" style="display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;cursor:pointer;font-size:11px;color:var(--t2);" onmouseover="this.style.background='var(--lime-dim)'" onmouseout="this.style.background='transparent'">
+      <span style="font-size:9px;color:var(--t3);transition:transform .2s;" id="farr-complaints">▶</span>
+      <span>📨 Client Complaints</span>
+      <span id="fbadge-complaints" style="margin-left:auto;background:rgba(245,158,11,0.2);color:var(--amber);font-size:9px;font-weight:700;padding:1px 5px;border-radius:6px;display:none;">0</span>
+    </div>
+    <div id="fitems-complaints" style="display:none;padding-left:14px;"></div>
+  </div>
       <div class="sb-footer">
         <button class="sb-logout" onclick="adminLogout()">🔒 Lock Admin</button>
       </div>
@@ -762,6 +771,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
           <button class="dtab" onclick="switchDetailTab('milestones',this)">Milestones 🏆</button>
           <button class="dtab" onclick="switchDetailTab('documents',this)">Documents</button>
 <button class="dtab" onclick="switchDetailTab('credentials',this)">🔒 Credentials</button>
+<button class="dtab" onclick="switchDetailTab('complaints',this)">💬 Complaints</button>
         </div>
 
         <!-- OVERVIEW TAB -->
@@ -1121,6 +1131,32 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     <div style="font-size:12px;color:var(--t3);line-height:1.7;">Credentials submitted by this client. Decrypted locally in your browser — nothing travels over the internet.</div>
   </div>
   <div id="cred-admin-list"><div class="loading"><div class="spinner"></div>Loading credentials...</div></div>
+</div>
+
+<!-- COMPLAINTS TAB -->
+<div class="detail-tab-content" id="dtab-complaints">
+  <div class="sec-head" style="margin-top:0;">
+    <div class="sec-title">💬 CLIENT COMPLAINTS</div>
+    <div class="sec-line"></div>
+  </div>
+  <div style="background:var(--card);border:1px solid var(--bdr3);border-radius:12px;padding:16px 20px;margin-bottom:20px;">
+    <div style="font-size:12px;color:var(--t3);line-height:1.7;">Messages sent by this client from the Contact Team section of their portal. Reply here — client is notified by email and sees your reply in their portal instantly.</div>
+  </div>
+  <div id="complaints-loading" class="loading"><div class="spinner"></div>Loading messages...</div>
+  <div id="complaints-thread" style="display:none;">
+    <div id="complaints-messages" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;max-height:480px;overflow-y:auto;padding-right:4px;"></div>
+    <div style="background:var(--card);border:1px solid var(--bdr3);border-radius:10px;overflow:hidden;">
+      <textarea id="complaint-reply-input" class="notes-admin" placeholder="Type your reply to this client..." style="border:none;border-radius:0;margin:0;min-height:80px;resize:none;"></textarea>
+      <div style="padding:10px 14px;border-top:1px solid var(--bdr3);display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,0.1);">
+        <span style="font-size:11px;color:var(--t3);">Reply goes to client portal + email notification.</span>
+        <button onclick="sendComplaintReply()" style="background:var(--lime);border:none;color:#080c08;font-family:var(--fb);font-size:12px;font-weight:700;padding:8px 18px;border-radius:7px;cursor:pointer;transition:all .15s;">Reply →</button>
+      </div>
+    </div>
+  </div>
+  <div id="complaints-empty" style="display:none;text-align:center;padding:40px 20px;">
+    <div style="font-size:36px;margin-bottom:10px;opacity:.3;">💬</div>
+    <div style="font-size:13px;color:var(--t3);">No messages yet from this client.</div>
+  </div>
 </div>
 
     </div><!-- /main -->
@@ -1781,6 +1817,7 @@ function switchDetailTab(id, btn){
   if(id==='documents') loadAdminDocuments();
   if(id==='revenue-client') loadClientRevenue();
   if(id==='performance') initPerfMonthDropdown();
+  if(id==='complaints') loadComplaints();
 }
 
 // ── ROADMAP ──────────────────────────────────────────────────
@@ -4580,7 +4617,7 @@ let inboxData = { content: [], deliverable: [], credentials: [] };
 
 async function loadInbox(){
   if(!allClients.length) return;
-  inboxData = { content: [], deliverable: [], credentials: [] };
+  inboxData = { content: [], deliverable: [], credentials: [], complaints: [] };
 
   await Promise.all(allClients.map(async c=>{
     // Content chat — unread only (last message not from FitFlux)
@@ -4641,7 +4678,36 @@ async function loadInbox(){
     }
   }));
 
-  const total = inboxData.content.length + inboxData.deliverable.length + inboxData.credentials.length;
+ // Poll DirectMessages for unread complaints
+  try {
+    const dmData = await apiGet('getAllDirectMessages', '');
+    if (dmData && dmData.messages && dmData.messages.length) {
+      // Group by token
+      const byToken = {};
+      dmData.messages.forEach(m => {
+        if (!m.Token) return;
+        if (!byToken[m.Token]) byToken[m.Token] = [];
+        byToken[m.Token].push(m);
+      });
+      // Unread = last message in thread is from client (admin hasn't replied yet)
+      Object.entries(byToken).forEach(([token, msgs]) => {
+        const lastMsg = msgs[msgs.length - 1];
+        if (lastMsg && lastMsg.AuthorRole === 'client') {
+          const client = allClients.find(c => c.Token === token);
+          inboxData.complaints.push({
+            clientName: client ? client.Name : token,
+            clientToken: token,
+            subject: 'Direct Message',
+            message: lastMsg.Text,
+            time: lastMsg.Time,
+            allMessages: msgs
+          });
+        }
+      });
+    }
+  } catch(e) {}
+
+  const total = inboxData.content.length + inboxData.deliverable.length + inboxData.credentials.length + inboxData.complaints.length;
   const badge = document.getElementById('inbox-badge');
   if(total > 0){ badge.textContent = total; badge.style.display = ''; }
   else badge.style.display = 'none';
@@ -4653,15 +4719,16 @@ async function loadInbox(){
     if(count>0){ el.textContent=count; el.style.display=''; }
     else el.style.display='none';
   };
-  updateFBadge('content', inboxData.content.length);
+updateFBadge('content', inboxData.content.length);
   updateFBadge('deliverable', inboxData.deliverable.length);
   updateFBadge('credentials', inboxData.credentials.length);
+  updateFBadge('complaints', inboxData.complaints.length);
 
   // Render folder items
   renderFolderItems('content');
   renderFolderItems('deliverable');
   renderFolderItems('credentials');
-}
+  renderFolderItems('complaints');
 
 function renderFolderItems(type){
   const el = document.getElementById('fitems-'+type);
@@ -4762,9 +4829,85 @@ async function sendFeedbackReply(type, clientToken){
 
 async function goToClientFromFeedback(token, type){
   await openClient(token);
-  if(type==='credentials') switchDetailTab('credentials', document.querySelector('.dtab:last-child'));
-  else if(type==='deliverable') switchDetailTab('deliverables', document.querySelector('.dtab:nth-child(6)'));
-  else switchDetailTab('content', document.querySelector('.dtab:nth-child(4)'));
+  const tabId = {credentials:'credentials', deliverable:'deliverables', content:'content', complaints:'complaints'}[type] || 'content';
+  const tabBtn = Array.from(document.querySelectorAll('.dtab')).find(b => b.getAttribute('onclick') && b.getAttribute('onclick').includes("'"+tabId+"'"));
+  switchDetailTab(tabId, tabBtn || null);
+}
+  // ── CLIENT COMPLAINTS ────────────────────────────────────────
+async function loadComplaints(){
+  if(!currentClient) return;
+  const loadingEl = document.getElementById('complaints-loading');
+  const threadEl  = document.getElementById('complaints-thread');
+  const emptyEl   = document.getElementById('complaints-empty');
+  const msgsEl    = document.getElementById('complaints-messages');
+
+  loadingEl.style.display = 'flex';
+  threadEl.style.display  = 'none';
+  emptyEl.style.display   = 'none';
+
+  const data = await apiGet('getDirectMessages', currentClient.Token);
+  loadingEl.style.display = 'none';
+
+  const messages = (data && data.messages) ? data.messages : [];
+
+  if(!messages.length){
+    emptyEl.style.display = 'block';
+    return;
+  }
+
+  threadEl.style.display = 'block';
+  msgsEl.innerHTML = messages.map(m => `
+    <div style="background:${m.AuthorRole==='admin'?'rgba(204,255,0,0.06)':'rgba(255,255,255,0.04)'};border-radius:10px;padding:12px 16px;border-left:3px solid ${m.AuthorRole==='admin'?'var(--lime)':'var(--amber)'};">
+      <div style="font-size:10px;font-weight:700;color:${m.AuthorRole==='admin'?'var(--lime)':'var(--amber)'};letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px;">${m.AuthorRole==='admin'?'FitFlux Team (You)':(currentClient.Name||'Client')}</div>
+      <div style="font-size:13px;color:var(--t2);line-height:1.65;">${m.Text||''}</div>
+      <div style="font-size:10px;color:var(--t3);margin-top:6px;">${m.Time||''} · ${m.CreatedAt ? new Date(m.CreatedAt).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : ''}</div>
+    </div>`).join('');
+
+  msgsEl.scrollTop = msgsEl.scrollHeight;
+}
+
+async function sendComplaintReply(){
+  if(!currentClient) return;
+  const input = document.getElementById('complaint-reply-input');
+  const text = input ? input.value.trim() : '';
+  if(!text){ if(input) input.focus(); return; }
+
+  const replyBtn = document.querySelector('#dtab-complaints button[onclick="sendComplaintReply()"]');
+  if(replyBtn){ replyBtn.textContent = 'Sending...'; replyBtn.disabled = true; }
+
+  const time = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+  const result = await apiPost('replyToDirectMessage',{
+    token: currentClient.Token,
+    text,
+    time,
+    author: 'FitFlux'
+  });
+
+  if(replyBtn){ replyBtn.textContent = 'Reply →'; replyBtn.disabled = false; }
+
+  if(result && result.status === 'sent'){
+    if(input) input.value = '';
+    toast('✅ Reply sent — client notified by email');
+    // Optimistic update — append immediately without waiting for reload
+    const msgsEl = document.getElementById('complaints-messages');
+    const emptyEl = document.getElementById('complaints-empty');
+    const threadEl = document.getElementById('complaints-thread');
+    if(emptyEl) emptyEl.style.display = 'none';
+    if(threadEl) threadEl.style.display = 'block';
+    if(msgsEl){
+      msgsEl.insertAdjacentHTML('beforeend', `
+        <div style="background:rgba(204,255,0,0.06);border-radius:10px;padding:12px 16px;border-left:3px solid var(--lime);">
+          <div style="font-size:10px;font-weight:700;color:var(--lime);letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px;">FitFlux Team (You)</div>
+          <div style="font-size:13px;color:var(--t2);line-height:1.65;">${text}</div>
+          <div style="font-size:10px;color:var(--t3);margin-top:6px;">${time}</div>
+        </div>`);
+      msgsEl.scrollTop = msgsEl.scrollHeight;
+    }
+    // Refresh inbox badge
+    loadInbox();
+  } else {
+    toast('❌ Reply failed — try again','error');
+  }
 }
 </script>
 </body>
