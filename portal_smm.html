@@ -2806,7 +2806,7 @@ async function loadDocuments(){
   const tbody = document.getElementById('docs-list');
   if(!docs.length){ tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--t3);padding:20px;">Documents will appear here automatically as you complete each stage.</td></tr>'; return; }
   const sm={Active:'<span class="tag tag-g">&#x2713; Active</span>',Signed:'<span class="tag tag-g">&#x2713; Signed</span>',Paid:'<span class="tag tag-g">&#x2713; Paid</span>',Pending:'<span class="tag tag-y">&#x23F3; Pending</span>'};
-  tbody.innerHTML=docs.map(d=>'<tr><td>'+(d.Name||'\u2014')+'</td><td><span class="tag tag-p">'+(d.DocType||'\u2014')+'</span></td><td>'+(sm[d.Status]||d.Status||'\u2014')+'</td><td style="color:var(--t3);font-size:12px;">'+(d.Date||'\u2014')+'</td><td>'+(d.Link?'<a href="'+d.Link+'" target="_blank" style="color:var(--blue);font-size:12px;">Download &rarr;</a>':'\u2014')+'</td></tr>').join('');
+  tbody.innerHTML=docs.map(d=>'<tr><td>'+(d.Name||'\u2014')+'</td><td><span class="tag tag-p">'+(d.Type||'\u2014')+'</span></td><td>'+(sm[d.Status]||d.Status||'\u2014')+'</td><td style="color:var(--t3);font-size:12px;">'+(d.Date||'\u2014')+'</td><td>'+(d.Link?'<a href="'+d.Link+'" target="_blank" style="color:var(--blue);font-size:12px;">Download &rarr;</a>':'\u2014')+'</td></tr>').join('');
 }
 
 /* ── FILE UPLOAD ── */
@@ -2819,22 +2819,56 @@ function renderQueue(){
 }
 function removeFromQueue(i){ fileQueue.splice(i,1); renderQueue(); }
 function handleDrop(e){ e.preventDefault(); document.getElementById('dropZone').classList.remove('drag'); queueFiles(e.dataTransfer.files); }
+  
 async function uploadAll(){
   if(!fileQueue.length) return;
-  const btn=document.getElementById('uploadAllBtn'), status=document.getElementById('upload-status');
-  btn.textContent='Uploading...'; btn.disabled=true; status.style.display='block'; status.textContent='Uploading '+fileQueue.length+' file(s)...';
-  let success=0;
-  for(const f of fileQueue){
-    const fd=new FormData(); fd.append('chat_id',TG_ASSETS); fd.append('document',f,f.name);
-fd.append('caption','&#x1F4C1; Brand Asset\nClient: '+(CLIENT.name||'\u2014')+'\nFile: '+f.name+'\nToken: '+(window.FF_TOKEN||urlToken).slice(-8));
-    try{ const r=await fetch('https://api.telegram.org/bot'+TG_BOT+'/sendDocument',{method:'POST',body:fd}); if(r.ok) success++; }catch(e){}
-  }
-await apiPost('submitFiles',{token:window.FF_TOKEN || urlToken, files:fileQueue.map(f=>f.name)});
-  status.textContent=success+' of '+fileQueue.length+' file(s) uploaded successfully.';
-  status.style.color=success===fileQueue.length?'var(--green)':'var(--amber)';
-  fileQueue=[]; renderQueue(); btn.textContent='Upload All Files \u2192'; btn.disabled=false;
-}
+  const btn    = document.getElementById('uploadAllBtn');
+  const status = document.getElementById('upload-status');
+  btn.textContent='Uploading...'; btn.disabled=true;
+  status.style.display='block'; status.textContent='Uploading '+fileQueue.length+' file(s) to secure storage...';
 
+  const uploadedFiles = [];
+  let success = 0;
+
+  for(const f of fileQueue){
+    try{
+      // Step 1: get presigned URL from R2
+      const presignRes = await fetch('https://canvafitflux.vercel.app/api/upload', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({ fileName: f.name, fileType: f.type })
+      });
+      const presignData = await presignRes.json();
+      if(!presignData.presignedUrl) throw new Error('No presigned URL');
+
+      // Step 2: upload file bytes directly to R2
+      const uploadRes = await fetch(presignData.presignedUrl, {
+        method:'PUT', headers:{'Content-Type': f.type}, body: f
+      });
+      if(!uploadRes.ok) throw new Error('Upload failed: '+uploadRes.status);
+
+      uploadedFiles.push({ name: f.name, url: presignData.publicUrl, type: f.type, size: f.size });
+      success++;
+      status.textContent = success+' of '+fileQueue.length+' uploaded...';
+    } catch(e){
+      console.error('Upload error for '+f.name+':', e);
+    }
+  }
+
+  // Step 3: save R2 URLs to SubmittedFiles sheet
+  if(uploadedFiles.length){
+    await apiPost('submitFiles', {
+      token: window.FF_TOKEN || urlToken,
+      files: uploadedFiles
+    });
+    // Telegram notification (just a ping — no file bytes sent over Telegram)
+    await sendTelegram('📁 BRAND ASSETS UPLOADED\n\nClient: '+(CLIENT.name||'—')+'\nFiles: '+uploadedFiles.map(f=>f.name).join(', '));
+  }
+
+  status.textContent = success+' of '+fileQueue.length+' file(s) uploaded successfully.';
+  status.style.color = success===fileQueue.length ? 'var(--green)' : 'var(--amber)';
+  fileQueue=[]; renderQueue();
+  btn.textContent='Upload All Files →'; btn.disabled=false;
+}
 /* ── NOTES ── */
 let notesTimer=null;
 function saveNotes(){
