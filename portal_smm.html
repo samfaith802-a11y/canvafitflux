@@ -539,6 +539,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
   <div class="content">
 
     <!-- 01 WELCOME -->
+    <div class="group-head"><div class="group-head-lbl">Get Started</div></div>
     <div id="welcome">
       <div class="sec-head"><div class="sec-num">01</div><div class="sec-title">Welcome</div><div class="sec-line"></div></div>
       <div style="background:var(--card);border:1px solid var(--bdr2);border-radius:14px;padding:32px;text-align:center;margin-bottom:16px;">
@@ -808,6 +809,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
 <div class="dvd"></div>
 
     <!-- SECURE CREDENTIALS -->
+      <div class="group-head"><div class="group-head-lbl">Content Details</div></div>
     <div id="credentials" style="margin-top:55px;">
       <div class="sec-head"><div class="sec-num">05</div><div class="sec-title">Secure Login Credentials</div><div class="sec-line"></div></div>
    <div style="background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:24px;margin-bottom:16px;">
@@ -961,6 +963,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     </div>
 
     <!-- 08 TERRITORY -->
+  <div class="group-head"><div class="group-head-lbl">Your Protection</div></div>
       <div id="territory" style="margin-top:55px;">
       <div class="sec-head"><div class="sec-num">09</div><div class="sec-title">Territory Status</div><div class="sec-line"></div></div>
       <div class="terr-box">
@@ -996,6 +999,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     <div class="dvd"></div>
 
     <!-- 10 DOCUMENTS -->
+  <div class="group-head"><div class="group-head-lbl">Account</div></div>
     <div id="documents" style="margin-top:55px;">
       <div class="sec-head"><div class="sec-num">11</div><div class="sec-title">Documents &amp; Invoices</div><div class="sec-line"></div></div>
       <div class="callout">
@@ -1060,10 +1064,19 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
 
   <div style="font-size:12px;color:var(--t3);margin-bottom:16px;">Send a message directly to your FitFlux team. Your team will reply here — you'll also get an email notification.</div>
 
-  <!-- MESSAGE THREAD -->
-  <div id="dm-loading" class="loading" style="display:none;"><div class="spinner"></div>Loading messages...</div>
-  <div id="dm-no-messages" style="display:none;font-size:12px;color:var(--t3);text-align:center;padding:16px 0 8px;">No messages yet. Send your first message below.</div>
-  <div id="dm-thread" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;max-height:340px;overflow-y:auto;"></div>
+<!-- MESSAGE THREAD -->
+  <div style="border:1px solid var(--bdr);border-radius:10px;overflow:hidden;margin-bottom:16px;">
+    <div onclick="toggleMessageThreadDropdown()" style="display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--card);cursor:pointer;user-select:none;">
+      <span style="font-size:9px;font-weight:700;color:var(--gold);letter-spacing:.14em;text-transform:uppercase;">Message Thread</span>
+      <span id="dm-thread-count" style="font-size:11px;color:var(--t3);margin-left:4px;"></span>
+      <span id="dm-thread-arrow" style="margin-left:auto;font-size:10px;color:var(--t3);">▼</span>
+    </div>
+    <div id="dm-thread-body" style="display:none;padding:14px;background:var(--card2);">
+      <div id="dm-loading" class="loading" style="display:none;"><div class="spinner"></div>Loading messages...</div>
+      <div id="dm-no-messages" style="display:none;font-size:12px;color:var(--t3);text-align:center;padding:16px 0 8px;">No messages yet. Send your first message below.</div>
+      <div id="dm-thread" style="display:flex;flex-direction:column;gap:8px;max-height:340px;overflow-y:auto;"></div>
+    </div>
+  </div>
   <!-- END THREAD -->
 
   <textarea class="notes-area" id="notes-area" placeholder="Type your message, question, or request here…" style="min-height:100px;"></textarea>
@@ -3546,6 +3559,7 @@ async function loadDirectMessagesThread(silent=false){
   const thread   = document.getElementById('dm-thread');
   const loading  = document.getElementById('dm-loading');
   const nomsg    = document.getElementById('dm-no-messages');
+  const countEl  = document.getElementById('dm-thread-count');
   if(!thread) return;
 
   if(!silent && loading) loading.style.display='flex';
@@ -3555,15 +3569,31 @@ async function loadDirectMessagesThread(silent=false){
   if(!silent && loading) loading.style.display='none';
 
   const messages = (data && data.messages) ? data.messages : [];
+  if(countEl) countEl.textContent = messages.length ? '('+messages.length+')' : '';
   if(!messages.length){ if(nomsg) nomsg.style.display='block'; return; }
   if(nomsg) nomsg.style.display = 'none';
 
-  thread.innerHTML = messages.map(m=>`
+  const TRUNCATE_AT = 180;
+
+  thread.innerHTML = messages.map((m,i)=>{
+    const text = m.Text || '';
+    const isLong = text.length > TRUNCATE_AT;
+    const shortText = isLong ? text.slice(0, TRUNCATE_AT).trim() + '…' : text;
+    const msgId = 'dm'+i;
+
+    return `
     <div style="background:${m.AuthorRole==='admin'?'rgba(204,255,0,0.06)':'rgba(255,255,255,0.04)'};border-radius:8px;padding:10px 12px;border-left:2px solid ${m.AuthorRole==='admin'?'var(--gold)':'var(--blue)'};">
       <div style="font-size:10px;font-weight:700;color:${m.AuthorRole==='admin'?'var(--gold)':'var(--blue)'};margin-bottom:4px;">${m.AuthorRole==='admin'?'FitFlux Team':CLIENT.name||'You'}</div>
-      <div style="font-size:13px;color:var(--t2);line-height:1.6;">${m.Text||''}</div>
+      ${isLong ? `
+        <div style="font-size:13px;color:var(--t2);line-height:1.6;">${shortText}</div>
+        <div id="msgfull-${msgId}" style="display:none;font-size:13px;color:var(--t2);line-height:1.6;margin-top:4px;">${text}</div>
+        <button id="msgbtn-${msgId}" onclick="toggleMsgReadMore('${msgId}')" style="background:none;border:none;color:var(--blue);font-size:11px;font-weight:700;cursor:pointer;padding:4px 0 0;">Read more</button>
+      ` : `
+        <div style="font-size:13px;color:var(--t2);line-height:1.6;">${text}</div>
+      `}
       <div style="font-size:10px;color:var(--t3);margin-top:4px;">${m.Time||''}</div>
-    </div>`).join('');
+    </div>`;
+  }).join('');
 
   thread.scrollTop = thread.scrollHeight;
 }
@@ -3641,6 +3671,24 @@ function toggleLoginStatusDropdown(){
   const isOpen = body.style.display !== 'none';
   body.style.display = isOpen ? 'none' : 'block';
   if(arrow) arrow.textContent = isOpen ? '▼' : '▲';
+}
+
+  function toggleMessageThreadDropdown(){
+  const body = document.getElementById('dm-thread-body');
+  const arrow = document.getElementById('dm-thread-arrow');
+  if(!body) return;
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : 'block';
+  if(arrow) arrow.textContent = isOpen ? '▼' : '▲';
+}
+
+function toggleMsgReadMore(id){
+  const full = document.getElementById('msgfull-'+id);
+  const btn = document.getElementById('msgbtn-'+id);
+  if(!full) return;
+  const isOpen = full.style.display !== 'none';
+  full.style.display = isOpen ? 'none' : 'block';
+  if(btn) btn.textContent = isOpen ? 'Read more' : 'Show less';
 }
 
   function showLoginStatusLivePopup(changedCreds){
