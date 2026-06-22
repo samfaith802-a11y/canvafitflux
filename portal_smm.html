@@ -1281,7 +1281,6 @@ document.addEventListener('visibilitychange', async ()=>{
     await loadContent(true);
   }
 });
-  if(saved && saved.notes) document.getElementById('notes-area').value = saved.notes;
 if(!window._clientChatRefresh){
   window._clientChatRefresh = setInterval(async()=>{
     if(document.visibilityState !== 'visible') return;
