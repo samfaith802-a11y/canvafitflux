@@ -640,6 +640,19 @@ body{font-size:14px;line-height:1.65;letter-spacing:0.01em;}
 .upload-zone{border-radius:10px;padding:32px;}
 .upload-title{font-size:14px;font-weight:600;}
 .upload-sub{font-size:12px;color:rgba(255,255,255,0.35);}
+
+/* ── FORCE VERTICAL SECTION STACKING ── */
+.content { display: block !important; }
+#welcome,#guide,#overview,#roadmap,
+#approvals,#strategy,#milestones,#performance,
+#credentials,#documents,#uploads,#payments,#contact,
+#territory,#guarantee,#termination {
+  display: block !important;
+  width: 100% !important;
+  float: none !important;
+  clear: both !important;
+  box-sizing: border-box !important;
+}
 </style>
 </head>
 <body>
@@ -689,17 +702,17 @@ body{font-size:14px;line-height:1.65;letter-spacing:0.01em;}
   </div>
   <div class="sb-section">
     <div class="sb-lbl">Your Content Details</div>
-  <a class="nv" href="javascript:void(0)" data-target="credentials" onclick="nav(this,'Secure Login Details')"><span class="nv-icon">🔒</span>Secure Login Details</a>
     <a class="nv" href="javascript:void(0)" data-target="approvals" onclick="nav(this,'Content Approval')"><span class="nv-icon">&#x2705;</span>Content Approval <span class="nv-badge" id="pending-badge" style="display:none;">0</span></a>
+    <a class="nv" href="javascript:void(0)" data-target="strategy" onclick="nav(this,'Content Strategy')"><span class="nv-icon">&#x1F4CB;</span>Content Strategy</a>
+    <a class="nv" href="javascript:void(0)" data-target="milestones" onclick="nav(this,'Milestones')"><span class="nv-icon">🏆</span>Milestones</a>
     <a class="nv" href="javascript:void(0)" data-target="performance" onclick="nav(this,'Performance')"><span class="nv-icon">&#x1F4CA;</span>Performance</a>
   </div>
-
   <div class="sb-section">
   <div class="sb-lbl">Account</div>
+  <a class="nv" href="javascript:void(0)" data-target="credentials" onclick="nav(this,'Secure Login Details')"><span class="nv-icon">🔒</span>Secure Login Details</a>
   <a class="nv" href="javascript:void(0)" data-target="documents" onclick="nav(this,'Documents')"><span class="nv-icon">&#x1F4C4;</span>Documents</a>
   <a class="nv" href="javascript:void(0)" data-target="uploads" onclick="nav(this,'Submit Files')"><span class="nv-icon">&#x1F4E4;</span>Submit Files</a>
   <a class="nv" href="javascript:void(0)" data-target="payments" onclick="nav(this,'Payment History')"><span class="nv-icon">💳</span>Payment History</a>
-    <a class="nv" href="javascript:void(0)" data-target="milestones" onclick="nav(this,'Milestones')"><span class="nv-icon">🏆</span>Milestones</a>
   <a class="nv" href="javascript:void(0)" data-target="contact" onclick="nav(this,'Contact')"><span class="nv-icon">&#x1F4AC;</span>Contact Team</a>
 </div>
     <div class="sb-section">
@@ -1019,51 +1032,6 @@ body{font-size:14px;line-height:1.65;letter-spacing:0.01em;}
  <!-- CONTENT DETAILS GROUP -->
     <div class="group-head"><div class="group-head-badge">📂 Content Details</div><div class="group-head-line"></div></div>
 
-    <!-- SECURE LOGIN CREDENTIALS -->
-    <div id="credentials" style="margin-top:55px;">
-      <div class="sec-head"><div class="sec-num">05</div><div class="sec-title">Secure Login Credentials</div><div class="sec-line"></div></div>
-   <div style="background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:24px;margin-bottom:16px;">
-  <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.07);border-radius:10px;margin-bottom:20px;">
-    <span style="font-size:20px;flex-shrink:0;">🔒</span>
-    <div>
-      <div style="font-size:13px;font-weight:700;color:var(--t1);">256-bit Encrypted · FitFlux Eyes Only</div>
-      <div style="font-size:11px;color:var(--t3);margin-top:2px;line-height:1.5;">Encrypted on your device before sending. We never store plain-text passwords.</div>
-    </div>
-  </div>
-  <div style="margin-bottom:16px;">
-    <div style="font-size:9px;font-weight:700;color:var(--gold);letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px;">Platforms Submitted</div>
-    <div id="submitted-list" style="display:flex;flex-wrap:wrap;gap:6px;min-height:24px;font-size:12px;color:var(--t3);">Loading...</div>
-  </div>
-  <div style="margin-bottom:20px;">
-    <div id="login-status-section"></div>
-  </div>
-  <div style="border-top:1px solid var(--bdr);padding-top:20px;">
-    <div style="font-size:9px;font-weight:700;color:var(--gold);letter-spacing:.14em;text-transform:uppercase;margin-bottom:12px;">Submit Account Credentials</div>
-    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
-     <select class="d-select" id="cred-platform" style="background:#0b1209;border:1px solid rgba(204,255,0,0.3);border-radius:8px;padding:11px 14px;color:#fff;font-family:var(--fb);font-size:15px;outline:none;width:100%;transition:border .15s;">
-  <option value="">Select Platform...</option>
-  <option value="Instagram">Instagram</option>
-  <option value="Facebook">Facebook</option>
-  <option value="TikTok">TikTok</option>
-  <option value="YouTube">YouTube</option>
-  <option value="Twitter/X">Twitter/X</option>
-  <option value="LinkedIn">LinkedIn</option>
-</select>
-      <input class="d-input" id="cred-username" placeholder="Username or Email"/>
-      <div style="position:relative;">
-  <input class="d-input" id="cred-password" type="password" placeholder="Password" style="padding-right:40px;"/>
-  <button type="button" onclick="const i=document.getElementById('cred-password');i.type=i.type==='password'?'text':'password';this.textContent=i.type==='password'?'👁':'🙈';" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:rgba(255,255,255,0.4);padding:0;line-height:1;">👁</button>
-</div>
-      <input class="d-input" id="cred-notes" placeholder="Notes (optional)"/>
-    </div>
-    <button onclick="submitCredentials()" style="width:100%;background:var(--purple);border:none;color:#0a1a00;font-family:var(--fb);font-size:13px;font-weight:700;padding:12px;border-radius:8px;cursor:pointer;transition:opacity .2s;">🔒 Send Securely to FitFlux</button>
-    <div id="cred-status" style="display:none;margin-top:10px;font-size:12px;text-align:center;"></div>
-  </div>
-</div>
-    </div>
-
-    <div class="dvd"></div>
-
 <!-- CONTENT APPROVAL -->
 <div id="approvals" style="margin-top:40px;">
   <div class="sec-head"><div class="sec-num">06</div><div class="sec-title">Content Approval</div><div class="sec-line"></div></div>
@@ -1134,6 +1102,22 @@ body{font-size:14px;line-height:1.65;letter-spacing:0.01em;}
 
   <div class="dvd"></div>
 
+  <!-- MILESTONES — in Content Details, before Performance -->
+    <div id="milestones" style="margin-top:55px;">
+      <div class="sec-head"><div class="sec-num">14</div><div class="sec-title">Milestones</div><div class="sec-line"></div></div>
+      <div class="callout gold">
+        <div class="callout-icon">🏆</div>
+        <div>
+          <div class="callout-title">Your Achievements</div>
+          <div class="callout-text">Every milestone your FitFlux team marks as achieved appears here. These are real results from your content strategy.</div>
+        </div>
+      </div>
+     <div id="milestones-loading" class="loading"><div class="spinner"></div>Loading milestones...</div>
+      <div id="milestones-content" style="display:none;"></div>
+    </div>
+
+  <div class="dvd"></div>
+
     <!-- PERFORMANCE -->
     <div id="performance" style="margin-top:55px;">
       <div class="sec-head"><div class="sec-num">08</div><div class="sec-title">Performance Dashboard</div><div class="sec-line"></div></div>
@@ -1173,6 +1157,51 @@ body{font-size:14px;line-height:1.65;letter-spacing:0.01em;}
 
     <!-- ACCOUNT GROUP -->
  <div class="group-head"><div class="group-head-badge">⚙️ Account</div><div class="group-head-line"></div></div>
+
+    <!-- SECURE LOGIN CREDENTIALS -->
+    <div id="credentials" style="margin-top:55px;">
+      <div class="sec-head"><div class="sec-num">05</div><div class="sec-title">Secure Login Credentials</div><div class="sec-line"></div></div>
+   <div style="background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:24px;margin-bottom:16px;">
+  <div style="display:flex;align-items:center;gap:10px;padding:12px 16px;background:rgba(0,0,0,0.2);border:1px solid rgba(255,255,255,0.07);border-radius:10px;margin-bottom:20px;">
+    <span style="font-size:20px;flex-shrink:0;">🔒</span>
+    <div>
+      <div style="font-size:13px;font-weight:700;color:var(--t1);">256-bit Encrypted · FitFlux Eyes Only</div>
+      <div style="font-size:11px;color:var(--t3);margin-top:2px;line-height:1.5;">Encrypted on your device before sending. We never store plain-text passwords.</div>
+    </div>
+  </div>
+  <div style="margin-bottom:16px;">
+    <div style="font-size:9px;font-weight:700;color:var(--gold);letter-spacing:.14em;text-transform:uppercase;margin-bottom:8px;">Platforms Submitted</div>
+    <div id="submitted-list" style="display:flex;flex-wrap:wrap;gap:6px;min-height:24px;font-size:12px;color:var(--t3);">Loading...</div>
+  </div>
+  <div style="margin-bottom:20px;">
+    <div id="login-status-section"></div>
+  </div>
+  <div style="border-top:1px solid var(--bdr);padding-top:20px;">
+    <div style="font-size:9px;font-weight:700;color:var(--gold);letter-spacing:.14em;text-transform:uppercase;margin-bottom:12px;">Submit Account Credentials</div>
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+     <select class="d-select" id="cred-platform" style="background:#0b1209;border:1px solid rgba(204,255,0,0.3);border-radius:8px;padding:11px 14px;color:#fff;font-family:var(--fb);font-size:15px;outline:none;width:100%;transition:border .15s;">
+  <option value="">Select Platform...</option>
+  <option value="Instagram">Instagram</option>
+  <option value="Facebook">Facebook</option>
+  <option value="TikTok">TikTok</option>
+  <option value="YouTube">YouTube</option>
+  <option value="Twitter/X">Twitter/X</option>
+  <option value="LinkedIn">LinkedIn</option>
+</select>
+      <input class="d-input" id="cred-username" placeholder="Username or Email"/>
+      <div style="position:relative;">
+  <input class="d-input" id="cred-password" type="password" placeholder="Password" style="padding-right:40px;"/>
+  <button type="button" onclick="const i=document.getElementById('cred-password');i.type=i.type==='password'?'text':'password';this.textContent=i.type==='password'?'👁':'🙈';" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:rgba(255,255,255,0.4);padding:0;line-height:1;">👁</button>
+</div>
+      <input class="d-input" id="cred-notes" placeholder="Notes (optional)"/>
+    </div>
+    <button onclick="submitCredentials()" style="width:100%;background:var(--purple);border:none;color:#0a1a00;font-family:var(--fb);font-size:13px;font-weight:700;padding:12px;border-radius:8px;cursor:pointer;transition:opacity .2s;">🔒 Send Securely to FitFlux</button>
+    <div id="cred-status" style="display:none;margin-top:10px;font-size:12px;text-align:center;"></div>
+  </div>
+</div>
+    </div>
+
+    <div class="dvd"></div>
 
     <!-- DOCUMENTS -->
     <div id="documents" style="margin-top:55px;">
@@ -1218,21 +1247,42 @@ body{font-size:14px;line-height:1.65;letter-spacing:0.01em;}
 
     <div class="dvd"></div>
 
-  <!-- MILESTONES — in Content Details, before Performance -->
-    <div id="milestones" style="margin-top:55px;">
-      <div class="sec-head"><div class="sec-num">14</div><div class="sec-title">Milestones</div><div class="sec-line"></div></div>
+    <!-- PAYMENT HISTORY -->
+   <div id="payments" style="margin-top:55px;">
+      <div class="sec-head"><div class="sec-num">15</div><div class="sec-title">Payment History</div><div class="sec-line"></div></div>
       <div class="callout gold">
-        <div class="callout-icon">🏆</div>
+        <div class="callout-icon">💳</div>
         <div>
-          <div class="callout-title">Your Achievements</div>
-          <div class="callout-text">Every milestone your FitFlux team marks as achieved appears here. These are real results from your content strategy.</div>
+          <div class="callout-title">Your Payment Record</div>
+          <div class="callout-text">All payments received, your next due date, and your total investment to date.</div>
         </div>
       </div>
-     <div id="milestones-loading" class="loading"><div class="spinner"></div>Loading milestones...</div>
-      <div id="milestones-content" style="display:none;"></div>
+      <div id="payments-loading" class="loading"><div class="spinner"></div>Loading payments...</div>
+      <div id="payments-content" style="display:none;">
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px;">
+          <div style="background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:16px 20px;">
+            <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;">Total Paid</div>
+            <div style="font-family:var(--fh);font-size:24px;font-weight:700;color:var(--gold);" id="pay-total">—</div>
+          </div>
+          <div style="background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:16px 20px;">
+            <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;">Payments Made</div>
+            <div style="font-family:var(--fh);font-size:24px;font-weight:700;color:var(--t1);" id="pay-count">—</div>
+          </div>
+          <div style="background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:16px 20px;">
+            <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;">Next Due Date</div>
+            <div style="font-family:var(--fh);font-size:18px;font-weight:700;color:var(--green);" id="pay-next">—</div>
+          </div>
+        </div>
+        <div class="tbl-wrap">
+          <table class="tbl">
+            <thead><tr><th>Date</th><th>Amount</th><th>Method</th><th>Reference</th><th>Status</th></tr></thead>
+            <tbody id="pay-list"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
 
-  <div class="dvd"></div>
+    <div class="dvd"></div>
 
     <!-- CONTACT -->
     <div id="contact" style="margin-top:55px;">
@@ -1288,43 +1338,6 @@ body{font-size:14px;line-height:1.65;letter-spacing:0.01em;}
 
     <div class="dvd"></div>
   
-    <!-- PAYMENT HISTORY -->
-   <div id="payments" style="margin-top:55px;">
-      <div class="sec-head"><div class="sec-num">15</div><div class="sec-title">Payment History</div><div class="sec-line"></div></div>
-      <div class="callout gold">
-        <div class="callout-icon">💳</div>
-        <div>
-          <div class="callout-title">Your Payment Record</div>
-          <div class="callout-text">All payments received, your next due date, and your total investment to date.</div>
-        </div>
-      </div>
-      <div id="payments-loading" class="loading"><div class="spinner"></div>Loading payments...</div>
-      <div id="payments-content" style="display:none;">
-        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;margin-bottom:20px;">
-          <div style="background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:16px 20px;">
-            <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;">Total Paid</div>
-            <div style="font-family:var(--fh);font-size:24px;font-weight:700;color:var(--gold);" id="pay-total">—</div>
-          </div>
-          <div style="background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:16px 20px;">
-            <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;">Payments Made</div>
-            <div style="font-family:var(--fh);font-size:24px;font-weight:700;color:var(--t1);" id="pay-count">—</div>
-          </div>
-          <div style="background:var(--card);border:1px solid var(--bdr);border-radius:12px;padding:16px 20px;">
-            <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;">Next Due Date</div>
-            <div style="font-family:var(--fh);font-size:18px;font-weight:700;color:var(--green);" id="pay-next">—</div>
-          </div>
-        </div>
-        <div class="tbl-wrap">
-          <table class="tbl">
-            <thead><tr><th>Date</th><th>Amount</th><th>Method</th><th>Reference</th><th>Status</th></tr></thead>
-            <tbody id="pay-list"></tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <div class="dvd"></div>
-
 <!-- 08 TERRITORY -->
 <div class="group-head"><div class="group-head-badge">🛡️ Your Protection</div><div class="group-head-line"></div></div>
       <div id="territory" style="margin-top:55px;">
