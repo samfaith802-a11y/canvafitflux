@@ -4836,8 +4836,8 @@ function openFeedbackModal(type, clientToken){
   const item = items.find(m=>m.clientToken===clientToken);
   if(!item) return;
 
-  // Store item BEFORE removing from inboxData (cleared on open so sendFeedbackReply can still access it)
-  window._feedbackModalItem = Object.assign({}, item, { type });
+  // Store item BEFORE removing from inboxData
+  window._feedbackModalItem = Object.assign({}, item, {type});
 
   // Mark as read — remove from inboxData + refresh badge
   inboxData[type] = (inboxData[type]||[]).filter(m=>m.clientToken!==clientToken);
@@ -4850,48 +4850,47 @@ function openFeedbackModal(type, clientToken){
   const existing = document.getElementById('feedback-modal');
   if(existing) existing.remove();
 
-  const typeIcon = {content:'💬',deliverable:'📦',credentials:'🔒',complaints:'📨'};
+  const typeIcon = {content:'💬',credentials:'🔒',complaints:'📨',deliverable:'📦'};
   const typeLabel = {content:'Content Chat',credentials:'Credentials',complaints:'Complaint',deliverable:'Deliverable'};
 
   // Normalise messages — content uses {author,text,time}, complaints uses {AuthorRole,Text,Time}
-  const msgs = (item.allMessages||[]).map(m=>{
-    const isAdmin = m.author==='FitFlux' || m.AuthorRole==='admin';
-    return { isAdmin, text: m.text||m.Text||'', time: m.time||m.Time||'', name: isAdmin?'FitFlux':(item.clientName||'Client') };
+  const msgs = (item.allMessages||[]).map(function(m){
+    var isAdmin = m.author==='FitFlux' || m.AuthorRole==='admin';
+    return {isAdmin:isAdmin, text:m.text||m.Text||'', time:m.time||m.Time||'', name:isAdmin?'FitFlux':(item.clientName||'Client')};
   });
 
   function buildMsg(m){
-    const side = m.isAdmin ? 'flex-end' : 'flex-start';
-    const bg = m.isAdmin ? 'rgba(204,255,0,0.08)' : 'rgba(255,255,255,0.05)';
-    const border = m.isAdmin ? 'rgba(204,255,0,0.15)' : 'rgba(255,255,255,0.07)';
-    const radius = m.isAdmin ? '12px 12px 4px 12px' : '12px 12px 12px 4px';
-    const nameColor = m.isAdmin ? 'var(--lime)' : 'var(--amber)';
-    const safeText = m.text.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    var side = m.isAdmin ? 'flex-end' : 'flex-start';
+    var bg = m.isAdmin ? 'rgba(204,255,0,0.08)' : 'rgba(255,255,255,0.05)';
+    var bdr = m.isAdmin ? 'rgba(204,255,0,0.15)' : 'rgba(255,255,255,0.07)';
+    var radius = m.isAdmin ? '12px 12px 4px 12px' : '12px 12px 12px 4px';
+    var nameColor = m.isAdmin ? 'var(--lime)' : 'var(--amber)';
+    var safeText = m.text.replace(/</g,'&lt;').replace(/>/g,'&gt;');
     return '<div style="display:flex;flex-direction:column;align-items:'+side+';">'
-      +'<div style="max-width:85%;background:'+bg+';border-radius:'+radius+';padding:10px 14px;border:1px solid '+border+';">'
+      +'<div style="max-width:85%;background:'+bg+';border-radius:'+radius+';padding:10px 14px;border:1px solid '+bdr+';">'
       +'<div style="font-size:10px;font-weight:700;color:'+nameColor+';margin-bottom:4px;">'+m.name+'</div>'
       +'<div style="font-size:13px;color:var(--t1);line-height:1.5;white-space:pre-wrap;">'+safeText+'</div>'
       +'<div style="font-size:10px;color:var(--t3);margin-top:4px;text-align:right;">'+m.time+'</div>'
       +'</div></div>';
   }
 
-  const chatHtml = msgs.length ? msgs.map(buildMsg).join('') : '<div style="font-size:12px;color:var(--t3);text-align:center;padding:32px 0;">No messages yet.</div>';
-  const canReply = type !== 'credentials';
+  var chatHtml = msgs.length ? msgs.map(buildMsg).join('') : '<div style="font-size:12px;color:var(--t3);text-align:center;padding:32px 0;">No messages yet.</div>';
+  var canReply = type !== 'credentials';
 
-  const replySection = canReply
+  var replyHtml = canReply
     ? '<div style="padding:16px 26px;border-top:1px solid var(--bdr3);flex-shrink:0;background:var(--bg2);">'
-      +'<div style="display:flex;gap:10px;align-items:flex-end;">'
-      +'<textarea id="feedback-reply-input" placeholder="Reply to '+item.clientName+'... (Enter to send, Shift+Enter for new line)" '
-      +'style="flex:1;background:var(--bg3);border:1px solid var(--bdr);color:var(--t1);border-radius:10px;padding:10px 14px;font-family:var(--fb);font-size:13px;resize:none;min-height:44px;max-height:120px;outline:none;line-height:1.5;" '
-      +'onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendFeedbackReply(''+type+'',''+clientToken+'');}"></textarea>'
-      +'<button id="feedback-reply-btn" onclick="sendFeedbackReply(''+type+'',''+clientToken+'')" '
-      +'style="background:var(--lime);border:none;color:#080c08;font-family:var(--fb);font-size:12px;font-weight:700;padding:10px 18px;border-radius:10px;cursor:pointer;white-space:nowrap;flex-shrink:0;height:44px;">Reply →</button>'
-      +'</div></div>'
+        +'<div style="display:flex;gap:10px;align-items:flex-end;">'
+        +'<textarea id="feedback-reply-input" placeholder="Reply to '+item.clientName+'..." '
+        +'style="flex:1;background:var(--bg3);border:1px solid var(--bdr);color:var(--t1);border-radius:10px;padding:10px 14px;font-family:var(--fb);font-size:13px;resize:none;min-height:44px;max-height:120px;outline:none;line-height:1.5;"></textarea>'
+        +'<button id="feedback-reply-btn" '
+        +'style="background:var(--lime);border:none;color:#080c08;font-family:var(--fb);font-size:12px;font-weight:700;padding:10px 18px;border-radius:10px;cursor:pointer;white-space:nowrap;flex-shrink:0;height:44px;">Reply →</button>'
+        +'</div></div>'
     : '<div style="padding:16px 26px;border-top:1px solid var(--bdr3);flex-shrink:0;">'
-      +'<button onclick="goToClientFromFeedback(''+clientToken+'','credentials');document.getElementById('feedback-modal').remove();" '
-      +'style="background:var(--lime);border:none;color:#080c08;font-family:var(--fb);font-size:12px;font-weight:700;padding:10px 20px;border-radius:8px;cursor:pointer;width:100%;">🔒 View in Credentials Tab →</button>'
-      +'</div>';
+        +'<button id="feedback-goto-btn" '
+        +'style="background:var(--lime);border:none;color:#080c08;font-family:var(--fb);font-size:12px;font-weight:700;padding:10px 20px;border-radius:8px;cursor:pointer;width:100%;">🔒 View in Credentials Tab →</button>'
+        +'</div>';
 
-  const modal = document.createElement('div');
+  var modal = document.createElement('div');
   modal.id = 'feedback-modal';
   modal.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:1001;display:flex;align-items:center;justify-content:center;padding:20px;';
   modal.innerHTML = '<div style="background:var(--bg2);border:1px solid var(--bdr2);border-radius:18px;width:600px;max-width:95vw;max-height:88vh;display:flex;flex-direction:column;overflow:hidden;">'
@@ -4899,25 +4898,43 @@ function openFeedbackModal(type, clientToken){
       +'<div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:8px;">'
         +'<div>'
           +'<div style="font-family:var(--fh);font-size:20px;color:var(--t1);">'+(typeIcon[type]||'💬')+' '+item.clientName+'</div>'
-          +'<div style="font-size:11px;color:var(--t3);margin-top:3px;">'+(typeLabel[type]||type)+' · '+(item.subject||'')+'</div>'
+          +'<div style="font-size:11px;color:var(--t3);margin-top:3px;">'+(typeLabel[type]||type)+' &middot; '+(item.subject||'')+'</div>'
         +'</div>'
-        +'<button onclick="document.getElementById('feedback-modal').remove()" style="background:none;border:none;color:var(--t3);font-size:22px;cursor:pointer;padding:0;flex-shrink:0;line-height:1;">×</button>'
+        +'<button id="feedback-close-btn" style="background:none;border:none;color:var(--t3);font-size:22px;cursor:pointer;padding:0;flex-shrink:0;line-height:1;">&#215;</button>'
       +'</div>'
-      +'<button onclick="goToClientFromFeedback(''+clientToken+'',''+type+'');document.getElementById('feedback-modal').remove();" '
-      +'style="background:var(--bg3);border:1px solid var(--bdr);color:var(--t2);border-radius:7px;padding:5px 12px;font-family:var(--fb);font-size:11px;font-weight:600;cursor:pointer;">Open Full Client View →</button>'
+      +'<button id="feedback-open-client-btn" style="background:var(--bg3);border:1px solid var(--bdr);color:var(--t2);border-radius:7px;padding:5px 12px;font-family:var(--fb);font-size:11px;font-weight:600;cursor:pointer;">Open Full Client View &#8594;</button>'
     +'</div>'
     +'<div id="feedback-modal-msgs" style="flex:1;overflow-y:auto;padding:18px 26px;display:flex;flex-direction:column;gap:10px;min-height:120px;">'+chatHtml+'</div>'
-    +replySection
+    +replyHtml
     +'</div>';
 
-  modal.onclick = e=>{ if(e.target===modal) modal.remove(); };
+  modal.onclick = function(e){ if(e.target===modal) modal.remove(); };
   document.body.appendChild(modal);
 
-  // Scroll to bottom
-  const msgBox = document.getElementById('feedback-modal-msgs');
-  if(msgBox) setTimeout(()=>{ msgBox.scrollTop = msgBox.scrollHeight; }, 50);
-  // Focus textarea
-  if(canReply) setTimeout(()=>{ const ta=document.getElementById('feedback-reply-input'); if(ta) ta.focus(); }, 100);
+  // Wire up all event handlers AFTER insertion (avoids inline quoting issues)
+  var closeBtn = document.getElementById('feedback-close-btn');
+  if(closeBtn) closeBtn.onclick = function(){ modal.remove(); };
+
+  var openClientBtn = document.getElementById('feedback-open-client-btn');
+  if(openClientBtn) openClientBtn.onclick = function(){ goToClientFromFeedback(clientToken, type); modal.remove(); };
+
+  var gotoBtn = document.getElementById('feedback-goto-btn');
+  if(gotoBtn) gotoBtn.onclick = function(){ goToClientFromFeedback(clientToken,'credentials'); modal.remove(); };
+
+  var replyBtn = document.getElementById('feedback-reply-btn');
+  if(replyBtn) replyBtn.onclick = function(){ sendFeedbackReply(type, clientToken); };
+
+  var replyInput = document.getElementById('feedback-reply-input');
+  if(replyInput){
+    replyInput.addEventListener('keydown', function(e){
+      if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); sendFeedbackReply(type, clientToken); }
+    });
+    setTimeout(function(){ replyInput.focus(); }, 100);
+  }
+
+  // Scroll chat to bottom
+  var msgBox = document.getElementById('feedback-modal-msgs');
+  if(msgBox) setTimeout(function(){ msgBox.scrollTop = msgBox.scrollHeight; }, 50);
 }
 
 async function sendFeedbackReply(type, clientToken){
@@ -4926,7 +4943,7 @@ async function sendFeedbackReply(type, clientToken){
   const text = input ? input.value.trim() : '';
   if(!text){ if(input) input.focus(); return; }
 
-  // Use stored item ref — inboxData was cleared when modal opened
+  // Use stored item ref — inboxData cleared on modal open
   const item = window._feedbackModalItem || {};
 
   if(btn){ btn.textContent = 'Sending...'; btn.disabled = true; }
@@ -4946,17 +4963,17 @@ async function sendFeedbackReply(type, clientToken){
       });
       success = !!r;
     } else if(type === 'complaints'){
-      const r = await apiPost('replyToDirectMessage',{ token: clientToken, text, time, author:'FitFlux' });
+      const r = await apiPost('replyToDirectMessage',{token:clientToken, text, time, author:'FitFlux'});
       success = !!(r && r.status==='sent') || !!r;
     } else {
-      success = true; // fallback for other types
+      success = true;
     }
   } catch(e){ console.error('sendFeedbackReply:', e); }
 
   if(btn){ btn.textContent = 'Reply →'; btn.disabled = false; }
 
   if(success){
-    // Append message to modal chat immediately without closing
+    // Append message to modal chat without closing
     const msgBox = document.getElementById('feedback-modal-msgs');
     if(msgBox){
       const d = document.createElement('div');
@@ -4970,13 +4987,13 @@ async function sendFeedbackReply(type, clientToken){
       msgBox.appendChild(d);
       msgBox.scrollTop = msgBox.scrollHeight;
     }
-    if(input){ input.value = ''; input.style.height = '44px'; input.focus(); }
-    toast('✅ Reply sent — client notified');
+    if(input){ input.value = ''; input.focus(); }
+    toast('Reply sent — client notified');
     if(typeof sendTelegramAdmin === 'function'){
-      sendTelegramAdmin('💬 ADMIN REPLIED VIA FEEDBACK MODAL\n\nClient: '+(item.clientName||clientToken)+'\nType: '+type+'\nReply: '+text);
+      sendTelegramAdmin('ADMIN REPLIED VIA FEEDBACK MODAL\n\nClient: '+(item.clientName||clientToken)+'\nType: '+type+'\nReply: '+text);
     }
   } else {
-    toast('❌ Failed to send reply. Try again.','error');
+    toast('Failed to send reply. Try again.','error');
   }
 }
 
