@@ -72,6 +72,26 @@ if(!tierOk){
 .fab-modal-confirm:hover{opacity:.88;}
 .fab-modal-confirm:disabled{opacity:.5;cursor:not-allowed;}
 
+
+/* NEW MESSAGE TOAST / POPUP BANNER */
+.ff-toast{position:fixed;bottom:24px;right:24px;z-index:99990;max-width:360px;width:calc(100% - 48px);background:#0d1f0a;border:1.5px solid rgba(204,255,0,0.35);border-radius:16px;padding:18px 20px;box-shadow:0 8px 40px rgba(0,0,0,0.6);animation:ffToastIn .35s cubic-bezier(.22,.68,0,1.2) both;cursor:pointer;display:flex;gap:14px;align-items:flex-start;}
+.ff-toast.ff-toast-error{border-color:rgba(255,85,85,0.4);}
+.ff-toast-icon{font-size:26px;flex-shrink:0;line-height:1;}
+.ff-toast-body{flex:1;}
+.ff-toast-label{font-size:9px;font-weight:700;color:rgba(204,255,0,0.6);letter-spacing:.14em;text-transform:uppercase;margin-bottom:4px;}
+.ff-toast-title{font-size:13px;font-weight:700;color:#fff;margin-bottom:3px;line-height:1.4;}
+.ff-toast-sub{font-size:11px;color:rgba(255,255,255,.45);line-height:1.6;}
+.ff-toast-close{background:none;border:none;color:rgba(255,255,255,.3);font-size:18px;cursor:pointer;padding:0;flex-shrink:0;line-height:1;align-self:flex-start;}
+@keyframes ffToastIn{from{transform:translateY(80px);opacity:0}to{transform:translateY(0);opacity:1}}
+
+/* CONFLICT WARNING IN CALENDAR */
+.cal-conflict-badge{background:rgba(255,85,85,0.15);border:1px solid rgba(255,85,85,0.35);border-radius:6px;padding:3px 7px;font-size:9px;font-weight:700;color:#ff5555;display:flex;align-items:center;gap:3px;margin-top:4px;flex-wrap:wrap;}
+
+/* CHAT HISTORY DROPDOWN TOGGLE */
+.chat-history-toggle{display:flex;align-items:center;justify-content:space-between;cursor:pointer;user-select:none;padding:4px 0;margin-bottom:8px;}
+.chat-history-toggle-label{font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;}
+.chat-history-toggle-arrow{font-size:10px;color:var(--t3);transition:transform .2s;}
+
 </style></head><body><div class="wrap"><div class="icon">&#x1F512;</div><h1>Access Denied</h1><p>This link is invalid or expired.<br><br>Please use the link from your receipt, or contact us.</p><a href="mailto:fitfluxstudio@gmail.com">Contact FitfluxStudio &#x2192;</a></div><\/body><\/html>`;
     return;
   }
@@ -1483,13 +1503,30 @@ document.addEventListener('visibilitychange', async ()=>{
   }
 });
 if(!window._clientChatRefresh){
-  window._clientChatRefresh = setInterval(async()=>{
+  window._clientChatRefresh = setInterval(async function(){
     if(document.visibilityState !== 'visible') return;
     const approvalsNav = document.querySelector('.nv[data-target="approvals"]');
-    if(approvalsNav && approvalsNav.classList.contains('act')) await loadContent(true);
+    if(approvalsNav && approvalsNav.classList.contains('act')){
+      await loadContent(true);
+      checkContentApprovalNewReplies();
+    }
     const contactNav = document.querySelector('.nv[data-target="contact"]');
     if(contactNav && contactNav.classList.contains('act')) await loadDirectMessagesThread(true);
-  }, 4000);
+    // Always check for new DMs even if not on contact page
+    if(!(contactNav && contactNav.classList.contains('act'))){
+      checkNewDmsSilent();
+    }
+  }, 3000);
+}
+// Roadmap silent refresh every 3s
+if(!window._roadmapRefresh){
+  window._roadmapRefresh = setInterval(async function(){
+    if(document.visibilityState !== 'visible') return;
+    const roadmapNav = document.querySelector('.nv[data-target="roadmap"]');
+    if(roadmapNav && roadmapNav.classList.contains('act')){
+      await refreshRoadmapSilent();
+    }
+  }, 3000);
 }
 }
 
@@ -1844,8 +1881,12 @@ function renderCalendar(items, weekOffset){
     const extraHtml = extra>0 ? '<div class="cal-post-count">+'+extra+' more</div>' : '';
     const emptyHtml = !dayItems.length ? '<div class="cal-empty-day">No posts</div>' : '';
 
-    return '<div class="cal-col'+(isToday?' cal-today':'')+'">'
-      +'<div class="cal-day-hdr"><div class="cal-day-name">'+dayName+'</div><div class="cal-day-num">'+dayDate.getDate()+'</div></div>'
+    return '<div class="cal-col'+(isToday?' cal-today':'')+(hasConflict?' cal-conflict':'')+'">'
+      +'<div class="cal-day-hdr" style="'+(hasConflict?'border-bottom:1px solid rgba(255,85,85,0.3);':'')+'">'
+        +'<div class="cal-day-name">'+dayName+'</div>'
+        +'<div class="cal-day-num" style="'+(hasConflict?'color:#ff5555;':'')+'">'+(isToday&&!hasConflict?'':'')+(dayDate.getDate())+'</div>'
+        +(hasConflict?'<div class="cal-conflict-badge">&#9888; Conflict '+conflictPlatforms.join(', ')+'</div>':'')
+      +'</div>'
       +'<div class="cal-posts">'+postCards+extraHtml+emptyHtml+'</div>'
       +'</div>';
   }).join('');
@@ -1975,6 +2016,149 @@ async function confirmApproveAll(){
   closeApproveAllModal();
   if(btn){ btn.textContent = '✅ Approve All'; btn.disabled = false; }
   await loadContent(false);
+}
+
+
+/* ── FF TOAST NOTIFICATION ── */
+function showFfToast(opts){
+  var existing = document.querySelectorAll('.ff-toast');
+  if(existing.length >= 3) existing[0].remove();
+
+  var toast = document.createElement('div');
+  toast.className = 'ff-toast';
+  toast.innerHTML = '<div class="ff-toast-icon">'+(opts.icon||'💬')+'</div>'
+    +'<div class="ff-toast-body">'
+      +'<div class="ff-toast-label">'+(opts.label||'FitFlux')+'</div>'
+      +'<div class="ff-toast-title">'+(opts.title||'')+'</div>'
+      +(opts.sub?'<div class="ff-toast-sub">'+(opts.sub||'').replace(/</g,'&lt;')+'</div>':'')
+    +'</div>'
+    +'<button class="ff-toast-close" onclick="event.stopPropagation();this.closest('.ff-toast').remove()">&#215;</button>';
+
+  if(opts.onClick){
+    toast.onclick = function(e){
+      if(e.target.tagName==='BUTTON') return;
+      opts.onClick();
+      toast.remove();
+    };
+  }
+
+  document.body.appendChild(toast);
+  setTimeout(function(){ if(toast.parentNode) toast.remove(); }, 9000);
+}
+
+/* ── CHAT HISTORY TOGGLE (content approval cards) ── */
+function toggleChatHistory(id){
+  var el = document.getElementById(id);
+  var arrow = document.getElementById(id.replace('chat-hist-','chat-hist-arrow-'));
+  if(!el) return;
+  var isOpen = el.style.display !== 'none';
+  el.style.display = isOpen ? 'none' : 'block';
+  if(arrow) arrow.textContent = isOpen ? '▼' : '▲';
+}
+
+/* ── ROADMAP SILENT REFRESH ── */
+var _lastRoadmapHash = '';
+async function refreshRoadmapSilent(){
+  try {
+    var data = await apiGet('getJourneyChecks', window.FF_TOKEN||urlToken);
+    if(!data || !data.checks) return;
+    var newHash = data.checks.map(function(c){ return c.Key+'|'+c.Checked+'|'+c.Phase; }).join(',');
+    if(_lastRoadmapHash && newHash !== _lastRoadmapHash){
+      // Something changed — re-init the journey without full page reload
+      var changed = data.checks.filter(function(c){
+        var part = c.Key+'|'+c.Checked+'|'+c.Phase;
+        return !_lastRoadmapHash.includes(part);
+      });
+      if(changed.length){
+        // Re-apply checks to DOM without wiping the HTML
+        data.checks.forEach(function(c){
+          if(!c.Checked || c.Checked==='FALSE' || c.Checked===false) return;
+          var chkbId = c.Phase==='phase1' ? 'chk-'+c.Key : 'chk-p'+c.Phase.replace('phase','')+'h-'+c.Key;
+          // Try both naming conventions
+          var chkb = document.getElementById(chkbId) || document.getElementById('chk-p'+c.Phase.replace('phase','')+'-'+c.Key);
+          if(chkb && !chkb.classList.contains('on')){
+            chkb.classList.add('on');
+            chkb.style.background = c.Type==='auto' ? 'var(--green)' : 'var(--amber)';
+            chkb.style.borderColor = c.Type==='auto' ? 'var(--green)' : 'var(--amber)';
+            var chkt = chkb.closest('.chk-locked') && chkb.closest('.chk-locked').querySelector('.chkt');
+            if(chkt) chkt.classList.add('on');
+            showFfToast({
+              icon:'📍',
+              label:'Roadmap Updated',
+              title:'Your SMM Roadmap has been updated',
+              sub:'A milestone was marked complete by your FitFlux team',
+              onClick:function(){ scrollToSection('roadmap'); }
+            });
+          }
+        });
+      }
+    }
+    _lastRoadmapHash = newHash;
+  } catch(e){}
+}
+
+/* ── SILENT DM CHECK (runs even when not on contact page) ── */
+var _lastDmHash = '';
+async function checkNewDmsSilent(){
+  try {
+    var data = await apiGet('getDirectMessages', window.FF_TOKEN||urlToken);
+    if(!data || !data.messages) return;
+    var adminMsgs = data.messages.filter(function(m){ return m.AuthorRole==='admin'; });
+    if(!adminMsgs.length) return;
+    var newHash = adminMsgs.map(function(m){ return m.Time+'|'+(m.Text||'').slice(0,20); }).join(',');
+    var hashKey = 'ff_dm_hash_'+(window.FF_TOKEN||urlToken).slice(-8);
+    var storedHash = localStorage.getItem(hashKey)||'';
+    if(_lastDmHash === '') _lastDmHash = storedHash;
+    if(_lastDmHash && newHash !== _lastDmHash){
+      var newest = adminMsgs[adminMsgs.length-1];
+      showFfToast({
+        icon:'💬',
+        label:'New Message From FitFlux',
+        title:'Your team sent you a message',
+        sub:(newest.Text||'').replace(/</g,'&lt;').slice(0,80),
+        onClick:function(){ scrollToSection('contact'); }
+      });
+      localStorage.setItem(hashKey, newHash);
+    }
+    _lastDmHash = newHash;
+  } catch(e){}
+}
+
+/* ── CONTENT APPROVAL NEW REPLY CHECK ── */
+var _lastContentHash = '';
+function checkContentApprovalNewReplies(){
+  try {
+    if(!window.contentData || !window.contentData.length) return;
+    var newHash = window.contentData.map(function(c){
+      var msgs = c.ChatMessages||[];
+      var adminMsgs = msgs.filter(function(m){ return m.author==='FitFlux'; });
+      return c.ID+'|'+adminMsgs.length+'|'+(adminMsgs.length?adminMsgs[adminMsgs.length-1].time:'');
+    }).join(';');
+    if(_lastContentHash && newHash !== _lastContentHash){
+      // Find which item changed
+      var oldParts = _lastContentHash.split(';');
+      var newParts = newHash.split(';');
+      newParts.forEach(function(part, i){
+        if(oldParts[i] && part !== oldParts[i]){
+          var c = window.contentData[i];
+          if(c){
+            var adminMsgs = (c.ChatMessages||[]).filter(function(m){ return m.author==='FitFlux'; });
+            var newest = adminMsgs[adminMsgs.length-1];
+            if(newest){
+              showFfToast({
+                icon:'✉️',
+                label:'Reply on Content Approval',
+                title:'FitFlux replied on: '+(c.Title||'content'),
+                sub:(newest.text||'').replace(/</g,'&lt;').slice(0,80),
+                onClick:function(){ scrollToSection('approvals'); }
+              });
+            }
+          }
+        }
+      });
+    }
+    _lastContentHash = newHash;
+  } catch(e){}
 }
 
 function switchWeek(w, el){
@@ -2259,10 +2443,15 @@ const actionBtns = c.Status==='waiting' ? `
       ${actionBtns}
       ${changeMindBtn}
 <div id="correction-section-${cardId}" style="${hasMsgs || c.Status==='approved_minor' || c.Status==='declined' || c.Status==='Approved'?'display:block':'display:none'};margin-top:14px;border-top:1px solid var(--bdr);padding-top:14px;">
-  <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">💬 Chat History</div>
+  <div class="chat-history-toggle" onclick="toggleChatHistory('chat-hist-${cardId}')">
+    <span class="chat-history-toggle-label">💬 Chat History ${hasMsgs?'<span style=\"background:rgba(126,200,69,0.12);color:var(--gold);font-size:9px;padding:1px 6px;border-radius:10px;margin-left:4px;\">'+(c.ChatMessages||[]).length+'</span>':''}</span>
+    <span class="chat-history-toggle-arrow" id="chat-hist-arrow-${cardId}">${hasMsgs?'▲':'▼'}</span>
+  </div>
+  <div id="chat-hist-${cardId}" style="display:${hasMsgs?'block':'none'};">
   <div id="chat-${cardId}" style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px;max-height:300px;overflow-y:auto;">
     ${hasMsgs ? chatMsgs : '<div style="font-size:12px;color:var(--t3);text-align:center;padding:8px;">No messages yet.</div>'}
   </div>
+  </div><!-- /chat-hist wrapper -->
   <div class="comment-box" id="chatbox-${cardId}">
     <div id="chat-prompt-${cardId}" style="font-size:12px;color:var(--t3);padding:8px 12px;border-bottom:1px solid var(--bdr);">Type your message or correction...</div>
     <textarea class="comment-input" id="${inputId}" placeholder="Type your feedback..."></textarea>
@@ -4053,6 +4242,25 @@ async function loadDirectMessagesThread(silent=false){
   }).join('');
 
   thread.scrollTop = thread.scrollHeight;
+
+  // Detect new admin messages → show popup
+  const adminMsgs = messages.filter(function(m){ return m.AuthorRole==='admin'; });
+  if(adminMsgs.length){
+    const hashKey = 'ff_dm_hash_'+(window.FF_TOKEN||urlToken).slice(-8);
+    const newHash = adminMsgs.map(function(m){ return m.Time+'|'+(m.Text||'').slice(0,20); }).join(',');
+    const oldHash = localStorage.getItem(hashKey)||'';
+    if(oldHash && newHash !== oldHash){
+      const newest = adminMsgs[adminMsgs.length-1];
+      showFfToast({
+        icon:'💬',
+        label:'New Message From FitFlux',
+        title:'Your team sent you a message',
+        sub:(newest.Text||'').slice(0,80),
+        onClick:function(){ scrollToSection('contact'); }
+      });
+    }
+    localStorage.setItem(hashKey, newHash);
+  }
 }
 async function loadSubmittedPlatforms(){
   const data = await apiGet('getCredentials', window.FF_TOKEN || urlToken);
