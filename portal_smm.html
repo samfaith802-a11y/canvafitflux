@@ -1870,7 +1870,7 @@ function renderCalendar(items, weekOffset){
       const safeTitle = (c.Title||'Content').replace(/"/g,'&quot;').replace(/</g,'&lt;');
       const tEnc = encodeURIComponent(c.Title||'');
       const pEnc = encodeURIComponent(c.Platform||'');
-      return '<div class="cal-post" onclick="calPostClick(''+tEnc+'',''+pEnc+'',''+c.ID+'')" title="'+safeTitle+'">'
+      return '<div class="cal-post" onclick="calPostClick(\''+tEnc+'\',\''+pEnc+'\',\''+c.ID+'\')" title="'+safeTitle+'">'
         +'<div class="cal-post-platform" style="color:'+pc+';">'+c.Platform+'</div>'
         +'<div class="cal-post-title">'+safeTitle+'</div>'
         +(timeStr?'<div class="cal-post-time">'+timeStr+'</div>':'')
@@ -2032,7 +2032,7 @@ function showFfToast(opts){
       +'<div class="ff-toast-title">'+(opts.title||'')+'</div>'
       +(opts.sub?'<div class="ff-toast-sub">'+(opts.sub||'').replace(/</g,'&lt;')+'</div>':'')
     +'</div>'
-    +'<button class="ff-toast-close" onclick="event.stopPropagation();this.closest('.ff-toast').remove()">&#215;</button>';
+    +'<button class="ff-toast-close" onclick="event.stopPropagation();this.closest(\'.ff-toast\').remove()">&#215;</button>';
 
   if(opts.onClick){
     toast.onclick = function(e){
