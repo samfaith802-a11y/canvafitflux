@@ -438,9 +438,130 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
   .view-toggle{width:100%;}
   .vbtn{flex:1;text-align:center;}
 }
+
+/* ═══════════════════════════════════════════════
+   PREMIUM NOTION-STYLE DESIGN ENHANCEMENTS
+   ─ Cleaner typography, tighter spacing, polished
+     buttons, cards and section headers
+═══════════════════════════════════════════════ */
+
+/* Global rendering improvements */
+html{-webkit-font-smoothing:antialiased;-moz-osx-font-smoothing:grayscale;text-rendering:optimizeLegibility;}
+body{font-size:14px;line-height:1.65;letter-spacing:0.01em;}
+
+/* Sidebar refinements */
+.sb{border-right:1px solid rgba(126,200,69,0.12);}
+.sb-head{padding:22px 18px 16px;}
+.sb-name{font-size:13px;letter-spacing:.1em;}
+.nv{font-size:12px;padding:7px 11px;border-radius:6px;gap:8px;letter-spacing:0.01em;}
+.nv-icon{font-size:13px;}
+.sb-lbl{font-size:9px;letter-spacing:.16em;padding:12px 10px 4px;color:rgba(204,255,0,0.35);}
+.sb-cl-name{font-size:12px;line-height:1.4;}
+.sb-cl-tier{font-size:10px;}
+.sb-cl-card{padding:10px 13px;}
+
+/* Topbar */
+.tb{height:46px;padding:0 28px;}
+.bc{gap:6px;font-size:11.5px;}
+.tb-btn{font-size:11px;padding:5px 13px;border-radius:6px;letter-spacing:.03em;}
+
+/* Hero section */
+.hero{padding:36px 48px 30px;}
+.hero-eyebrow{font-size:10px;letter-spacing:.22em;}
+.hero-h1{font-size:32px;font-weight:800;line-height:1.1;margin-bottom:10px;}
+.hero-sub{font-size:13.5px;line-height:1.75;max-width:560px;color:rgba(255,255,255,0.6);}
+.hs-val{font-size:24px;font-weight:700;}
+.hs-lbl{font-size:10px;letter-spacing:.06em;margin-top:2px;}
+
+/* Content area */
+.content{max-width:900px;padding:40px 48px 120px;}
+@media(max-width:900px){.content{padding:28px 20px 100px;}}
+
+/* Section headers — cleaner Notion style */
+.sec-head{display:flex;align-items:center;gap:14px;margin:48px 0 20px;padding-bottom:14px;border-bottom:1px solid rgba(126,200,69,0.1);}
+.sec-head:first-child{margin-top:0;}
+.sec-num{font-size:10px;font-weight:700;padding:3px 9px;border-radius:4px;letter-spacing:.1em;background:rgba(126,200,69,0.08);border:1px solid rgba(126,200,69,0.18);color:rgba(126,200,69,0.7);}
+.sec-title{font-family:var(--fh);font-size:17px;font-weight:700;color:#fff;letter-spacing:-.01em;}
+.sec-line{flex:1;height:1px;background:transparent;}
+
+/* Group headers */
+.group-head{margin:60px 0 24px;}
+.group-head-badge{font-size:11px;font-weight:700;padding:6px 14px;border-radius:6px;letter-spacing:.06em;box-shadow:0 0 20px rgba(126,200,69,0.2);}
+
+/* Callout boxes */
+.callout{padding:14px 18px;border-radius:8px;margin-bottom:14px;background:var(--card);border-left:3px solid var(--purple);}
+.callout-title{font-size:13px;font-weight:700;margin-bottom:3px;line-height:1.4;}
+.callout-text{font-size:12.5px;line-height:1.7;color:rgba(255,255,255,0.6);}
+
+/* Cards & props */
+.props{border-radius:10px;}
+.pr{min-height:38px;}
+.prk{font-size:11.5px;padding:10px 12px 10px 16px;width:160px;}
+.prv{font-size:13px;padding:10px 14px;line-height:1.55;}
+
+/* Tables */
+.tbl th{font-size:10px;letter-spacing:.1em;padding:10px 14px;}
+.tbl td{font-size:12.5px;padding:11px 14px;line-height:1.5;}
+
+/* Buttons — premium sizing and rendering */
+.btn-add,.btn-send,.btn-approve,.btn-revision,.lock-btn,.upload-all-btn{
+  font-size:12.5px;
+  font-weight:700;
+  letter-spacing:.03em;
+  border-radius:8px;
+  padding:10px 20px;
+  transition:all .18s;
+  cursor:pointer;
+}
+.lock-btn{font-size:13px;padding:13px;border-radius:9px;letter-spacing:.06em;}
+.btn-approve:hover{transform:translateY(-1px);}
+.btn-revision:hover{transform:translateY(-1px);}
+
+/* Toggle/accordion */
+.tog{border-radius:9px;margin-bottom:7px;}
+.tog-h{padding:13px 17px;gap:10px;}
+.tog-title{font-size:13px;font-weight:600;letter-spacing:.01em;}
+.tog-body{padding:8px 17px 16px;}
+
+/* Guide cards */
+.guide-card{padding:22px;border-radius:12px;}
+.guide-icon{font-size:22px;margin-bottom:8px;}
+.guide-title{font-size:13px;font-weight:700;margin-bottom:6px;}
+.guide-desc{font-size:12px;line-height:1.75;color:rgba(255,255,255,0.55);}
+
+/* Contact cards */
+.contact-card{padding:20px 22px;border-radius:11px;}
+.cc-lbl{font-size:9.5px;letter-spacing:.12em;margin-bottom:6px;}
+.cc-name{font-size:14px;font-weight:700;margin-bottom:3px;}
+.cc-role{font-size:11.5px;color:rgba(255,255,255,0.4);}
+
+/* Notes / textarea */
+.notes-area{border-radius:9px;font-size:13px;line-height:1.7;padding:14px 16px;}
+
+/* Performance grid */
+.pcard{padding:18px;border-radius:10px;}
+.pcard-lbl{font-size:10px;letter-spacing:.1em;margin-bottom:10px;}
+.pcard-val{font-size:28px;margin-bottom:6px;}
+
+/* Flow steps */
+.flow-step{border-radius:8px;padding:12px 18px;}
+.flow-num{font-size:18px;font-weight:700;}
+.flow-lbl{font-size:9.5px;letter-spacing:.08em;}
+
+/* Guarantee box */
+.guar-box{padding:26px 30px;border-radius:12px;}
+.guar-h{font-size:18px;font-weight:700;margin-bottom:10px;line-height:1.3;}
+.guar-txt{font-size:13px;line-height:1.85;}
+
+/* Dividers */
+.dvd{height:1px;margin:36px 0;background:rgba(126,200,69,0.1);}
+
+/* Upload zone */
+.upload-zone{border-radius:10px;padding:32px;}
+.upload-title{font-size:14px;font-weight:600;}
+.upload-sub{font-size:12px;color:rgba(255,255,255,0.35);}
 </style>
 </head>
-<body>
 <body>
 
 
@@ -496,9 +617,9 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
   <div class="sb-lbl">Account</div>
   <a class="nv" href="javascript:void(0)" data-target="documents" onclick="nav(this,'Documents')"><span class="nv-icon">&#x1F4C4;</span>Documents</a>
   <a class="nv" href="javascript:void(0)" data-target="uploads" onclick="nav(this,'Submit Files')"><span class="nv-icon">&#x1F4E4;</span>Submit Files</a>
-  <a class="nv" href="javascript:void(0)" data-target="payments" onclick="nav(this,'Payment History')"><span class="nv-icon">💳</span>Payment History</a>
   <a class="nv" href="javascript:void(0)" data-target="milestones" onclick="nav(this,'Milestones')"><span class="nv-icon">🏆</span>Milestones</a>
   <a class="nv" href="javascript:void(0)" data-target="contact" onclick="nav(this,'Contact')"><span class="nv-icon">&#x1F4AC;</span>Contact Team</a>
+  <a class="nv" href="javascript:void(0)" data-target="payments" onclick="nav(this,'Payment History')"><span class="nv-icon">💳</span>Payment History</a>
 </div>
     <div class="sb-section">
   <div class="sb-lbl">Your Protection</div>
@@ -1013,21 +1134,6 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
 
     <div class="dvd"></div>
 
-<!-- MILESTONES -->
-    <div id="milestones" style="margin-top:55px;">
-      <div class="sec-head"><div class="sec-num">14</div><div class="sec-title">Milestones</div><div class="sec-line"></div></div>
-      <div class="callout gold">
-        <div class="callout-icon">🏆</div>
-        <div>
-          <div class="callout-title">Your Achievements</div>
-          <div class="callout-text">Every milestone your FitFlux team marks as achieved appears here. These are real results from your content strategy.</div>
-        </div>
-      </div>
-     <div id="milestones-loading" class="loading"><div class="spinner"></div>Loading milestones...</div>
-      <div id="milestones-content" style="display:none;"></div>
-    </div>
-<div class="dvd"></div>
-
     <!-- 12 CONTACT -->
     <div id="contact" style="margin-top:55px;">
       <div class="sec-head"><div class="sec-num">13</div><div class="sec-title">Contact Your Team</div><div class="sec-line"></div></div>
@@ -1080,6 +1186,8 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
       <div class="callout gold"><div class="callout-icon">&#x26A1;</div><div><div class="callout-title">Response Time</div><div class="callout-text">We respond within 24 hours on business days. For content feedback, use the Content Approval section &mdash; it goes directly to your team with full context attached.</div></div></div>
     </div>
 
+    <div class="dvd"></div>
+
     <!-- PAYMENT HISTORY -->
    <div id="payments" style="margin-top:55px;">
       <div class="sec-head"><div class="sec-num">15</div><div class="sec-title">Payment History</div><div class="sec-line"></div></div>
@@ -1114,7 +1222,23 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
         </div>
       </div>
     </div>
-    
+
+    <div class="dvd"></div>
+
+<!-- MILESTONES -->
+    <div id="milestones" style="margin-top:55px;">
+      <div class="sec-head"><div class="sec-num">14</div><div class="sec-title">Milestones</div><div class="sec-line"></div></div>
+      <div class="callout gold">
+        <div class="callout-icon">🏆</div>
+        <div>
+          <div class="callout-title">Your Achievements</div>
+          <div class="callout-text">Every milestone your FitFlux team marks as achieved appears here. These are real results from your content strategy.</div>
+        </div>
+      </div>
+     <div id="milestones-loading" class="loading"><div class="spinner"></div>Loading milestones...</div>
+      <div id="milestones-content" style="display:none;"></div>
+    </div>
+
     <div class="dvd"></div>
   
 <!-- 08 TERRITORY -->
