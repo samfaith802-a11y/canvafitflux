@@ -521,15 +521,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     </div>
     <div id="fitems-content" style="display:none;padding-left:14px;"></div>
   </div>
-  <!-- Deliverable Chat folder -->
-  <div>
-    <div id="folder-deliverable" onclick="toggleFolder('deliverable')" style="display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;cursor:pointer;font-size:11px;color:var(--t2);" onmouseover="this.style.background='var(--lime-dim)'" onmouseout="this.style.background='transparent'">
-      <span style="font-size:9px;color:var(--t3);transition:transform .2s;" id="farr-deliverable">▶</span>
-      <span>📦 Deliverable Chat</span>
-      <span id="fbadge-deliverable" style="margin-left:auto;background:rgba(245,158,11,0.2);color:var(--amber);font-size:9px;font-weight:700;padding:1px 5px;border-radius:6px;display:none;">0</span>
-    </div>
-    <div id="fitems-deliverable" style="display:none;padding-left:14px;"></div>
-  </div>
+
   <!-- Credentials folder -->
   <div>
     <div id="folder-credentials" onclick="toggleFolder('credentials')" style="display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;cursor:pointer;font-size:11px;color:var(--t2);" onmouseover="this.style.background='var(--lime-dim)'" onmouseout="this.style.background='transparent'">
@@ -810,7 +802,8 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
   <!-- UNREAD MESSAGES BANNER -->
   <div id="content-unread-banner" style="display:none;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.3);border-radius:10px;padding:12px 16px;margin-bottom:16px;align-items:center;gap:10px;">
     <span style="font-size:16px;">💬</span>
-    <span id="content-unread-text" style="font-size:13px;color:var(--amber);font-weight:600;"></span>
+    <span id="content-unread-text" style="font-size:13px;color:var(--amber);font-weight:600;flex:1;"></span>
+    <button onclick="dismissUnreadBanner()" style="background:rgba(245,158,11,0.15);border:1px solid rgba(245,158,11,0.3);color:var(--amber);font-family:var(--fb);font-size:11px;font-weight:700;padding:5px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;">✓ Mark Seen</button>
   </div>
 
   <!-- UPLOAD SECTION -->
@@ -1151,7 +1144,12 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
   </div>
   <div id="complaints-loading" class="loading"><div class="spinner"></div>Loading messages...</div>
   <div id="complaints-thread" style="display:none;">
-    <div id="complaints-messages" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;max-height:480px;overflow-y:auto;padding-right:4px;"></div>
+    <div onclick="toggleComplaintsThread()" style="display:flex;align-items:center;gap:8px;padding:12px 16px;background:var(--bg3);border-radius:8px;cursor:pointer;margin-bottom:10px;">
+      <span id="complaints-arr" style="font-size:9px;color:var(--t3);transition:transform .2s;">▶</span>
+      <span style="font-size:12px;font-weight:600;color:var(--t2);">Chat Thread</span>
+      <span id="complaints-count-badge" style="margin-left:auto;background:var(--lime-dim);color:var(--lime);font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;"></span>
+    </div>
+    <div id="complaints-messages" style="display:none;flex-direction:column;gap:8px;margin-bottom:16px;max-height:480px;overflow-y:auto;padding-right:4px;"></div>
     <div style="background:var(--card);border:1px solid var(--bdr3);border-radius:10px;overflow:hidden;">
       <textarea id="complaint-reply-input" class="notes-admin" placeholder="Type your reply to this client..." style="border:none;border-radius:0;margin:0;min-height:80px;resize:none;"></textarea>
       <div style="padding:10px 14px;border-top:1px solid var(--bdr3);display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,0.1);">
@@ -1467,6 +1465,36 @@ loadInbox();
       if(!openMonths) await loadAdminContent(true);
     }, 4000);
   }
+  // Silent refresh for complaints every 4 seconds + cross-app notification
+  if(!window._complaintsAutoRefresh){
+    window._complaintsAutoRefresh = setInterval(async()=>{
+      if(!currentClient) return;
+      const data = await apiGet('getDirectMessages', currentClient.Token);
+      const messages = (data && data.messages) ? data.messages : [];
+      const lastMsg = messages[messages.length-1];
+      const isNewClientMsg = lastMsg && lastMsg.AuthorRole !== 'admin';
+
+      // If complaints tab is open, refresh silently
+      const complaintsTab = document.getElementById('dtab-complaints');
+      if(complaintsTab && complaintsTab.classList.contains('active')){
+        const prevCount = window._lastComplaintCount || 0;
+        if(messages.length !== prevCount){
+          await loadComplaints();
+          window._lastComplaintCount = messages.length;
+        }
+      }
+
+      // Notify globally if unread and not currently viewing
+      if(isNewClientMsg){
+        const seenKey = 'ff_seen_complaint_'+currentClient.Token+'_'+lastMsg.Time;
+        if(!sessionStorage.getItem(seenKey)){
+          sessionStorage.setItem(seenKey, '1');
+          showFeedbackPopup(currentClient.Name, lastMsg.Text);
+          loadInbox();
+        }
+      }
+    }, 4000);
+  }
   // Silent check for new client messages every 20 seconds
 if(!window._adminMsgRefresh){
   window._adminMsgRefresh = setInterval(async()=>{
@@ -1692,7 +1720,7 @@ async function loadContentQueue(){
   allQueueContent.sort((a,b)=>new Date(b.ScheduledDate||b.CreatedAt||0)-new Date(a.ScheduledDate||a.CreatedAt||0));
 
   // Update pending count
-  const pendingCount = allQueueContent.filter(p=>p.Status==='Pending'||!p.Status).length;
+  const pendingCount = allQueueContent.filter(p=>p.Status==='waiting'||p.Status==='Pending'||!p.Status).length;
   document.getElementById('stat-pending').textContent = pendingCount;
 
   renderContentQueue();
@@ -1701,16 +1729,18 @@ async function loadContentQueue(){
 function renderContentQueue(){
   const el = document.getElementById('content-queue-list');
   let items = allQueueContent;
-  if(cqFilterMode==='Pending') items = items.filter(p=>p.Status==='Pending'||!p.Status);
+  if(cqFilterMode==='Pending') items = items.filter(p=>p.Status==='waiting'||p.Status==='Pending'||!p.Status);
 
   if(!items.length){
-    el.innerHTML=`<div class="empty-state"><div class="empty-icon">${cqFilterMode==='Pending'?'✅':'📝'}</div><div class="empty-text">${cqFilterMode==='Pending'?'No pending content. All caught up!':'No content found.'}</div></div>`;
+    el.innerHTML=`<div class="empty-state"><div class="empty-icon">${cqFilterMode==='Pending'?'✅':'📝'}</div><div class="empty-text">${cqFilterMode==='Pending'?'No content awaiting approval. All caught up!':'No content found across any client.'}</div></div>`;
     return;
   }
 
   el.innerHTML = items.map(p=>{
-    const statusClass = p.Status==='Approved'?'cai-approved':p.Status==='Revision'?'cai-revision':'cai-pending';
-    const statusLabel = p.Status==='Approved'?'✅ Approved':p.Status==='Revision'?'✏️ Revision':'⏳ Pending';
+    const statusMap = {waiting:{label:'⏳ Awaiting Client',cls:'cai-pending'},Pending:{label:'⏳ Awaiting Client',cls:'cai-pending'},Approved:{label:'✅ Approved',cls:'cai-approved'},approved_minor:{label:'✅ Approved w/ Fix',cls:'cai-approved'},declined:{label:'❌ Declined',cls:'cai-revision'},published:{label:'🚀 Published',cls:'cai-approved'}};
+    const st = statusMap[p.Status] || statusMap['waiting'];
+    const statusClass = st.cls;
+    const statusLabel = st.label;
     return `<div class="content-admin-item">
       <div class="cai-header">
         <span class="cai-platform">${p.Platform||'Post'}</span>
@@ -2211,7 +2241,9 @@ async function loadAdminContentImpl(silent=false){
   const unreadItems = content.filter(c=>(c.ChatMessages||[]).some(m=>m.author!=='FitFlux'&&!m.read));
   const banner = document.getElementById('content-unread-banner');
   const bannerText = document.getElementById('content-unread-text');
-  if(unreadItems.length && banner){
+  const dismissedAt = currentClient ? parseInt(sessionStorage.getItem('ff_unread_dismissed_'+currentClient.Token)||'0') : 0;
+  const recentlyDismissed = (Date.now() - dismissedAt) < 30000;
+  if(unreadItems.length && banner && !recentlyDismissed){
     banner.style.display='flex';
     bannerText.textContent=`💬 ${unreadItems.length} content post${unreadItems.length!==1?'s have':' has'} unread client messages — scroll down to view`;
   } else if(banner){ banner.style.display='none'; }
@@ -2495,15 +2527,20 @@ function buildAdminContentCard(c){
 
       ${c.RevisionNote?`<div style="font-size:11px;color:var(--amber);margin-bottom:10px;padding:8px 12px;background:rgba(245,158,11,0.08);border-radius:8px;">📝 Client note: ${c.RevisionNote}</div>`:''}
 
-      <!-- CHAT HISTORY — always visible, shows history -->
+      <!-- CHAT HISTORY — dropdown -->
       <div style="border-top:1px solid var(--bdr3);padding-top:14px;margin-top:4px;">
-        <div style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">💬 Chat History</div>
+        <div onclick="event.stopPropagation();toggleContentChatThread('${uid}')" style="display:flex;align-items:center;gap:8px;cursor:pointer;margin-bottom:8px;">
+          <span id="chat-arr-${uid}" style="font-size:9px;color:var(--t3);transition:transform .2s;">▶</span>
+          <span style="font-size:10px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;">💬 Chat History (${(c.ChatMessages||[]).length})</span>
+        </div>
+        <div id="chatwrap-${uid}" style="display:none;">
         <div id="admin-chat-${uid}" style="max-height:240px;overflow-y:auto;display:flex;flex-direction:column;gap:6px;margin-bottom:10px;">
           ${hasMsgs ? chatMsgs : '<div style="font-size:12px;color:var(--t3);text-align:center;padding:10px;">No messages yet.</div>'}
         </div>
         <div style="display:flex;gap:8px;">
           <input class="form-input" id="admin-reply-${uid}" placeholder="Reply to client..." style="flex:1;padding:8px 12px;font-size:12px;" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendAdminContentReply('${c.Token||currentClient?.Token||''}','${c.Title}','${c.Platform}','${uid}','${c.ID||''}');}"/>
           <button onclick="sendAdminContentReply('${c.Token||currentClient?.Token||''}','${c.Title}','${c.Platform}','${uid}','${c.ID||''}')" style="background:var(--lime);border:none;color:#080c08;font-family:var(--fb);font-size:12px;font-weight:700;padding:8px 16px;border-radius:7px;cursor:pointer;white-space:nowrap;">Reply →</button>
+        </div>
         </div>
       </div>
 
@@ -4379,7 +4416,7 @@ async function loadAdminDocuments(){
         <div><div style="font-size:13px;font-weight:600;color:var(--t1);">${d.Name||'—'}</div><div style="font-size:11px;color:var(--t3);">${d.Date||'—'}</div></div>
         <span style="font-size:11px;color:var(--t2);">${d.Type||'—'}</span>
         <span style="font-size:11px;">${statusLabels[d.Status||'pending']||d.Status||'—'}</span>
-        <span>${d.Link?`<a href="${d.Link}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;background:var(--lime-dim);border:1px solid var(--lime-bdr);color:var(--lime);border-radius:5px;padding:6px 12px;font-size:11px;font-weight:700;text-decoration:none;white-space:nowrap;">⬇ Download</a>`:'—'}</span>
+        <span>${d.Link?`<button onclick="forceDownload('${d.Link}','${(d.Name||'document').replace(/'/g,'')}')" style="display:inline-flex;align-items:center;gap:5px;background:var(--lime-dim);border:1px solid var(--lime-bdr);color:var(--lime);border-radius:5px;padding:6px 12px;font-size:11px;font-weight:700;white-space:nowrap;cursor:pointer;">⬇ Download</button>`:'—'}</span>
       </div>`).join('');
   }
 
@@ -4411,7 +4448,7 @@ async function loadAdminDocuments(){
       ${preview}
       <div style="font-size:11px;font-weight:600;color:var(--t1);margin-bottom:2px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="${name}">${name}</div>
       <div style="font-size:10px;color:var(--t3);margin-bottom:8px;">${dateStr}</div>
-      <a href="${url}" target="_blank" download="${name}" style="display:block;background:var(--lime-dim);border:1px solid var(--lime-bdr);color:var(--lime);border-radius:6px;padding:7px 10px;font-size:11px;font-weight:700;text-decoration:none;text-align:center;transition:all .15s;" onmouseover="this.style.background='var(--lime);this.style.color=\'#080c08\''" onmouseout="this.style.background='var(--lime-dim)';this.style.color='var(--lime)'">⬇ Download</a>
+      <button onclick="forceDownload('${url}','${name}')" style="display:block;width:100%;background:var(--lime-dim);border:1px solid var(--lime-bdr);color:var(--lime);border-radius:6px;padding:7px 10px;font-size:11px;font-weight:700;text-align:center;cursor:pointer;transition:all .15s;" onmouseover="this.style.background='var(--lime)';this.style.color='#080c08'" onmouseout="this.style.background='var(--lime-dim)';this.style.color='var(--lime)'">⬇ Download</button>
     </div>`;
   }).join('');
 }
@@ -4653,11 +4690,11 @@ async function addAdminDocument(){
   loadAdminDocuments();
 }
 let inboxMessages = [];
-let inboxData = { content: [], deliverable: [], credentials: [] };
+let inboxData = { content: [], credentials: [], complaints: [] };
 
 async function loadInbox(){
   if(!allClients.length) return;
-  inboxData = { content: [], deliverable: [], credentials: [], complaints: [] };
+  inboxData = { content: [], credentials: [], complaints: [] };
 
   await Promise.all(allClients.map(async c=>{
     // Content chat — unread only (last message not from FitFlux)
@@ -4683,27 +4720,7 @@ async function loadInbox(){
       });
     }
 
-    // Deliverable chat — unread only
-    const delivData = await apiGet('getDeliverables', c.Token);
-    if(delivData && delivData.deliverables){
-      delivData.deliverables.forEach(d=>{
-        const msgs = d.ChatMessages||[];
-        const lastMsg = msgs[msgs.length-1];
-        const isUnread = lastMsg && lastMsg.author !== 'FitFlux';
-        if(msgs.length && isUnread){
-          inboxData.deliverable.push({
-            clientName: c.Name,
-            clientToken: c.Token,
-            subject: (d.Name||d.name||'Deliverable'),
-            message: lastMsg.text,
-            time: lastMsg.time,
-            allMessages: msgs,
-            delivId: d.ID||d.id,
-            delivName: d.Name||d.name||''
-          });
-        }
-      });
-    }
+
 
     // Credentials — any submission counts
     const credData = await apiGet('getCredentials', c.Token);
@@ -4747,7 +4764,7 @@ async function loadInbox(){
     }
   } catch(e) {}
 
-  const total = inboxData.content.length + inboxData.deliverable.length + inboxData.credentials.length + inboxData.complaints.length;
+  const total = inboxData.content.length + inboxData.credentials.length + inboxData.complaints.length;
   const badge = document.getElementById('inbox-badge');
   if(total > 0){ badge.textContent = total; badge.style.display = ''; }
   else badge.style.display = 'none';
@@ -4760,13 +4777,11 @@ async function loadInbox(){
     else el.style.display='none';
   };
 updateFBadge('content', inboxData.content.length);
-  updateFBadge('deliverable', inboxData.deliverable.length);
   updateFBadge('credentials', inboxData.credentials.length);
   updateFBadge('complaints', inboxData.complaints.length);
 
   // Render folder items
   renderFolderItems('content');
-  renderFolderItems('deliverable');
   renderFolderItems('credentials');
   renderFolderItems('complaints');
 }
@@ -4897,6 +4912,8 @@ async function loadComplaints(){
   }
 
   threadEl.style.display = 'block';
+  const countBadge = document.getElementById('complaints-count-badge');
+  if(countBadge) countBadge.textContent = messages.length+' message'+(messages.length!==1?'s':'');
   msgsEl.innerHTML = messages.map(m => `
     <div style="background:${m.AuthorRole==='admin'?'rgba(204,255,0,0.06)':'rgba(255,255,255,0.04)'};border-radius:10px;padding:12px 16px;border-left:3px solid ${m.AuthorRole==='admin'?'var(--lime)':'var(--amber)'};">
       <div style="font-size:10px;font-weight:700;color:${m.AuthorRole==='admin'?'var(--lime)':'var(--amber)'};letter-spacing:.08em;text-transform:uppercase;margin-bottom:5px;">${m.AuthorRole==='admin'?'FitFlux Team (You)':(currentClient.Name||'Client')}</div>
@@ -4950,6 +4967,73 @@ async function sendComplaintReply(){
     toast('❌ Reply failed — try again','error');
   }
 }
+
+function toggleComplaintsThread(){
+  const el = document.getElementById('complaints-messages');
+  const arr = document.getElementById('complaints-arr');
+  if(!el) return;
+  const isOpen = el.style.display === 'flex';
+  el.style.display = isOpen ? 'none' : 'flex';
+  if(arr) arr.style.transform = isOpen ? '' : 'rotate(90deg)';
+}
+
+function dismissUnreadBanner(){
+  const banner = document.getElementById('content-unread-banner');
+  if(banner) banner.style.display = 'none';
+  if(currentClient) sessionStorage.setItem('ff_unread_dismissed_'+currentClient.Token, Date.now());
+}
+
+function toggleContentChatThread(uid){
+  const wrap = document.getElementById('chatwrap-'+uid);
+  const arr = document.getElementById('chat-arr-'+uid);
+  if(!wrap) return;
+  const isOpen = wrap.style.display !== 'none';
+  wrap.style.display = isOpen ? 'none' : 'block';
+  if(arr) arr.style.transform = isOpen ? '' : 'rotate(90deg)';
+}
+
+async function forceDownload(url, filename){
+  try{
+    toast('Downloading...');
+    const res = await fetch(url);
+    const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = filename || 'file';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(blobUrl);
+  } catch(e){
+    toast('Download failed — opening in new tab instead','error');
+    window.open(url,'_blank');
+  }
+}
+
+function showFeedbackPopup(clientName, messagePreview){
+  const existing = document.getElementById('global-feedback-popup');
+  if(existing) existing.remove();
+  const popup = document.createElement('div');
+  popup.id = 'global-feedback-popup';
+  popup.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:99997;max-width:340px;background:var(--bg2);border:1.5px solid var(--lime-bdr);border-radius:14px;padding:16px 18px;box-shadow:0 8px 32px rgba(0,0,0,0.5);animation:slideUp .3s ease;';
+  popup.innerHTML = `
+    <style>@keyframes slideUp{from{transform:translateY(40px);opacity:0;}to{transform:translateY(0);opacity:1;}}</style>
+    <div style="display:flex;align-items:flex-start;gap:10px;">
+      <div style="font-size:20px;">💬</div>
+      <div style="flex:1;">
+        <div style="font-size:12px;font-weight:700;color:var(--lime);margin-bottom:3px;">New Client Feedback</div>
+        <div style="font-size:11px;color:var(--t2);margin-bottom:2px;"><strong>${clientName}</strong></div>
+        <div style="font-size:11px;color:var(--t3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${messagePreview}</div>
+      </div>
+      <button onclick="document.getElementById('global-feedback-popup').remove()" style="background:none;border:none;color:var(--t3);font-size:16px;cursor:pointer;padding:0;flex-shrink:0;">×</button>
+    </div>
+    <button onclick="toggleFeedbackTree();document.getElementById('global-feedback-popup').remove()" style="width:100%;margin-top:10px;background:var(--lime-dim);border:1px solid var(--lime-bdr);color:var(--lime);font-family:var(--fb);font-size:11px;font-weight:700;padding:7px;border-radius:7px;cursor:pointer;">Go Check It →</button>
+  `;
+  document.body.appendChild(popup);
+  setTimeout(()=>{ if(document.body.contains(popup)) popup.remove(); }, 10000);
+}
+
 </script>
 </body>
 </html>
