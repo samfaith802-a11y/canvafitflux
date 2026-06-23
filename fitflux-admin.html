@@ -684,11 +684,14 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
         <div class="sec-head">
           <div class="sec-title">CONTENT QUEUE</div>
           <div class="sec-line"></div>
-          <div style="display:flex;gap:6px;flex-shrink:0;">
-            <button class="tl-filter active" id="cq-filter-pending" onclick="setCQFilter('Pending',this)">⏳ Pending</button>
-            <button class="tl-filter" id="cq-filter-all" onclick="setCQFilter('All',this)">All</button>
+          <div style="display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap;">
+            <button class="tl-filter active" id="cq-filter-pending" onclick="setCQFilter('Pending',this)">⏳ Awaiting</button>
+            <button class="tl-filter" id="cq-filter-all" onclick="setCQFilter('All',this)">📋 All</button>
+            <button class="tl-filter" id="cq-filter-declined" onclick="setCQFilter('declined',this)">❌ Declined</button>
+            <button class="tl-filter" id="cq-filter-approved" onclick="setCQFilter('Approved',this)">✅ Approved</button>
           </div>
         </div>
+        <div id="cq-stats-bar" style="margin-bottom:16px;"></div>
         <div id="content-queue-list"><div class="loading"><div class="spinner"></div>Loading content...</div></div>
       </div>
 
@@ -1259,6 +1262,7 @@ document.addEventListener('keydown', e => {
 function showPage(id, btn){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.detail-tab-content').forEach(t=>t.classList.remove('active'));
   const page = document.getElementById('page-'+id);
   if(page) page.classList.add('active');
   if(btn) btn.classList.add('active');
@@ -1692,8 +1696,8 @@ let cqFilterMode = 'Pending';
 
 function setCQFilter(mode, btn){
   cqFilterMode = mode;
-  document.querySelectorAll('#page-content-queue .tl-filter').forEach(b=>b.classList.remove('active'));
-  btn.classList.add('active');
+  ['cq-filter-pending','cq-filter-all','cq-filter-declined','cq-filter-approved'].forEach(id=>{ const el=document.getElementById(id); if(el) el.classList.remove('active'); });
+  if(btn) btn.classList.add('active');
   renderContentQueue();
 }
 
@@ -1721,7 +1725,17 @@ async function loadContentQueue(){
 
   // Update pending count
   const pendingCount = allQueueContent.filter(p=>p.Status==='waiting'||p.Status==='Pending'||!p.Status).length;
-  document.getElementById('stat-pending').textContent = pendingCount;
+  const _sp=document.getElementById('stat-pending'); if(_sp) _sp.textContent=pendingCount;
+  // Refresh stats bar
+  const _sb=document.getElementById('cq-stats-bar');
+  if(_sb){
+    const aw=allQueueContent.filter(p=>p.Status==='waiting'||p.Status==='Pending'||!p.Status).length;
+    const ap=allQueueContent.filter(p=>p.Status==='Approved'||p.Status==='approved_minor').length;
+    const dc=allQueueContent.filter(p=>p.Status==='declined').length;
+    const pb=allQueueContent.filter(p=>p.Status==='published').length;
+    const mk=(icon,lbl,n,col)=>'<div style="background:var(--card);border:1px solid var(--bdr3);border-radius:8px;padding:8px 14px;display:flex;align-items:center;gap:6px;"><span>'+icon+'</span><span style="font-size:11px;color:var(--t3);">'+lbl+'</span><span style="font-size:14px;font-weight:700;color:'+col+';">'+n+'</span></div>';
+    _sb.innerHTML='<div style="display:flex;gap:10px;flex-wrap:wrap;">'+mk('⏳','Awaiting',aw,'var(--amber)')+mk('✅','Approved',ap,'var(--lime)')+mk('❌','Declined',dc,'rgba(255,77,77,0.9)')+mk('🚀','Published',pb,'var(--t2)')+'</div>';
+  }
 
   renderContentQueue();
 }
@@ -1730,6 +1744,8 @@ function renderContentQueue(){
   const el = document.getElementById('content-queue-list');
   let items = allQueueContent;
   if(cqFilterMode==='Pending') items = items.filter(p=>p.Status==='waiting'||p.Status==='Pending'||!p.Status);
+  else if(cqFilterMode==='declined') items = items.filter(p=>p.Status==='declined');
+  else if(cqFilterMode==='Approved') items = items.filter(p=>p.Status==='Approved'||p.Status==='approved_minor');
 
   if(!items.length){
     el.innerHTML=`<div class="empty-state"><div class="empty-icon">${cqFilterMode==='Pending'?'✅':'📝'}</div><div class="empty-text">${cqFilterMode==='Pending'?'No content awaiting approval. All caught up!':'No content found across any client.'}</div></div>`;
@@ -4819,11 +4835,18 @@ function openFeedbackModal(type, clientToken){
   const items = inboxData[type]||[];
   const item = items.find(m=>m.clientToken===clientToken);
   if(!item) return;
+  // Mark as read immediately — remove from inboxData + refresh badge
+  inboxData[type] = (inboxData[type]||[]).filter(m=>m.clientToken!==clientToken);
+  const total = Object.values(inboxData).reduce((s,a)=>s+a.length,0);
+  const badge = document.getElementById('inbox-badge');
+  if(badge){ if(total>0){ badge.textContent=total; badge.style.display=''; } else badge.style.display='none'; }
+  updateFBadge(type, (inboxData[type]||[]).length);
+  renderFolderItems(type);
 
   const existing = document.getElementById('feedback-modal');
   if(existing) existing.remove();
 
-  const typeIcon = {content:'💬',deliverable:'📦',credentials:'🔒'};
+  const typeIcon = {content:'💬',deliverable:'📦',credentials:'🔒',complaints:'📨'};
   const chatHtml = (item.allMessages||[]).map(m=>`
     <div style="background:${m.author==='FitFlux'?'rgba(204,255,0,0.06)':'rgba(255,255,255,0.04)'};border-radius:8px;padding:9px 12px;${m.author!=='FitFlux'?'border-left:2px solid var(--amber);':''}">
       <div style="font-size:10px;font-weight:700;color:${m.author==='FitFlux'?'var(--lime)':'var(--amber)'};margin-bottom:3px;">${m.author||'Client'}</div>
