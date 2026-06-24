@@ -1050,6 +1050,19 @@ body{font-size:14px;line-height:1.65;letter-spacing:0.01em;}
       <div class="callout-text">Content is grouped by week then by day. Approve or decline each piece — nothing goes live without your sign-off.</div>
     </div>
   </div>
+<!-- CALENDAR TOGGLE BAR -->
+<div id="cal-toggle-bar" onclick="toggleCalendarPanel()" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer;background:rgba(204,255,0,0.04);border:1px solid rgba(204,255,0,0.15);border-radius:10px;padding:12px 18px;margin-bottom:12px;user-select:none;transition:background .18s;">
+  <div style="display:flex;align-items:center;gap:10px;">
+    <span style="font-size:18px;">📅</span>
+    <div>
+      <div style="font-size:11px;font-weight:700;color:var(--gold);letter-spacing:.12em;text-transform:uppercase;">Content Calendar</div>
+      <div style="font-size:11px;color:var(--t3);margin-top:1px;">See your week at a glance — click to expand</div>
+    </div>
+  </div>
+  <span id="cal-toggle-arrow" style="font-size:13px;color:var(--t3);transition:transform .2s;">▼</span>
+</div>
+<div id="cal-toggle-panel" style="display:none;margin-bottom:16px;"></div>
+
  <div class="approval-tabs">
     <div class="atab active" onclick="switchWeek('this',this)">This Week <span id="count-this" style="background:rgba(126,200,69,0.2);color:var(--gold);font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;margin-left:4px;display:none;">0</span></div>
     <div class="atab" onclick="switchWeek('next',this)">Next Week <span id="count-next" style="background:rgba(126,200,69,0.2);color:var(--gold);font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;margin-left:4px;display:none;">0</span></div>
@@ -1057,7 +1070,6 @@ body{font-size:14px;line-height:1.65;letter-spacing:0.01em;}
 <div class="atab" onclick="switchWeek('past',this)">Past Content 
       <span id="count-past" style="background:rgba(126,200,69,0.2);color:var(--gold);font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;margin-left:4px;display:none;">0</span>
     </div>
-    <div class="atab" onclick="switchWeek('calendar',this)">📅 Calendar</div>
   </div>
   <div id="week-loading" class="loading"><div class="spinner"></div>Loading content...</div>
 <div id="week-this" class="approval-week">
@@ -1796,7 +1808,7 @@ let calWeekOffset = 0; // 0 = current week, 1 = next, -1 = last
 function renderCalendar(items, weekOffset){
   if(weekOffset === undefined) weekOffset = calWeekOffset;
   calWeekOffset = weekOffset;
-  const el = document.getElementById('week-calendar');
+  const el = document.getElementById('cal-toggle-panel') || document.getElementById('week-calendar');
   if(!el) return;
 
   const now = new Date();
@@ -2017,11 +2029,19 @@ function closeApproveAllModal(){
 
 async function confirmApproveAll(){
   const btn = document.getElementById('approve-all-confirm');
-  if(btn){ btn.textContent = '⏳ Approving...'; btn.disabled = true; }
+  const cancelBtn = document.getElementById('approve-all-cancel');
+  const progressEl = document.getElementById('approve-all-progress');
+  const listEl = document.getElementById('approve-all-list');
+  if(btn){ btn.textContent = '⏳ Starting...'; btn.disabled = true; }
+  if(cancelBtn) cancelBtn.disabled = true;
+  if(listEl) listEl.style.display = 'none';
+  if(progressEl) progressEl.style.display = 'block';
 
   let approved = 0;
+  const total = _pendingItems.length;
   for(let i=0; i<_pendingItems.length; i++){
     const c = _pendingItems[i];
+    if(progressEl) progressEl.textContent = 'Approving ' + (i+1) + ' of ' + total + '\u2026  \u201c' + (c.Title||'Content').substring(0,30) + '\u201d';
     try {
       await apiPost('approveContent', {
         token: window.FF_TOKEN||urlToken,
@@ -2035,9 +2055,15 @@ async function confirmApproveAll(){
 
   await sendTelegram('✅ BULK APPROVE — ALL PENDING\n\nClient: '+(window.FF_CLIENT&&window.FF_CLIENT.name||'—')+'\n'+approved+' items approved');
 
-  closeApproveAllModal();
-  if(btn){ btn.textContent = '✅ Approve All'; btn.disabled = false; }
-  await loadContent(false);
+  if(progressEl) progressEl.textContent = '✅ Done! ' + approved + ' of ' + total + ' approved.';
+  setTimeout(function(){
+    closeApproveAllModal();
+    if(btn){ btn.textContent = '✅ Approve All'; btn.disabled = false; }
+    if(cancelBtn) cancelBtn.disabled = false;
+    if(listEl) listEl.style.display = '';
+    if(progressEl){ progressEl.style.display = 'none'; progressEl.textContent = ''; }
+    loadContent(false);
+  }, 1400);
 }
 
 
@@ -2076,6 +2102,20 @@ function toggleChatHistory(id){
   var isOpen = el.style.display !== 'none';
   el.style.display = isOpen ? 'none' : 'block';
   if(arrow) arrow.textContent = isOpen ? '▼' : '▲';
+}
+
+/* ── CALENDAR TOGGLE PANEL ── */
+function toggleCalendarPanel(){
+  var panel = document.getElementById('cal-toggle-panel');
+  var arrow = document.getElementById('cal-toggle-arrow');
+  var bar = document.getElementById('cal-toggle-bar');
+  if(!panel) return;
+  var isOpen = panel.style.display !== 'none';
+  panel.style.display = isOpen ? 'none' : 'block';
+  if(arrow) arrow.style.transform = isOpen ? '' : 'rotate(180deg)';
+  if(bar) bar.style.background = isOpen ? 'rgba(204,255,0,0.04)' : 'rgba(204,255,0,0.08)';
+  if(bar) bar.style.borderColor = isOpen ? 'rgba(204,255,0,0.15)' : 'rgba(204,255,0,0.28)';
+  if(!isOpen) renderCalendar(window.contentData, calWeekOffset);
 }
 
 /* ── ROADMAP SILENT REFRESH ── */
@@ -4459,5 +4499,27 @@ async function sendDelivChat(id, name){
   await initGrowthJourney();
 });
 </script>
+
+<!-- ── APPROVE ALL FAB ── -->
+<div class="fab-wrap" id="fab-wrap" style="display:none;">
+  <button class="fab-btn" onclick="openApproveAllModal()">
+    ✅ Approve All Pending&nbsp;<span class="fab-count" id="fab-count">0</span>
+  </button>
+</div>
+
+<!-- ── APPROVE ALL MODAL ── -->
+<div class="fab-modal-bg" id="approve-all-modal" style="display:none;" onclick="if(event.target===this)closeApproveAllModal()">
+  <div class="fab-modal">
+    <div class="fab-modal-icon">✅</div>
+    <div class="fab-modal-title">Approve All Pending Content</div>
+    <div class="fab-modal-sub">You're about to approve all items listed below. Each will be marked as approved and your FitFlux team will be notified.</div>
+    <div class="fab-modal-list" id="approve-all-list"></div>
+    <div id="approve-all-progress" style="display:none;text-align:center;padding:12px 0 4px;font-size:13px;color:var(--gold);font-weight:600;line-height:1.6;"></div>
+    <div class="fab-modal-actions">
+      <button class="fab-modal-cancel" id="approve-all-cancel" onclick="closeApproveAllModal()">Cancel</button>
+      <button class="fab-modal-confirm" id="approve-all-confirm" onclick="confirmApproveAll()">✅ Approve All</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
