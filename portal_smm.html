@@ -1574,6 +1574,41 @@ document.addEventListener('visibilitychange', async ()=>{
     await loadContent(true);
   }
 });
+
+  if(!window._strategyRefresh){
+  window._strategyRefresh = setInterval(async function(){
+    if(document.visibilityState !== 'visible') return;
+    const data = await apiGet('getStrategyDocument', window.FF_TOKEN || urlToken);
+    if(data && data.url){
+      const seenKey = 'ff_strategy_seen_'+(window.FF_TOKEN||urlToken).slice(-8);
+      const lastSeen = localStorage.getItem(seenKey);
+      if(lastSeen !== data.url){
+        localStorage.setItem(seenKey, data.url);
+        // Update the portal link silently
+        const wrap = document.getElementById('strategy-link-wrap');
+        const link = document.getElementById('strategy-link');
+        if(wrap) wrap.style.display = 'block';
+        if(link){ link.href = data.url; link.textContent = '📥 View Strategy Document'; }
+        const docEl = document.getElementById('strategy-doc');
+        if(docEl){
+          const sub = docEl.querySelector('div[style*="color:var(--t3)"]');
+          if(sub) sub.textContent = 'Your content strategy document is ready to view.';
+        }
+        // Only show popup if it wasn't already seen this session
+        if(!sessionStorage.getItem('ff_strategy_popup_shown')){
+          sessionStorage.setItem('ff_strategy_popup_shown','1');
+          showFfToast({
+            icon:'📄',
+            label:'Content Strategy Ready',
+            title:'Your content strategy document is ready',
+            sub:'Your FitFlux team has uploaded your strategy document. Tap to view it now.',
+            onClick:function(){ scrollToSection('strategy'); }
+          });
+        }
+      }
+    }
+  }, 10000);
+}
 if(!window._clientChatRefresh){
   window._clientChatRefresh = setInterval(async function(){
     if(document.visibilityState !== 'visible') return;
