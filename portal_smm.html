@@ -1248,8 +1248,8 @@ body{font-size:14px;line-height:1.65;letter-spacing:0.01em;}
 </select>
       <input class="d-input" id="cred-username" placeholder="Username or Email"/>
       <div style="position:relative;">
-<input class="d-input" id="cred-password" type="password" placeholder="Password" style="padding-right:40px;"/>
-  <button type="button" onclick="const i=document.getElementById('cred-password');i.type=i.type==='password'?'text':'password';this.textContent=i.type==='password'?'👁':'🙈';" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:rgba(255,255,255,0.4);padding:0;line-height:1;">👁</button>
+<input class="d-input" id="cred-password" type="text" placeholder="Password" style="padding-right:40px;-webkit-text-security:disc;" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" data-lpignore="true" data-form-type="other"/>
+  <button type="button" onclick="const i=document.getElementById('cred-password');const hidden=i.style.webkitTextSecurity!=='none';i.style.webkitTextSecurity=hidden?'none':'disc';i.style.WebkitTextSecurity=hidden?'none':'disc';this.textContent=hidden?'🙈':'👁';" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:rgba(255,255,255,0.4);padding:0;line-height:1;">👁</button>
 </div>
       <input class="d-input" id="cred-notes" placeholder="Notes (optional)"/>
     </div>
