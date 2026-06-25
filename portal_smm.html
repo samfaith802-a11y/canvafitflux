@@ -1613,10 +1613,10 @@ if(!window._clientChatRefresh){
   window._clientChatRefresh = setInterval(async function(){
     if(document.visibilityState !== 'visible') return;
     const approvalsNav = document.querySelector('.nv[data-target="approvals"]');
-    if(approvalsNav && approvalsNav.classList.contains('act')){
-      await loadContent(true);
-      checkContentApprovalNewReplies();
-    }
+if(approvalsNav && approvalsNav.classList.contains('act')){
+  await loadContent(true);
+}
+checkContentApprovalNewReplies();
     const contactNav = document.querySelector('.nv[data-target="contact"]');
     if(contactNav && contactNav.classList.contains('act')) await loadDirectMessagesThread(true);
     // Always check for new DMs even if not on contact page
