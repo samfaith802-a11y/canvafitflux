@@ -762,6 +762,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
           <button class="dtab" onclick="switchDetailTab('revenue-client',this)">💰 Revenue</button>
           <button class="dtab" onclick="switchDetailTab('roadmap',this)">Roadmap</button>
           <button class="dtab" onclick="switchDetailTab('content',this)">Content</button>
+          <button class="dtab" onclick="switchDetailTab('strategy',this)">📄 Strategy</button>
           <button class="dtab" onclick="switchDetailTab('performance',this)">Performance</button>
           <button class="dtab" onclick="switchDetailTab('milestones',this)">Milestones 🏆</button>
           <button class="dtab" onclick="switchDetailTab('documents',this)">Documents</button>
@@ -1136,6 +1137,37 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
   <div id="cred-admin-list"><div class="loading"><div class="spinner"></div>Loading credentials...</div></div>
 </div>
 
+      <div class="detail-tab-content" id="dtab-strategy">
+  <div class="sec-head" style="margin-top:0;"><div class="sec-title">📄 CONTENT STRATEGY</div><div class="sec-line"></div></div>
+  <div style="background:var(--card);border:1px solid var(--bdr3);border-radius:12px;padding:16px 20px;margin-bottom:16px;">
+    <div style="font-size:12px;color:var(--t3);line-height:1.7;">Upload the client's content strategy document to Cloudflare R2. The client will see a download button in their portal.</div>
+  </div>
+  <div style="background:var(--card);border:1px solid var(--bdr3);border-radius:12px;padding:20px;margin-bottom:16px;">
+    <div class="form-label" style="margin-bottom:10px;">Upload Strategy Document (PDF, DOCX)</div>
+    <div id="strategy-dropzone" style="border:1.5px dashed rgba(204,255,0,0.25);border-radius:10px;padding:28px;text-align:center;cursor:pointer;transition:all .2s;background:rgba(204,255,0,0.02);"
+      ondragover="event.preventDefault();this.style.borderColor='var(--lime)'"
+      ondragleave="this.style.borderColor='rgba(204,255,0,0.25)'"
+      ondrop="handleStrategyDrop(event)"
+      onclick="document.getElementById('strategy-file-input').click()">
+      <div style="font-size:28px;margin-bottom:8px;">📄</div>
+      <div style="font-size:13px;color:var(--t2);">Drop strategy file here or <span style="color:var(--lime);font-weight:600;">browse</span></div>
+      <div style="font-size:11px;color:var(--t3);margin-top:4px;">PDF or DOCX · Max 50MB</div>
+    </div>
+    <input type="file" id="strategy-file-input" accept=".pdf,.docx,application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document" style="display:none" onchange="uploadStrategyFile(this.files[0])"/>
+    <div id="strategy-upload-status" style="margin-top:12px;font-size:12px;color:var(--t3);display:none;"></div>
+  </div>
+  <div id="strategy-current" style="display:none;background:rgba(204,255,0,0.06);border:1px solid rgba(204,255,0,0.2);border-radius:12px;padding:16px 20px;">
+    <div style="font-size:11px;font-weight:700;color:var(--t3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px;">Current Strategy Document</div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <div style="font-size:24px;">📄</div>
+      <div style="flex:1;">
+        <div id="strategy-filename" style="font-size:13px;font-weight:600;color:var(--t1);margin-bottom:3px;"></div>
+        <div id="strategy-uploaded-at" style="font-size:11px;color:var(--t3);"></div>
+      </div>
+      <a id="strategy-view-link" href="#" target="_blank" style="background:var(--lime-dim);border:1px solid var(--lime-bdr);color:var(--lime);border-radius:7px;padding:7px 14px;font-size:12px;font-weight:700;text-decoration:none;">View →</a>
+    </div>
+  </div>
+</div>
 <!-- COMPLAINTS TAB -->
 <div class="detail-tab-content" id="dtab-complaints">
   <div class="sec-head" style="margin-top:0;">
@@ -1871,6 +1903,7 @@ function switchDetailTab(id, btn){
   if(id==='revenue-client') loadClientRevenue();
   if(id==='performance') initPerfMonthDropdown();
   if(id==='complaints') loadComplaints();
+  if(id==='strategy') loadStrategyDocument();
 }
 
 // ── ROADMAP ──────────────────────────────────────────────────
@@ -5037,7 +5070,76 @@ async function loadComplaints(){
 
   msgsEl.scrollTop = msgsEl.scrollHeight;
 }
+function handleStrategyDrop(event){
+  event.preventDefault();
+  const file = event.dataTransfer.files[0];
+  if(file) uploadStrategyFile(file);
+}
 
+async function uploadStrategyFile(file){
+  if(!file || !currentClient) return;
+  const status = document.getElementById('strategy-upload-status');
+  const dz = document.getElementById('strategy-dropzone');
+  status.style.display = 'block';
+  status.style.color = 'var(--t3)';
+  status.textContent = '⬆️ Uploading to Cloudflare R2...';
+  dz.style.opacity = '0.5';
+  dz.style.pointerEvents = 'none';
+
+  try {
+    const presignRes = await fetch('https://canvafitflux.vercel.app/api/upload', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({fileName: file.name, fileType: file.type})
+    });
+    const presignData = await presignRes.json();
+    if(!presignData.presignedUrl) throw new Error(presignData.error || 'No presigned URL');
+
+    const uploadRes = await fetch(presignData.presignedUrl, {
+      method: 'PUT',
+      headers: {'Content-Type': file.type},
+      body: file
+    });
+    if(!uploadRes.ok) throw new Error('Upload failed: ' + uploadRes.status);
+
+    // Save URL to sheet via Apps Script
+    await apiPost('saveStrategyDocument', {
+      token: currentClient.Token,
+      fileName: file.name,
+      url: presignData.publicUrl
+    });
+
+    status.style.color = 'var(--green)';
+    status.textContent = '✅ Strategy uploaded — client can now view it in their portal';
+    dz.style.opacity = '1';
+    dz.style.pointerEvents = '';
+
+    // Show current doc panel
+    document.getElementById('strategy-current').style.display = 'block';
+    document.getElementById('strategy-filename').textContent = file.name;
+    document.getElementById('strategy-uploaded-at').textContent = 'Uploaded ' + new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
+    document.getElementById('strategy-view-link').href = presignData.publicUrl;
+
+    toast('✅ Strategy document uploaded');
+  } catch(e) {
+    status.style.color = 'var(--red)';
+    status.textContent = '❌ Upload failed — ' + e.message;
+    dz.style.opacity = '1';
+    dz.style.pointerEvents = '';
+    toast('Upload failed: ' + e.message, 'error');
+  }
+}
+
+async function loadStrategyDocument(){
+  if(!currentClient) return;
+  const data = await apiGet('getStrategyDocument', currentClient.Token);
+  if(data && data.url){
+    document.getElementById('strategy-current').style.display = 'block';
+    document.getElementById('strategy-filename').textContent = data.fileName || 'Strategy Document';
+    document.getElementById('strategy-uploaded-at').textContent = data.uploadedAt ? 'Uploaded ' + data.uploadedAt : '';
+    document.getElementById('strategy-view-link').href = data.url;
+  }
+}
 async function sendComplaintReply(){
   if(!currentClient) return;
   const input = document.getElementById('complaint-reply-input');
