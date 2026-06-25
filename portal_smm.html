@@ -1109,35 +1109,36 @@ body{font-size:14px;line-height:1.65;letter-spacing:0.01em;}
     </div>
   </div>
   <div id="week-loading" class="loading"><div class="spinner"></div>Loading content...</div>
-<div id="week-this" class="approval-week">
-    <div style="margin-bottom:24px;">
-      <div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(204,255,0,0.5);padding:8px 0;border-bottom:1px solid var(--bdr);margin-bottom:16px;">📦 Deliverables This Period</div>
-      <div style="background:var(--card);border:1px solid var(--bdr);border-radius:14px;overflow:hidden;margin-bottom:16px;">
-        <div class="deliv-header"><span>Deliverable</span><span>Type</span><span>Status</span><span>Date</span><span></span></div>
-        <div id="deliv-list"><div class="loading"><div class="spinner"></div>Loading deliverables...</div></div>
-        <div class="deliv-add">
-          <div class="deliv-add-title">Add Deliverable</div>
-          <div class="deliv-add-grid">
-            <input class="d-input" id="d-name" placeholder="e.g. Week 3 Instagram Posts"/>
-            <select class="d-select" id="d-type">
-              <option>Video</option><option>Graphic</option><option>Caption</option>
-              <option>Strategy</option><option>Report</option><option>Asset</option><option>Other</option>
-            </select>
-            <select class="d-select" id="d-status">
-              <option value="pending">⏳ Pending</option>
-              <option value="progress">🔄 In Progress</option>
-              <option value="waiting">👁 Waiting for Client Approval</option>
-              <option value="approved">✅ Approved by Client</option>
-              <option value="declined">❌ Content Declined</option>
-              <option value="published">🚀 Published</option>
-            </select>
-            <input class="d-input" id="d-link" placeholder="File link (video, image or PDF)"/>
-            <button class="btn-add" onclick="addDeliverable()">+ Add</button>
-          </div>
-        </div>
+<!-- DELIVERABLES — lives outside week tabs so renderWeek can't wipe it -->
+<div id="deliv-section-wrap" style="margin-bottom:24px;">
+  <div style="font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:rgba(204,255,0,0.5);padding:8px 0;border-bottom:1px solid var(--bdr);margin-bottom:16px;">📦 Deliverables This Period</div>
+  <div style="background:var(--card);border:1px solid var(--bdr);border-radius:14px;overflow:hidden;margin-bottom:16px;">
+    <div class="deliv-header"><span>Deliverable</span><span>Type</span><span>Status</span><span>Date</span><span></span></div>
+    <div id="deliv-list"><div class="loading"><div class="spinner"></div>Loading deliverables...</div></div>
+    <div class="deliv-add">
+      <div class="deliv-add-title">Add Deliverable</div>
+      <div class="deliv-add-grid">
+        <input class="d-input" id="d-name" placeholder="e.g. Week 3 Instagram Posts"/>
+        <select class="d-select" id="d-type">
+          <option>Video</option><option>Graphic</option><option>Caption</option>
+          <option>Strategy</option><option>Report</option><option>Asset</option><option>Other</option>
+        </select>
+        <select class="d-select" id="d-status">
+          <option value="pending">⏳ Pending</option>
+          <option value="progress">🔄 In Progress</option>
+          <option value="waiting">👁 Waiting for Client Approval</option>
+          <option value="approved">✅ Approved by Client</option>
+          <option value="declined">❌ Content Declined</option>
+          <option value="published">🚀 Published</option>
+        </select>
+        <input class="d-input" id="d-link" placeholder="File link (video, image or PDF)"/>
+        <button class="btn-add" onclick="addDeliverable()">+ Add</button>
       </div>
     </div>
   </div>
+</div>
+
+<div id="week-this" class="approval-week"></div>
   <div id="week-next" class="approval-week"></div>
   <div id="week-upcoming" class="approval-week"></div>
   <div id="week-past" class="approval-week"></div>
@@ -2182,7 +2183,6 @@ function toggleChatHistory(id){
   if(arrow) arrow.textContent = isOpen ? '▼' : '▲';
 }
 
-/* ── CALENDAR TOGGLE PANEL ── */
 function toggleCalendarPanel(){
   var panel = document.getElementById('cal-toggle-panel');
   var arrow = document.getElementById('cal-toggle-arrow');
@@ -2198,13 +2198,15 @@ function toggleCalendarPanel(){
       renderCalendar(contentData, calWeekOffset);
     } else {
       panel.innerHTML = '<div style="padding:20px;text-align:center;color:var(--t3);font-size:13px;"><div class="spinner" style="margin:0 auto 10px;width:16px;height:16px;border:2px solid var(--bdr);border-top-color:var(--gold);border-radius:50%;animation:spin .8s linear infinite;"></div>Loading calendar...</div>';
-      loadContent(true).then(function(){
+      apiGet('getContent', window.FF_TOKEN || urlToken).then(function(data){
+        if(data && data.content){
+          contentData = data.content;
+        }
         renderCalendar(contentData, calWeekOffset);
       });
     }
   }
 }
-
 /* ── ROADMAP SILENT REFRESH ── */
 var _lastRoadmapHash = '';
 async function refreshRoadmapSilent(){
