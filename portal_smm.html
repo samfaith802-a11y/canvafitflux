@@ -2285,7 +2285,6 @@ function checkContentApprovalNewReplies(){
       return c.ID+'|'+adminMsgs.length+'|'+(adminMsgs.length?adminMsgs[adminMsgs.length-1].time:'');
     }).join(';');
     if(_lastContentHash && newHash !== _lastContentHash){
-      // Find which item changed
       var oldParts = _lastContentHash.split(';');
       var newParts = newHash.split(';');
       newParts.forEach(function(part, i){
@@ -2295,13 +2294,7 @@ function checkContentApprovalNewReplies(){
             var adminMsgs = (c.ChatMessages||[]).filter(function(m){ return m.author==='FitFlux'; });
             var newest = adminMsgs[adminMsgs.length-1];
             if(newest){
-              showFfToast({
-                icon:'✉️',
-                label:'Reply on Content Approval',
-                title:'FitFlux replied on: '+(c.Title||'content'),
-                sub:(newest.text||'').replace(/</g,'&lt;').slice(0,80),
-                onClick:function(){ scrollToSection('approvals'); }
-              });
+              showContentReplyPopup(c, newest);
             }
           }
         }
@@ -2309,6 +2302,140 @@ function checkContentApprovalNewReplies(){
     }
     _lastContentHash = newHash;
   } catch(e){}
+}
+
+function showContentReplyPopup(contentItem, message){
+  var existing = document.getElementById('content-reply-popup');
+  if(existing) existing.remove();
+
+  var popup = document.createElement('div');
+  popup.id = 'content-reply-popup';
+  popup.style.cssText = 'position:fixed;bottom:24px;right:24px;z-index:99999;width:360px;max-width:calc(100vw - 48px);background:#0d1f0a;border:1.5px solid rgba(204,255,0,0.35);border-radius:18px;padding:20px;box-shadow:0 8px 40px rgba(0,0,0,0.6);animation:ffToastIn .35s cubic-bezier(.22,.68,0,1.2) both;';
+
+  var title = (contentItem.Title||'Content').replace(/</g,'&lt;');
+  var msgText = (message.text||'').replace(/</g,'&lt;');
+  var cardId = 'card-'+(contentItem.ID||contentItem.Title||'');
+  var inputId = 'input-'+cardId;
+  var contentId = contentItem.ID||'';
+  var titleEnc = encodeURIComponent(contentItem.Title||'');
+  var platEnc = encodeURIComponent(contentItem.Platform||'');
+
+  popup.innerHTML = '\
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:12px;">\
+      <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;">\
+        <div style="width:32px;height:32px;border-radius:50%;background:rgba(204,255,0,0.15);border:1px solid rgba(204,255,0,0.3);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;">💬</div>\
+        <div style="min-width:0;">\
+          <div style="font-size:10px;font-weight:700;color:rgba(204,255,0,0.6);letter-spacing:.12em;text-transform:uppercase;margin-bottom:2px;">FitFlux Team replied</div>\
+          <div style="font-size:12px;color:rgba(255,255,255,0.5);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">On: '+title+'</div>\
+        </div>\
+      </div>\
+      <button onclick="document.getElementById(\'content-reply-popup\').remove()" style="background:none;border:none;color:rgba(255,255,255,0.3);font-size:20px;cursor:pointer;padding:0;flex-shrink:0;line-height:1;">×</button>\
+    </div>\
+    <div style="background:rgba(204,255,0,0.06);border:1px solid rgba(204,255,0,0.12);border-radius:10px;padding:12px 14px;margin-bottom:12px;">\
+      <div style="font-size:11px;font-weight:700;color:rgba(204,255,0,0.7);margin-bottom:4px;">FitFlux Team</div>\
+      <div style="font-size:13px;color:rgba(255,255,255,0.8);line-height:1.6;">'+msgText+'</div>\
+      <div style="font-size:10px;color:rgba(255,255,255,0.3);margin-top:5px;">'+(message.time||'')+'</div>\
+    </div>\
+    <div style="background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);border-radius:10px;overflow:hidden;margin-bottom:10px;">\
+      <textarea id="popup-reply-input" placeholder="Reply to FitFlux..." style="width:100%;background:transparent;border:none;padding:10px 12px;color:#fff;font-family:var(--fb);font-size:13px;resize:none;outline:none;min-height:70px;line-height:1.6;display:block;"></textarea>\
+      <div style="padding:8px 12px;border-top:1px solid rgba(255,255,255,0.06);display:flex;justify-content:space-between;align-items:center;background:rgba(0,0,0,0.15);">\
+        <span style="font-size:11px;color:rgba(255,255,255,0.3);">Goes directly to FitFlux Team</span>\
+        <button id="popup-reply-btn" onclick="sendPopupContentReply(\''+titleEnc+'\',\''+platEnc+'\',\''+contentId+'\',\''+cardId+'\')" style="background:#CCFF00;border:none;color:#0a1a00;font-family:var(--fb);font-size:12px;font-weight:700;padding:7px 16px;border-radius:7px;cursor:pointer;transition:opacity .2s;">Reply →</button>\
+      </div>\
+    </div>\
+    <button onclick="goToContentCard(\''+cardId+'\');document.getElementById(\'content-reply-popup\').remove()" style="width:100%;background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.08);color:rgba(255,255,255,0.5);font-family:var(--fb);font-size:11px;font-weight:600;padding:8px;border-radius:8px;cursor:pointer;">View Full Thread →</button>\
+  ';
+
+  document.body.appendChild(popup);
+
+  setTimeout(function(){
+    var input = document.getElementById('popup-reply-input');
+    if(input) input.focus();
+  }, 400);
+
+  popup.querySelector('#popup-reply-input').addEventListener('keydown', function(e){
+    if(e.key === 'Enter' && !e.shiftKey){
+      e.preventDefault();
+      sendPopupContentReply(titleEnc, platEnc, contentId, cardId);
+    }
+  });
+}
+
+async function sendPopupContentReply(titleEnc, platEnc, contentId, cardId){
+  var title = decodeURIComponent(titleEnc);
+  var platform = decodeURIComponent(platEnc);
+  var input = document.getElementById('popup-reply-input');
+  var btn = document.getElementById('popup-reply-btn');
+  var text = input ? input.value.trim() : '';
+  if(!text){ if(input) input.focus(); return; }
+
+  if(btn){ btn.textContent = 'Sending...'; btn.disabled = true; }
+
+  var time = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+
+  var result = await apiPost('addContentChat',{
+    token: window.FF_TOKEN || urlToken,
+    contentTitle: title,
+    contentId: contentId||'',
+    id: contentId||'',
+    platform: platform,
+    text: text,
+    author: window.FF_CLIENT.name||'Client',
+    time: time,
+    role: 'client'
+  });
+
+  if(btn){ btn.textContent = 'Reply →'; btn.disabled = false; }
+
+  if(!result || result.error){
+    if(btn){ btn.textContent = '❌ Failed — retry'; }
+    return;
+  }
+
+  await sendTelegram('💬 CLIENT REPLIED VIA POPUP\n\nClient: '+(window.FF_CLIENT.name||'—')+'\nContent: '+title+'\nReply: '+text);
+
+  var popup = document.getElementById('content-reply-popup');
+  if(popup){
+    popup.innerHTML = '<div style="padding:20px;text-align:center;">\
+      <div style="font-size:36px;margin-bottom:12px;">✅</div>\
+      <div style="font-size:14px;font-weight:700;color:#CCFF00;margin-bottom:6px;">Reply Sent</div>\
+      <div style="font-size:12px;color:rgba(255,255,255,0.4);">Your FitFlux team has been notified.</div>\
+    </div>';
+    setTimeout(function(){ if(popup.parentNode) popup.remove(); }, 2000);
+  }
+
+  var chatEl = document.getElementById('chat-'+cardId);
+  if(chatEl){
+    chatEl.insertAdjacentHTML('beforeend',
+      '<div class="comment-msg" style="background:rgba(255,255,255,0.04);border-left:2px solid var(--blue);">'+
+        '<div class="comment-author" style="color:var(--blue);">'+(window.FF_CLIENT.name||'You')+'</div>'+
+        '<div class="comment-text">'+text+'</div>'+
+        '<div class="comment-time">'+time+'</div>'+
+      '</div>'
+    );
+    chatEl.scrollTop = chatEl.scrollHeight;
+  }
+
+  setTimeout(function(){ loadContent(true); }, 3000);
+}
+
+function goToContentCard(cardId){
+  scrollToSection('approvals');
+  setTimeout(function(){
+    var target = document.getElementById(cardId);
+    if(target){
+      target.scrollIntoView({behavior:'smooth', block:'center'});
+      target.style.boxShadow = '0 0 0 2px rgba(204,255,0,0.5)';
+      setTimeout(function(){ target.style.boxShadow = ''; }, 2500);
+      var bodyId = 'body-'+cardId;
+      var body = document.getElementById(bodyId);
+      var icon = document.getElementById('toggle-icon-'+bodyId);
+      if(body){ body.style.display = 'block'; if(icon) icon.textContent = '▲'; }
+      var chatHist = document.getElementById('chat-hist-'+cardId);
+      var histArrow = document.getElementById('chat-hist-arrow-'+cardId);
+      if(chatHist){ chatHist.style.display = 'block'; if(histArrow) histArrow.textContent = '▲'; }
+    }
+  }, 600);
 }
 
 function switchWeek(w, el){
