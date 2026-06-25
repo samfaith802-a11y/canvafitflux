@@ -4685,10 +4685,17 @@ async function toggleDecrypt(idx){
     const decrypted = await crypto.subtle.decrypt({name:'AES-GCM', iv}, key, encrypted);
     const result = JSON.parse(new TextDecoder().decode(decrypted));
     outputEl.style.display = 'block';
-    outputEl.innerHTML = `
+outputEl.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+        <span style="font-size:10px;font-weight:700;color:var(--lime);letter-spacing:.1em;text-transform:uppercase;">Decrypted Credentials</span>
+        <button onclick="copyCredentials('${result.platform||''}','${result.username||''}','${result.password||''}')" style="background:var(--lime-dim);border:1px solid var(--lime-bdr);color:var(--lime);border-radius:5px;padding:4px 10px;font-family:var(--fb);font-size:11px;font-weight:700;cursor:pointer;">📋 Copy All</button>
+      </div>
       <div>🏷 Platform: <strong style="color:var(--lime);">${result.platform||'—'}</strong></div>
       <div>👤 Username: <strong style="color:var(--t1);">${result.username||'—'}</strong></div>
-      <div>🔑 Password: <strong style="color:var(--amber);">${result.password||'—'}</strong></div>
+      <div style="display:flex;align-items:center;gap:8px;">
+        🔑 Password: <strong id="pw-display-${idx}" style="color:var(--amber);">${result.password||'—'}</strong>
+        <button onclick="document.getElementById('pw-display-${idx}').textContent=document.getElementById('pw-display-${idx}').textContent==='••••••••'?'${result.password||''}':'••••••••'" style="background:none;border:none;color:var(--t3);cursor:pointer;font-size:13px;">👁</button>
+      </div>
       ${result.notes?`<div>📝 Notes: <span style="color:var(--t2);">${result.notes}</span></div>`:''}
     `;
     btn.textContent = '🔒 Close';
