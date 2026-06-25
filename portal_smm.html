@@ -2279,29 +2279,57 @@ var _lastContentHash = '';
 function checkContentApprovalNewReplies(){
   try {
     if(!window.contentData || !window.contentData.length) return;
+
     var newHash = window.contentData.map(function(c){
       var msgs = c.ChatMessages||[];
       var adminMsgs = msgs.filter(function(m){ return m.author==='FitFlux'; });
-      return c.ID+'|'+adminMsgs.length+'|'+(adminMsgs.length?adminMsgs[adminMsgs.length-1].time:'');
+      return (c.ID||c.Title||'')+'|'+adminMsgs.length+'|'+(adminMsgs.length ? (adminMsgs[adminMsgs.length-1].time||'') : '');
     }).join(';');
-    if(_lastContentHash && newHash !== _lastContentHash){
-      var oldParts = _lastContentHash.split(';');
-      var newParts = newHash.split(';');
-      newParts.forEach(function(part, i){
-        if(oldParts[i] && part !== oldParts[i]){
-          var c = window.contentData[i];
-          if(c){
-            var adminMsgs = (c.ChatMessages||[]).filter(function(m){ return m.author==='FitFlux'; });
-            var newest = adminMsgs[adminMsgs.length-1];
-            if(newest){
-              showContentReplyPopup(c, newest);
-            }
-          }
-        }
-      });
+
+    // First run — just store hash, never show popup
+    if(!_lastContentHash){
+      _lastContentHash = newHash;
+      return;
     }
+
+    // Nothing changed
+    if(newHash === _lastContentHash) return;
+
+    // Something changed — find exactly which item
+    var oldParts = _lastContentHash.split(';');
+    var newParts = newHash.split(';');
+
+    newParts.forEach(function(part, i){
+      var oldPart = oldParts[i] || '';
+      if(part === oldPart) return; // no change for this item
+
+      var oldCount = parseInt((oldPart.split('|')[1])||'0');
+      var newCount = parseInt((part.split('|')[1])||'0');
+
+      // Only show popup if admin message COUNT increased (new message arrived)
+      if(newCount <= oldCount) return;
+
+      var c = window.contentData[i];
+      if(!c) return;
+
+      var adminMsgs = (c.ChatMessages||[]).filter(function(m){ return m.author==='FitFlux'; });
+      if(!adminMsgs.length) return;
+
+      var newest = adminMsgs[adminMsgs.length-1];
+      if(!newest) return;
+
+      // Dedupe — don't show same message twice
+      var popupKey = 'ff_popup_seen_'+(window.FF_TOKEN||urlToken).slice(-8);
+      var seenKey = (c.ID||c.Title||'')+'|'+(newest.time||'');
+      var lastSeen = sessionStorage.getItem(popupKey)||'';
+      if(lastSeen === seenKey) return;
+      sessionStorage.setItem(popupKey, seenKey);
+
+      showContentReplyPopup(c, newest);
+    });
+
     _lastContentHash = newHash;
-  } catch(e){}
+  } catch(e){ console.error('checkContentApprovalNewReplies error:', e); }
 }
 
 function showContentReplyPopup(contentItem, message){
