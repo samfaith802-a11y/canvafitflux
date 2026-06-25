@@ -1248,7 +1248,7 @@ body{font-size:14px;line-height:1.65;letter-spacing:0.01em;}
 </select>
       <input class="d-input" id="cred-username" placeholder="Username or Email"/>
       <div style="position:relative;">
-  <input class="d-input" id="cred-password" type="password" placeholder="Password" style="padding-right:40px;"/>
+  <input class="d-input" id="cred-password" type="password" placeholder="Password" style="padding-right:40px;" autocomplete="new-password" autocorrect="off" autocapitalize="off" spellcheck="false"/>
   <button type="button" onclick="const i=document.getElementById('cred-password');i.type=i.type==='password'?'text':'password';this.textContent=i.type==='password'?'👁':'🙈';" style="position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;color:rgba(255,255,255,0.4);padding:0;line-height:1;">👁</button>
 </div>
       <input class="d-input" id="cred-notes" placeholder="Notes (optional)"/>
@@ -2366,9 +2366,11 @@ async function apiPost(action, body){
     text.textContent = 'You have content ready for your review. Head to Content Approval now — nothing goes live without your sign-off.';
   }
 }
-  async function loadStrategyDoc(){
+async function loadStrategyDoc(){
   const data = await apiGet('getStrategyDocument', window.FF_TOKEN || urlToken);
   if(data && data.url){
+    const seenKey = 'ff_strategy_seen_'+(window.FF_TOKEN||urlToken).slice(-8);
+    const lastSeen = localStorage.getItem(seenKey);
     const wrap = document.getElementById('strategy-link-wrap');
     const link = document.getElementById('strategy-link');
     if(wrap) wrap.style.display = 'block';
@@ -2377,6 +2379,19 @@ async function apiPost(action, body){
     if(docEl){
       const sub = docEl.querySelector('div[style*="color:var(--t3)"]');
       if(sub) sub.textContent = 'Your content strategy document is ready to view.';
+    }
+    if(lastSeen !== data.url){
+      localStorage.setItem(seenKey, data.url);
+      if(!sessionStorage.getItem('ff_strategy_popup_shown')){
+        sessionStorage.setItem('ff_strategy_popup_shown','1');
+        showFfToast({
+          icon:'📄',
+          label:'Content Strategy Ready',
+          title:'Your content strategy document is ready',
+          sub:'Your FitFlux team has uploaded your strategy. Tap to view it.',
+          onClick:function(){ scrollToSection('strategy'); }
+        });
+      }
     }
   }
 }
