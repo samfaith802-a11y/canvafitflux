@@ -1915,6 +1915,11 @@ function renderCalendar(items, weekOffset){
     const extraHtml = extra>0 ? '<div class="cal-post-count">+'+extra+' more</div>' : '';
     const emptyHtml = !dayItems.length ? '<div class="cal-empty-day">No posts</div>' : '';
 
+    // Conflict detection: 2+ posts at the same hour on the same day
+    const hours = dayItems.map(function(c){ return c.ScheduledDate ? new Date(c.ScheduledDate).getHours() : -1; });
+    const hasConflict = dayItems.length >= 2 && hours.some(function(h,i){ return h >= 0 && hours.indexOf(h) !== i; });
+    const conflictPlatforms = hasConflict ? Array.from(new Set(dayItems.map(function(c){ return c.Platform||''; }).filter(Boolean))) : [];
+
     return '<div class="cal-col'+(isToday?' cal-today':'')+(hasConflict?' cal-conflict':'')+'">'
       +'<div class="cal-day-hdr" style="'+(hasConflict?'border-bottom:1px solid rgba(255,85,85,0.3);':'')+'">'
         +'<div class="cal-day-name">'+dayName+'</div>'
