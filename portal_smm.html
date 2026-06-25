@@ -1820,7 +1820,7 @@ function renderCalendar(items, weekOffset){
   weekEnd.setDate(weekStart.getDate()+7);
 
   // Filter items to this calendar week
-  const weekItems = (items||window.contentData||[]).filter(function(c){
+  const weekItems = (items||contentData||[]).filter(function(c){
     const d = new Date(c.ScheduledDate||c.CreatedAt);
     return d >= weekStart && d < weekEnd;
   });
@@ -1938,9 +1938,9 @@ function renderCalendar(items, weekOffset){
       +'<div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;">'
         +'<div class="cal-legend">'+legendHtml+'</div>'
         +'<div class="cal-week-nav">'
-          +(prevLabel?'<button class="cal-nav-btn" onclick="renderCalendar(window.contentData,'+(calWeekOffset-1)+')">'+prevLabel+'</button>':'')
-          +'<button class="cal-nav-btn" onclick="renderCalendar(window.contentData,0)" style="background:rgba(204,255,0,.07);border-color:rgba(204,255,0,.2);color:var(--gold);">Today</button>'
-          +(nextLabel?'<button class="cal-nav-btn" onclick="renderCalendar(window.contentData,'+(calWeekOffset+1)+')">'+nextLabel+'</button>':'')
+          +(prevLabel?'<button class="cal-nav-btn" onclick="renderCalendar(null,'+(calWeekOffset-1)+')">'+prevLabel+'</button>':'')
+          +'<button class="cal-nav-btn" onclick="renderCalendar(null,0)" style="background:rgba(204,255,0,.07);border-color:rgba(204,255,0,.2);color:var(--gold);">Today</button>'
+          +(nextLabel?'<button class="cal-nav-btn" onclick="renderCalendar(null,'+(calWeekOffset+1)+')">'+nextLabel+'</button>':'')
         +'</div>'
       +'</div>'
     +'</div>'
@@ -2115,7 +2115,7 @@ function toggleCalendarPanel(){
   if(arrow) arrow.style.transform = isOpen ? '' : 'rotate(180deg)';
   if(bar) bar.style.background = isOpen ? 'rgba(204,255,0,0.04)' : 'rgba(204,255,0,0.08)';
   if(bar) bar.style.borderColor = isOpen ? 'rgba(204,255,0,0.15)' : 'rgba(204,255,0,0.28)';
-  if(!isOpen) renderCalendar(window.contentData, calWeekOffset);
+  if(!isOpen) renderCalendar(contentData, calWeekOffset);
 }
 
 /* ── ROADMAP SILENT REFRESH ── */
