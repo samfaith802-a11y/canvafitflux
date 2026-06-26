@@ -2303,10 +2303,10 @@ function checkContentApprovalNewReplies(){
       _lastContentMsgCounts[cid] = msgKey;
 
       // Don't show if already shown this session
-      var seenKey = 'ff_popup_seen_'+(window.FF_TOKEN||urlToken).slice(-8);
-      var lastSeen = sessionStorage.getItem(seenKey)||'';
-      if(lastSeen === msgKey) return;
-      sessionStorage.setItem(seenKey, msgKey);
+     var seenKey = 'ff_popup_seen_'+(window.FF_TOKEN||urlToken).slice(-8)+'_'+cid;
+var lastSeen = sessionStorage.getItem(seenKey)||'';
+if(lastSeen === msgKey) return;
+sessionStorage.setItem(seenKey, msgKey);
 
       showContentReplyPopup(c, lastAdmin);
     });
@@ -2543,6 +2543,7 @@ async function loadContent(silent=false){
   }
   if(!data || !data.content){ showEmptyApproval(); return; }
   contentData = data.content;
+  window.contentData = contentData;
   updateNextCallout(contentData);
 
   const now = new Date();
