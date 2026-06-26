@@ -3771,6 +3771,22 @@ async function removeDeliverable(id){
   await apiPost('removeDeliverable', {token:window.FF_TOKEN || urlToken, id});
   await loadDeliverables();
 }
+  async function clientForceDownload(url, filename){
+  try{
+    const res = await fetch(url);
+    const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = blobUrl;
+    a.download = filename || 'file';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(blobUrl);
+  } catch(e){
+    window.open(url,'_blank');
+  }
+}
 
 /* ── DOCUMENTS ── */
 async function loadDocuments(){
@@ -3782,7 +3798,7 @@ async function loadDocuments(){
   const tbody = document.getElementById('docs-list');
   if(!docs.length){ tbody.innerHTML='<tr><td colspan="5" style="text-align:center;color:var(--t3);padding:20px;">Documents will appear here automatically as you complete each stage.</td></tr>'; return; }
   const sm={Active:'<span class="tag tag-g">&#x2713; Active</span>',Signed:'<span class="tag tag-g">&#x2713; Signed</span>',Paid:'<span class="tag tag-g">&#x2713; Paid</span>',Pending:'<span class="tag tag-y">&#x23F3; Pending</span>'};
-  tbody.innerHTML=docs.map(d=>'<tr><td>'+(d.Name||'\u2014')+'</td><td><span class="tag tag-p">'+(d.Type||'\u2014')+'</span></td><td>'+(sm[d.Status]||d.Status||'\u2014')+'</td><td style="color:var(--t3);font-size:12px;">'+(d.Date||'\u2014')+'</td><td>'+(d.Link?'<a href="'+d.Link+'" target="_blank" style="color:var(--blue);font-size:12px;">Download &rarr;</a>':'\u2014')+'</td></tr>').join('');
+ tbody.innerHTML=docs.map(d=>'<tr><td>'+(d.Name||'\u2014')+'</td><td><span class="tag tag-p">'+(d.Type||'\u2014')+'</span></td><td>'+(sm[d.Status]||d.Status||'\u2014')+'</td><td style="color:var(--t3);font-size:12px;">'+(d.Date||'\u2014')+'</td><td>'+(d.Link?'<button onclick="clientForceDownload(\''+d.Link+'\',\''+(d.Name||'document').replace(/'/g,"")+'\')" style="background:rgba(126,200,69,0.12);border:1px solid rgba(126,200,69,0.25);color:var(--gold);border-radius:5px;padding:5px 12px;font-size:11px;font-weight:700;cursor:pointer;">⬇ Download</button>':'\u2014')+'</td></tr>').join('');
 }
 
 /* ── FILE UPLOAD ── */
