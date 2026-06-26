@@ -2286,27 +2286,23 @@ function checkContentApprovalNewReplies(){
       return (c.ID||c.Title||'')+'|'+adminMsgs.length+'|'+(adminMsgs.length ? (adminMsgs[adminMsgs.length-1].time||'') : '');
     }).join(';');
 
-    // First run — just store hash, never show popup
     if(!_lastContentHash){
       _lastContentHash = newHash;
       return;
     }
 
-    // Nothing changed
     if(newHash === _lastContentHash) return;
 
-    // Something changed — find exactly which item
     var oldParts = _lastContentHash.split(';');
     var newParts = newHash.split(';');
 
     newParts.forEach(function(part, i){
       var oldPart = oldParts[i] || '';
-      if(part === oldPart) return; // no change for this item
+      if(part === oldPart) return;
 
       var oldCount = parseInt((oldPart.split('|')[1])||'0');
       var newCount = parseInt((part.split('|')[1])||'0');
 
-      // Only show popup if admin message COUNT increased (new message arrived)
       if(newCount <= oldCount) return;
 
       var c = window.contentData[i];
@@ -2318,7 +2314,6 @@ function checkContentApprovalNewReplies(){
       var newest = adminMsgs[adminMsgs.length-1];
       if(!newest) return;
 
-      // Dedupe — don't show same message twice
       var popupKey = 'ff_popup_seen_'+(window.FF_TOKEN||urlToken).slice(-8);
       var seenKey = (c.ID||c.Title||'')+'|'+(newest.time||'');
       var lastSeen = sessionStorage.getItem(popupKey)||'';
