@@ -2275,55 +2275,42 @@ async function checkNewDmsSilent(){
 }
 
 /* ── CONTENT APPROVAL NEW REPLY CHECK ── */
-var _lastContentHash = '';
+var _lastContentMsgCounts = {};
+
 function checkContentApprovalNewReplies(){
   try {
     if(!window.contentData || !window.contentData.length) return;
 
-    var newHash = window.contentData.map(function(c){
+    window.contentData.forEach(function(c){
       var msgs = c.ChatMessages||[];
       var adminMsgs = msgs.filter(function(m){ return m.author==='FitFlux'; });
-      return (c.ID||c.Title||'')+'|'+adminMsgs.length+'|'+(adminMsgs.length ? (adminMsgs[adminMsgs.length-1].time||'') : '');
-    }).join(';');
-
-    if(!_lastContentHash){
-      _lastContentHash = newHash;
-      return;
-    }
-
-    if(newHash === _lastContentHash) return;
-
-    var oldParts = _lastContentHash.split(';');
-    var newParts = newHash.split(';');
-
-    newParts.forEach(function(part, i){
-      var oldPart = oldParts[i] || '';
-      if(part === oldPart) return;
-
-      var oldCount = parseInt((oldPart.split('|')[1])||'0');
-      var newCount = parseInt((part.split('|')[1])||'0');
-
-      if(newCount <= oldCount) return;
-
-      var c = window.contentData[i];
-      if(!c) return;
-
-      var adminMsgs = (c.ChatMessages||[]).filter(function(m){ return m.author==='FitFlux'; });
       if(!adminMsgs.length) return;
 
-      var newest = adminMsgs[adminMsgs.length-1];
-      if(!newest) return;
+      var cid = c.ID || c.Title || '';
+      var lastAdmin = adminMsgs[adminMsgs.length-1];
+      var msgKey = cid+'|'+(lastAdmin.time||'')+'|'+(lastAdmin.text||'').slice(0,20);
 
-      var popupKey = 'ff_popup_seen_'+(window.FF_TOKEN||urlToken).slice(-8);
-      var seenKey = (c.ID||c.Title||'')+'|'+(newest.time||'');
-      var lastSeen = sessionStorage.getItem(popupKey)||'';
-      if(lastSeen === seenKey) return;
-      sessionStorage.setItem(popupKey, seenKey);
+      // First time seeing this content item — set baseline, don't popup
+      if(!_lastContentMsgCounts[cid]){
+        _lastContentMsgCounts[cid] = msgKey;
+        return;
+      }
 
-      showContentReplyPopup(c, newest);
+      // Already seen this exact message
+      if(_lastContentMsgCounts[cid] === msgKey) return;
+
+      // New admin message detected
+      _lastContentMsgCounts[cid] = msgKey;
+
+      // Don't show if already shown this session
+      var seenKey = 'ff_popup_seen_'+(window.FF_TOKEN||urlToken).slice(-8);
+      var lastSeen = sessionStorage.getItem(seenKey)||'';
+      if(lastSeen === msgKey) return;
+      sessionStorage.setItem(seenKey, msgKey);
+
+      showContentReplyPopup(c, lastAdmin);
     });
 
-    _lastContentHash = newHash;
   } catch(e){ console.error('checkContentApprovalNewReplies error:', e); }
 }
 
