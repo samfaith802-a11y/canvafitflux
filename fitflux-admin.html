@@ -1100,14 +1100,27 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
               <span style="font-size:12px;font-weight:700;color:var(--t2);">+ Add Document Manually</span>
               <span id="mdoc-arr" style="font-size:10px;color:var(--t3);">▼</span>
             </div>
-            <div id="manual-doc-form" style="display:none;padding:16px 18px;border-top:1px solid var(--bdr3);">
+         <div id="manual-doc-form" style="display:none;padding:16px 18px;border-top:1px solid var(--bdr3);">
               <div class="form-grid">
                 <div class="form-group"><div class="form-label">Document Name</div><input class="form-input" id="doc-name" placeholder="e.g. Month 1 Invoice"/></div>
                 <div class="form-group"><div class="form-label">Type</div><select class="form-select" id="doc-type"><option>Invoice</option><option>Contract</option><option>Report</option><option>Receipt</option><option>Strategy</option><option>Other</option></select></div>
                 <div class="form-group"><div class="form-label">Status</div><select class="form-select" id="doc-status"><option value="pending">Pending</option><option value="sent">Sent</option><option value="signed">Signed</option><option value="paid">Paid</option></select></div>
-                <div class="form-group"><div class="form-label">Direct Link (R2 / any URL)</div><input class="form-input" id="doc-link" placeholder="https://..."/></div>
               </div>
-              <button class="form-submit" onclick="addAdminDocument()">ADD DOCUMENT</button>
+              <div class="form-group form-full" style="margin-bottom:14px;">
+                <div class="form-label">Upload File</div>
+                <div id="doc-upload-dropzone" style="border:1.5px dashed rgba(204,255,0,0.25);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;background:rgba(204,255,0,0.02);"
+                  ondragover="event.preventDefault();this.style.borderColor='var(--lime)'"
+                  ondragleave="this.style.borderColor='rgba(204,255,0,0.25)'"
+                  ondrop="handleDocFileDrop(event)"
+                  onclick="document.getElementById('doc-file-input').click()">
+                  <div style="font-size:22px;margin-bottom:6px;">📎</div>
+                  <div style="font-size:13px;color:var(--t2);">Drop file here or <span style="color:var(--lime);font-weight:600;">browse</span></div>
+                  <div style="font-size:11px;color:var(--t3);margin-top:4px;">PDF, DOCX, images — no size limit</div>
+                </div>
+                <input type="file" id="doc-file-input" accept=".pdf,.docx,image/*,application/pdf" style="display:none" onchange="handleDocFileSelect(this.files[0])"/>
+                <div id="doc-file-status" style="margin-top:8px;font-size:12px;color:var(--t3);"></div>
+              </div>
+              <button class="form-submit" id="add-doc-btn" onclick="addAdminDocument()">ADD DOCUMENT</button>
             </div>
           </div>
           <div id="doc-admin-list" style="margin-bottom:32px;"><div class="loading"><div class="spinner"></div>Loading documents...</div></div>
@@ -1830,7 +1843,7 @@ async function openClient(token){
     <span>📦 ${tier}</span>
     <span>📍 ${currentClient.Niche||'—'} · ${currentClient.Territory||'—'}</span>
     <span>📅 Joined ${dateStr}</span>
-    <span>🔑 Token: <span style="font-family:var(--fm);font-size:10px;color:var(--lime);">${(currentClient.Token||'').slice(-8)}</span></span>`;
+   <span>🔑 Token: <span style="font-family:var(--fm);font-size:10px;color:var(--lime);">${(currentClient.Token||'').slice(-8)}</span> <button onclick="copyTokenToClipboard('${(currentClient.Token||'').slice(-8)}')" style="background:var(--lime-dim);border:1px solid var(--lime-bdr);color:var(--lime);border-radius:5px;padding:2px 8px;font-size:10px;font-weight:700;cursor:pointer;margin-left:4px;">📋 Copy</button></span>`;
 
   // Fill overview props
   const rev = clientRevenue(currentClient);
@@ -4738,18 +4751,21 @@ async function addAdminDocument(){
   if(!currentClient) return;
   const name = document.getElementById('doc-name').value.trim();
   if(!name){ toast('Document name is required','error'); return; }
+  if(!_pendingDocUploadedUrl){ toast('Please upload a file first','error'); return; }
   const date = new Date().toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
   await apiPost('addDocument',{
     token: currentClient.Token,
     name,
     type: document.getElementById('doc-type').value,
     status: document.getElementById('doc-status').value,
-    link: document.getElementById('doc-link').value.trim(),
+    link: _pendingDocUploadedUrl,
     date
   });
-  toast('✅ Document added');
+  toast('✅ Document added — client can now download it');
   document.getElementById('doc-name').value='';
-  document.getElementById('doc-link').value='';
+  document.getElementById('doc-file-status').textContent='';
+  _pendingDocFile = null;
+  _pendingDocUploadedUrl = '';
   loadAdminDocuments();
 }
 let inboxMessages = [];
@@ -5265,6 +5281,45 @@ function showFeedbackPopup(clientName, messagePreview){
   setTimeout(()=>{ if(document.body.contains(popup)) popup.remove(); }, 10000);
 }
 
+  let _pendingDocFile = null;
+let _pendingDocUploadedUrl = '';
+
+function handleDocFileDrop(e){
+  e.preventDefault();
+  const f = e.dataTransfer.files[0];
+  if(f) handleDocFileSelect(f);
+}
+
+async function handleDocFileSelect(file){
+  if(!file) return;
+  _pendingDocFile = file;
+  const status = document.getElementById('doc-file-status');
+  const btn = document.getElementById('add-doc-btn');
+  status.style.color = 'var(--t3)';
+  status.textContent = '⬆️ Uploading ' + file.name + '...';
+  btn.disabled = true;
+  try {
+    const presignRes = await fetch('https://canvafitflux.vercel.app/api/upload', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({fileName: file.name, fileType: file.type})
+    });
+    const presignData = await presignRes.json();
+    if(!presignData.presignedUrl) throw new Error(presignData.error||'No presigned URL');
+    const uploadRes = await fetch(presignData.presignedUrl, {method:'PUT', headers:{'Content-Type':file.type}, body:file});
+    if(!uploadRes.ok) throw new Error('Upload failed: '+uploadRes.status);
+    _pendingDocUploadedUrl = presignData.publicUrl;
+    status.style.color = 'var(--green)';
+    status.textContent = '✅ ' + file.name + ' uploaded — ready to save';
+  } catch(err){
+    status.style.color = 'var(--red)';
+    status.textContent = '❌ Upload failed — ' + err.message;
+    _pendingDocUploadedUrl = '';
+  }
+  btn.disabled = false;
+}
+function copyTokenToClipboard(token){
+  navigator.clipboard.writeText(token).then(()=>toast('✅ Token copied to clipboard'));
+}
 </script>
 </body>
 </html>
