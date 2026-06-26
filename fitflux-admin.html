@@ -1219,6 +1219,7 @@ let openMonthIds = new Set();
 let openYearIds = new Set();
 let openCardIds = new Set();
 let _adminContentLoading = false;
+let openChatWraps = new Set();
 
 // ── ROADMAP TEMPLATE ──────────────────────────────────────────
 const ROADMAP_PHASES = [
@@ -2378,6 +2379,12 @@ openMonthIds.forEach(id=>{
   const cEl = document.getElementById(bodyId);
   const cArr = document.getElementById('arr-'+bodyId);
   if(cEl){ cEl.style.display='block'; if(cArr) cArr.textContent='▲'; }
+});
+
+  openChatWraps.forEach(uid=>{
+  const wrap = document.getElementById('chatwrap-'+uid);
+  const arr = document.getElementById('chat-arr-'+uid);
+  if(wrap){ wrap.style.display='block'; if(arr) arr.style.transform='rotate(90deg)'; }
 });
    
 }
@@ -5213,6 +5220,7 @@ function toggleContentChatThread(uid){
   const isOpen = wrap.style.display !== 'none';
   wrap.style.display = isOpen ? 'none' : 'block';
   if(arr) arr.style.transform = isOpen ? '' : 'rotate(90deg)';
+  if(isOpen) openChatWraps.delete(uid); else openChatWraps.add(uid);
 }
 
 async function forceDownload(url, filename){
