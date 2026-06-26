@@ -531,7 +531,7 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
     </div>
     <div id="fitems-credentials" style="display:none;padding-left:14px;"></div>
  </div>
-  <!-- Client Complaints folder -->
+<!-- Client Complaints folder -->
   <div>
     <div id="folder-complaints" onclick="toggleFolder('complaints')" style="display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;cursor:pointer;font-size:11px;color:var(--t2);" onmouseover="this.style.background='var(--lime-dim)'" onmouseout="this.style.background='transparent'">
       <span style="font-size:9px;color:var(--t3);transition:transform .2s;" id="farr-complaints">▶</span>
@@ -539,6 +539,15 @@ body{font-family:var(--fb);background:var(--bg);color:var(--t1);font-size:14px;l
       <span id="fbadge-complaints" style="margin-left:auto;background:rgba(245,158,11,0.2);color:var(--amber);font-size:9px;font-weight:700;padding:1px 5px;border-radius:6px;display:none;">0</span>
     </div>
     <div id="fitems-complaints" style="display:none;padding-left:14px;"></div>
+  </div>
+  <!-- Brand Assets folder -->
+  <div>
+    <div id="folder-documents" onclick="toggleFolder('documents')" style="display:flex;align-items:center;gap:6px;padding:5px 8px;border-radius:6px;cursor:pointer;font-size:11px;color:var(--t2);" onmouseover="this.style.background='var(--lime-dim)'" onmouseout="this.style.background='transparent'">
+      <span style="font-size:9px;color:var(--t3);transition:transform .2s;" id="farr-documents">▶</span>
+      <span>📁 Brand Assets</span>
+      <span id="fbadge-documents" style="margin-left:auto;background:rgba(245,158,11,0.2);color:var(--amber);font-size:9px;font-weight:700;padding:1px 5px;border-radius:6px;display:none;">0</span>
+    </div>
+    <div id="fitems-documents" style="display:none;padding-left:14px;"></div>
   </div>
 </div>
       <div class="sb-footer">
@@ -2613,11 +2622,31 @@ function buildAdminContentCard(c){
         </div>
       </div>
 
-      <!-- ACTIONS — Mark Published, Reschedule, Delete only -->
+   <!-- ACTIONS — Mark Published, Reschedule, Reupload, Delete -->
       <div style="display:flex;gap:8px;flex-wrap:wrap;padding-top:14px;margin-top:14px;border-top:1px solid var(--bdr3);">
         ${c.Status!=='published'?`<button class="btn-sm btn-sm-green" onclick="setContentPublished('${c.Token||currentClient?.Token||''}','${c.Title}','${c.Platform}')">🚀 Mark Published</button>`:''}
+        <button class="btn-sm" style="background:rgba(204,255,0,0.1);border-color:rgba(204,255,0,0.25);color:var(--lime);" onclick="event.stopPropagation();showReuploadBox('${uid}','${c.Token||currentClient?.Token||''}')">🔄 Change Content / Reupload</button>
         <button class="btn-sm" style="background:rgba(77,157,255,0.1);border-color:rgba(77,157,255,0.25);color:var(--blue);" onclick="showReschedule('${uid}','${c.Token||currentClient?.Token||''}')">📅 Reschedule</button>
         <button class="btn-sm" style="background:rgba(255,77,77,0.1);border-color:rgba(255,77,77,0.2);color:var(--red);" onclick="deleteContentItem('${uid}','${c.Token||currentClient?.Token||''}')">🗑 Delete</button>
+      </div>
+
+      <!-- REUPLOAD INLINE -->
+      <div id="reuploadbox-${uid}" style="display:none;margin-top:12px;padding:16px;background:rgba(204,255,0,0.04);border:1px solid rgba(204,255,0,0.15);border-radius:10px;">
+        <div style="font-size:12px;font-weight:700;color:var(--lime);margin-bottom:10px;">Upload new file(s) to replace existing content</div>
+        <div id="reuploaddz-${uid}" style="border:1.5px dashed rgba(204,255,0,0.25);border-radius:10px;padding:20px;text-align:center;cursor:pointer;transition:all .2s;background:rgba(204,255,0,0.02);"
+          ondragover="event.preventDefault();this.style.borderColor='var(--lime)'"
+          ondragleave="this.style.borderColor='rgba(204,255,0,0.25)'"
+          ondrop="handleReuploadDrop(event,'${uid}')"
+          onclick="document.getElementById('reuploadinput-${uid}').click()">
+          <div style="font-size:22px;margin-bottom:6px;">📎</div>
+          <div style="font-size:13px;color:var(--t2);">Drop replacement file(s) or <span style="color:var(--lime);font-weight:600;">browse</span></div>
+        </div>
+        <input type="file" id="reuploadinput-${uid}" multiple accept="image/*,video/*,application/pdf" style="display:none" onchange="handleReuploadFilesNew(this.files,'${uid}')"/>
+        <div id="reuploadfilelist-${uid}" style="display:flex;flex-direction:column;gap:6px;margin-top:10px;"></div>
+        <div style="display:flex;gap:8px;margin-top:10px;">
+          <button class="btn-sm btn-sm-green" onclick="submitReuploadNew('${uid}','${c.Token||currentClient?.Token||''}','${c.Title}','${c.Platform}')">✅ Replace Content & Notify Client</button>
+          <button class="btn-sm" style="background:none;border-color:var(--bdr3);color:var(--t3);" onclick="document.getElementById('reuploadbox-${uid}').style.display='none'">Cancel</button>
+        </div>
       </div>
 
       <!-- RESCHEDULE INLINE -->
@@ -4769,11 +4798,11 @@ async function addAdminDocument(){
   loadAdminDocuments();
 }
 let inboxMessages = [];
-let inboxData = { content: [], credentials: [], complaints: [] };
+let inboxData = { content: [], credentials: [], complaints: [], documents: [] };
 
 async function loadInbox(){
   if(!allClients.length) return;
-  inboxData = { content: [], credentials: [], complaints: [] };
+  inboxData = { content: [], credentials: [], complaints: [], documents: [] };
 
   await Promise.all(allClients.map(async c=>{
     // Content chat — unread only (last message not from FitFlux)
@@ -4801,7 +4830,7 @@ async function loadInbox(){
 
 
 
-    // Credentials — any submission counts
+// Credentials — any submission counts
     const credData = await apiGet('getCredentials', c.Token);
     if(credData && credData.credentials && credData.credentials.length){
       inboxData.credentials.push({
@@ -4811,6 +4840,23 @@ async function loadInbox(){
         message: credData.credentials.length+' platform'+(credData.credentials.length!==1?'s':'')+' submitted',
         time: credData.credentials[0].Timestamp||''
       });
+    }
+
+    // Brand assets — only flag NEW uploads since last check
+    const filesData = await apiGet('getSubmittedFiles', c.Token);
+    if(filesData && filesData.files && filesData.files.length){
+      const seenKey = 'ff_seen_assets_'+c.Token.slice(-8);
+      const seenCount = parseInt(localStorage.getItem(seenKey)||'0');
+      if(filesData.files.length > seenCount){
+        const newCount = filesData.files.length - seenCount;
+        inboxData.documents.push({
+          clientName: c.Name,
+          clientToken: c.Token,
+          subject: newCount+' new file'+(newCount!==1?'s':'')+' uploaded',
+          message: filesData.files.slice(-newCount).map(f=>f.FileName).join(', '),
+          time: filesData.files[filesData.files.length-1].UploadedAt||''
+        });
+      }
     }
   }));
 
@@ -4843,7 +4889,7 @@ async function loadInbox(){
     }
   } catch(e) {}
 
-  const total = inboxData.content.length + inboxData.credentials.length + inboxData.complaints.length;
+ const total = inboxData.content.length + inboxData.credentials.length + inboxData.complaints.length + inboxData.documents.length;
   const badge = document.getElementById('inbox-badge');
   if(total > 0){ badge.textContent = total; badge.style.display = ''; }
   else badge.style.display = 'none';
@@ -4858,11 +4904,13 @@ async function loadInbox(){
 updateFBadge('content', inboxData.content.length);
   updateFBadge('credentials', inboxData.credentials.length);
   updateFBadge('complaints', inboxData.complaints.length);
+  updateFBadge('documents', inboxData.documents.length);
 
   // Render folder items
   renderFolderItems('content');
   renderFolderItems('credentials');
   renderFolderItems('complaints');
+  renderFolderItems('documents');
 }
 
 function renderFolderItems(type){
@@ -4895,9 +4943,10 @@ function toggleFolder(type){
 }
 
 function openFeedbackModal(type, clientToken){
+  try{
   const items = inboxData[type]||[];
   const item = items.find(m=>m.clientToken===clientToken);
-  if(!item) return;
+  if(!item){ toast('Could not find that message — refreshing inbox','error'); loadInbox(); return; }
 
   // Store item BEFORE removing from inboxData
   window._feedbackModalItem = Object.assign({}, item, {type});
@@ -4913,8 +4962,8 @@ function openFeedbackModal(type, clientToken){
   const existing = document.getElementById('feedback-modal');
   if(existing) existing.remove();
 
-  const typeIcon = {content:'💬',credentials:'🔒',complaints:'📨',deliverable:'📦'};
-  const typeLabel = {content:'Content Chat',credentials:'Credentials',complaints:'Complaint',deliverable:'Deliverable'};
+const typeIcon = {content:'💬',credentials:'🔒',complaints:'📨',deliverable:'📦',documents:'📁'};
+  const typeLabel = {content:'Content Chat',credentials:'Credentials',complaints:'Complaint',deliverable:'Deliverable',documents:'Brand Asset Upload'};
 
   // Normalise messages — content uses {author,text,time}, complaints uses {AuthorRole,Text,Time}
   const msgs = (item.allMessages||[]).map(function(m){
@@ -4937,10 +4986,25 @@ function openFeedbackModal(type, clientToken){
       +'</div></div>';
   }
 
-  var chatHtml = msgs.length ? msgs.map(buildMsg).join('') : '<div style="font-size:12px;color:var(--t3);text-align:center;padding:32px 0;">No messages yet.</div>';
-  var canReply = type !== 'credentials';
+var chatHtml;
+  if(type === 'credentials'){
+    chatHtml = '<div style="background:rgba(204,255,0,0.04);border:1px solid rgba(204,255,0,0.15);border-radius:10px;padding:18px;text-align:center;">'
+      +'<div style="font-size:32px;margin-bottom:10px;">🔒</div>'
+      +'<div style="font-size:13px;font-weight:700;color:var(--lime);margin-bottom:6px;">'+(item.message||'Credentials submitted')+'</div>'
+      +'<div style="font-size:11px;color:var(--t3);line-height:1.6;">Decryption happens locally in the Credentials tab for security. Click below to open it directly.</div>'
+      +'</div>';
+  } else if(type === 'documents'){
+    chatHtml = '<div style="background:rgba(204,255,0,0.04);border:1px solid rgba(204,255,0,0.15);border-radius:10px;padding:18px;text-align:center;">'
+      +'<div style="font-size:32px;margin-bottom:10px;">📁</div>'
+      +'<div style="font-size:13px;font-weight:700;color:var(--lime);margin-bottom:6px;">'+(item.message||'New files uploaded')+'</div>'
+      +'<div style="font-size:11px;color:var(--t3);line-height:1.6;">View and download the new brand assets in the Documents tab.</div>'
+      +'</div>';
+  } else {
+    chatHtml = msgs.length ? msgs.map(buildMsg).join('') : '<div style="font-size:12px;color:var(--t3);text-align:center;padding:32px 0;">No messages yet.</div>';
+  }
+  var canReply = type !== 'credentials' && type !== 'documents';
 
-  var replyHtml = canReply
+var replyHtml = canReply
     ? '<div style="padding:16px 26px;border-top:1px solid var(--bdr3);flex-shrink:0;background:var(--bg2);">'
         +'<div style="display:flex;gap:10px;align-items:flex-end;">'
         +'<textarea id="feedback-reply-input" placeholder="Reply to '+item.clientName+'..." '
@@ -4948,9 +5012,9 @@ function openFeedbackModal(type, clientToken){
         +'<button id="feedback-reply-btn" '
         +'style="background:var(--lime);border:none;color:#080c08;font-family:var(--fb);font-size:12px;font-weight:700;padding:10px 18px;border-radius:10px;cursor:pointer;white-space:nowrap;flex-shrink:0;height:44px;">Reply →</button>'
         +'</div></div>'
-    : '<div style="padding:16px 26px;border-top:1px solid var(--bdr3);flex-shrink:0;">'
+: '<div style="padding:16px 26px;border-top:1px solid var(--bdr3);flex-shrink:0;">'
         +'<button id="feedback-goto-btn" '
-        +'style="background:var(--lime);border:none;color:#080c08;font-family:var(--fb);font-size:12px;font-weight:700;padding:10px 20px;border-radius:8px;cursor:pointer;width:100%;">🔒 View in Credentials Tab →</button>'
+        +'style="background:var(--lime);border:none;color:#080c08;font-family:var(--fb);font-size:12px;font-weight:700;padding:10px 20px;border-radius:8px;cursor:pointer;width:100%;">'+(type==='documents'?'📁 View in Documents Tab →':'🔒 View in Credentials Tab →')+'</button>'
         +'</div>';
 
   var modal = document.createElement('div');
@@ -4995,9 +5059,13 @@ function openFeedbackModal(type, clientToken){
     setTimeout(function(){ replyInput.focus(); }, 100);
   }
 
-  // Scroll chat to bottom
+// Scroll chat to bottom
   var msgBox = document.getElementById('feedback-modal-msgs');
   if(msgBox) setTimeout(function(){ msgBox.scrollTop = msgBox.scrollHeight; }, 50);
+  } catch(e){
+    console.error('openFeedbackModal error:', e);
+    toast('Something went wrong opening that message — check console','error');
+  }
 }
 
 async function sendFeedbackReply(type, clientToken){
@@ -5062,7 +5130,12 @@ async function sendFeedbackReply(type, clientToken){
 
 async function goToClientFromFeedback(token, type){
   await openClient(token);
-  const tabId = {credentials:'credentials', deliverable:'deliverables', content:'content', complaints:'complaints'}[type] || 'content';
+  if(type === 'documents'){
+    const seenKey = 'ff_seen_assets_'+token.slice(-8);
+    const filesData = await apiGet('getSubmittedFiles', token);
+    if(filesData && filesData.files) localStorage.setItem(seenKey, filesData.files.length);
+  }
+  const tabId = {credentials:'credentials', deliverable:'deliverables', content:'content', complaints:'complaints', documents:'documents'}[type] || 'content';
   const tabBtn = Array.from(document.querySelectorAll('.dtab')).find(b => b.getAttribute('onclick') && b.getAttribute('onclick').includes("'"+tabId+"'"));
   switchDetailTab(tabId, tabBtn || null);
 }
@@ -5319,6 +5392,81 @@ async function handleDocFileSelect(file){
 }
 function copyTokenToClipboard(token){
   navigator.clipboard.writeText(token).then(()=>toast('✅ Token copied to clipboard'));
+}
+  let _reuploadFilesNew = {};
+
+function showReuploadBox(uid, token){
+  const el = document.getElementById('reuploadbox-'+uid);
+  if(el) el.style.display = el.style.display==='none' ? 'block' : 'none';
+}
+
+function handleReuploadDrop(e, uid){
+  e.preventDefault();
+  handleReuploadFilesNew(e.dataTransfer.files, uid);
+}
+
+function handleReuploadFilesNew(files, uid){
+  if(!_reuploadFilesNew[uid]) _reuploadFilesNew[uid] = [];
+  Array.from(files).forEach(file=>{
+    const fileId = uid+'-ru-'+Date.now()+'-'+Math.random().toString(36).slice(2);
+    _reuploadFilesNew[uid].push({fileId, file, status:'pending', url:''});
+    renderReuploadFileItem(uid, fileId, file.name, 'uploading');
+    uploadReuploadFileNew(uid, fileId, file);
+  });
+}
+
+function renderReuploadFileItem(uid, fileId, fileName, status){
+  const list = document.getElementById('reuploadfilelist-'+uid);
+  if(!list) return;
+  const existing = document.getElementById('rufitem-'+fileId);
+  const icon = status==='done'?'✅':status==='uploading'?'⬆️':status==='error'?'❌':'📎';
+  const color = status==='done'?'var(--green)':status==='error'?'var(--red)':'var(--t3)';
+  const html = `<div id="rufitem-${fileId}" style="display:flex;align-items:center;gap:10px;background:rgba(204,255,0,0.04);border:1px solid var(--bdr3);border-radius:8px;padding:8px 12px;">
+    <span style="font-size:14px;">${icon}</span>
+    <span style="flex:1;font-size:12px;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${fileName}</span>
+    <span style="font-size:11px;color:${color};">${status==='done'?'Uploaded':status==='uploading'?'Uploading...':status==='error'?'Failed':''}</span>
+  </div>`;
+  if(existing){ existing.outerHTML=html; } else if(list){ list.insertAdjacentHTML('beforeend',html); }
+}
+
+async function uploadReuploadFileNew(uid, fileId, file){
+  try {
+    const presignRes = await fetch('https://canvafitflux.vercel.app/api/upload', {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({fileName: file.name, fileType: file.type})
+    });
+    const presignData = await presignRes.json();
+    if(!presignData.presignedUrl) throw new Error(presignData.error||'No presigned URL');
+    const uploadRes = await fetch(presignData.presignedUrl, {method:'PUT', headers:{'Content-Type':file.type}, body:file});
+    if(!uploadRes.ok) throw new Error('Upload failed: '+uploadRes.status);
+    const record = _reuploadFilesNew[uid]?.find(f=>f.fileId===fileId);
+    if(record){ record.status='done'; record.url=presignData.publicUrl; }
+    renderReuploadFileItem(uid, fileId, file.name, 'done');
+  } catch(err){
+    const record = _reuploadFilesNew[uid]?.find(f=>f.fileId===fileId);
+    if(record) record.status='error';
+    renderReuploadFileItem(uid, fileId, file.name, 'error');
+  }
+}
+
+async function submitReuploadNew(uid, token, title, platform){
+  const files = _reuploadFilesNew[uid] || [];
+  const hasUploading = files.some(f=>f.status==='uploading'||f.status==='pending');
+  const hasFailed = files.some(f=>f.status==='error');
+  if(hasUploading){ toast('Please wait — files still uploading','error'); return; }
+  if(hasFailed){ toast('Some files failed — retry or remove them','error'); return; }
+  const urls = files.filter(f=>f.status==='done').map(f=>f.url).join(',');
+  if(!urls){ toast('Please upload at least one file','error'); return; }
+
+  const result = await apiPost('reuploadContent', {token, id: uid, mediaURL: urls});
+  if(result && (result.status==='reuploaded'||result.status==='ok'||result.success)){
+    await sendTelegramAdmin('🔄 CONTENT REPLACED\n\nClient: '+(currentClient?.Name||'—')+'\nContent: '+title+'\nPlatform: '+platform+'\n\nNew file(s) uploaded — client notified to re-review.');
+    toast('✅ Content replaced — client will be notified to review again');
+    _reuploadFilesNew[uid] = [];
+    loadAdminContent();
+  } else {
+    toast('❌ Replace failed — check Apps Script reuploadContent handler','error');
+  }
 }
 </script>
 </body>
