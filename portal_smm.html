@@ -99,7 +99,7 @@ if(!tierOk){
   window.FF_TIER   = tierParam;
 window.FF_CLIENT = {
   name:'', email:'', phone:'', city:'',
-  territory:'', niche:'', rec:'', createdAt:'',
+  territory:'', niche:'', rec:'', createdAt:'', paymentConfirmedAt: client.PaymentConfirmedAt || client.CreatedAt || '',
   billingCycle:''
 };
 })();
@@ -4344,14 +4344,15 @@ async function loadPayments(){
   </tr>`).join('');
 }  
 
-  async function checkRenewalReminder() {
-  const paidAt = window.FF_CLIENT && window.FF_CLIENT.createdAt;
+async function checkRenewalReminder() {
+  const paidAt = window.FF_CLIENT && (window.FF_CLIENT.paymentConfirmedAt || window.FF_CLIENT.createdAt);
   if (!paidAt) return;
 
   const paidDate = new Date(paidAt);
   const now = new Date();
   const nextDue = new Date(paidDate);
   nextDue.setMonth(nextDue.getMonth() + 1);
+  while (nextDue < now) nextDue.setMonth(nextDue.getMonth() + 1);
 
   const daysLeft = Math.ceil((nextDue - now) / (1000 * 60 * 60 * 24));
   const daysOverdue = Math.ceil((now - nextDue) / (1000 * 60 * 60 * 24));
