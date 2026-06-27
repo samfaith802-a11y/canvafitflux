@@ -4342,7 +4342,7 @@ async function loadPayments(){
   const tierLabel = TIER_LABEL[tier] || tier;
   const name = (window.FF_CLIENT.name || '').split(' ')[0];
   const email = window.FF_CLIENT.email || '';
-  const renewalLink = 'https://canvafitflux.vercel.app/fitflux-receipt-smm.html'
+  const renewalLink = 'https://canvafitflux.vercel.app/fitflux-invoice-smm.html'
     + '?email=' + encodeURIComponent(email)
     + '&tier=' + encodeURIComponent(tier)
     + '&name=' + encodeURIComponent(window.FF_CLIENT.name || '')
