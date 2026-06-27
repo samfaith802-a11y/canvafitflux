@@ -588,7 +588,7 @@ const hasCorrectAmount = text.includes(priceStr) || text.includes(priceFormatted
         btn.style.opacity = '1';
         btn.style.cursor  = 'pointer';
         btn.onclick       = openReceipt;
-        tgPing('💰 <b>PAYMENT PROOF UPLOADED (PDF)</b>\n\n📦 Package: '+pkg.name+'\n👤 Client: '+clientName+'\n📧 Email: '+clientEmail+'\n📸 Instagram: @'+clientIg+'\n🔒 Territory: '+clientNiche+' · '+clientCity+', '+clientTerritory+'\n📋 Invoice: '+invNum+'\n📎 File: '+file.name+'\n'+(hasAccountNumber?'✅ Account number verified in receipt\n':'')+'🔑 Keywords found: '+foundKeywords.join(', ')+'\n\n➡️ Client proceeding to receipt.');
+        tgPing('💰 <b>PAYMENT PROOF UPLOADED (PDF)</b>\n\n📦 Package: '+pkg.name+'\n👤 Client: '+clientName+'\n📧 Email: '+clientEmail+'\n🔒 Territory: '+clientNiche+' · '+clientCity+', '+clientTerritory+'\n📋 Invoice: '+invNum+'\n📎 File: '+file.name+'\n'+(hasAccountNumber?'✅ Account number verified in receipt\n':'')+'🔑 Keywords found: '+foundKeywords.join(', ')+'\n\n➡️ Client proceeding to receipt.');
     } else if(hasEnoughKeywords && !hasCorrectAmount) {
   btn.textContent      = '❌ Wrong Amount — Try Again';
   btn.disabled         = false;
@@ -648,7 +648,6 @@ const hasCorrectAmount = text.includes(priceStr) || text.includes(priceFormatted
         '📦 Package: ' + pkg.name + '\n' +
         '👤 Client: ' + clientName + '\n' +
         '📧 Email: ' + clientEmail + '\n' +
-        '📸 Instagram: @' + clientIg + '\n' +
         '🔒 Territory: ' + clientNiche + ' · ' + clientCity + ', ' + clientTerritory + '\n' +
         '📋 Invoice: ' + invNum + '\n' +
         '📎 File: ' + file.name + '\n' +
@@ -717,12 +716,6 @@ document.querySelectorAll('[contenteditable]').forEach(el => {
     }
   });
 });
-
-// ── N8N WEBHOOK ───────────────────────────────────────────────
-fetch("https://primary-production-e0a9.up.railway.app/webhook/291aff5d-7988-4adf-a4d1-a15b7c144ba2",{
-  method:"POST", mode:"no-cors", headers:{"Content-Type":"application/json"},
-  body: JSON.stringify({ event:'invoice_viewed', package:pkg.name, tier:tierKey, price:pkg.price, name:clientName, email:clientEmail, city:clientCity, territory:clientTerritory, niche:clientNiche, ig:clientIg, invNum, timestamp:new Date().toISOString() })
-}).catch(()=>{});
 
 // ── TELEGRAM NOTIFY ────────────────────────────────────────────
 const TG_BOT  = '8728238222:AAG_ssXL9LPn7moTHh7HTx0XCyHLkP8q4TQ';
