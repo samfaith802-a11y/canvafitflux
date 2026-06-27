@@ -3662,7 +3662,10 @@ function renderRetainerFull(){
       <div><div style="font-size:12px;color:var(--t1);">${r.dueFmt}</div></div>
       <div style="font-family:var(--fh);font-size:18px;color:${r.daysLeft<=3?'var(--red)':r.daysLeft<=7?'var(--amber)':'var(--t1)'};">${r.daysLeft}d</div>
       <div>${r.statusHtml}</div>
-      <div><button class="rf-remind-btn ${isUrgent?'urgent':''}" onclick="openReminderModal('${r.c.Token}')">📨 Remind</button></div>
+     <div style="display:flex;flex-direction:column;gap:6px;">
+  <button class="rf-remind-btn ${isUrgent?'urgent':''}" onclick="openReminderModal('${r.c.Token}')">📨 Remind</button>
+  <button onclick="freezeClientPortal('${r.c.Token}','${r.c.Name||''}')" style="background:rgba(255,77,77,0.12);border:1px solid rgba(255,77,77,0.3);color:var(--red);border-radius:6px;padding:5px 10px;font-size:11px;font-weight:600;cursor:pointer;font-family:var(--fb);white-space:nowrap;">🔒 Freeze</button>
+</div>
     </div>`;
   }).join('');
 }
@@ -5466,6 +5469,16 @@ async function submitReuploadNew(uid, token, title, platform){
     loadAdminContent();
   } else {
     toast('❌ Replace failed — check Apps Script reuploadContent handler','error');
+  }
+}
+  async function freezeClientPortal(token, name){
+  if(!confirm(`Freeze ${name}'s portal?\n\nThey will see a message saying their payment could not be verified. This can be reversed by marking their payment as confirmed.`)) return;
+  const result = await apiPost('freezeClient', {token, reason: 'payment_not_found'});
+  if(result && (result.status === 'frozen' || result.success)){
+    toast('🔒 '+name+' portal frozen — they will see payment not found message');
+    await sendTelegramAdmin('🔒 PORTAL FROZEN\n\nClient: '+name+'\nReason: Payment not found / unverified\nAdmin manually froze this account.');
+  } else {
+    toast('❌ Freeze failed — check Apps Script','error');
   }
 }
 </script>
