@@ -391,6 +391,7 @@ if (!isRenewal) {
 
 // ── GOOGLE SHEET LOGGER ──────────────────────────────────────────────────
 if (isRenewal) {
+  // Update PaymentConfirmedAt so the portal freeze lifts on next login
   fetch(SHEET_URL, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
@@ -401,28 +402,20 @@ if (isRenewal) {
       amount: pkg.price,
       paidDate: new Date().toISOString()
     })
-  })
-  .then(r => r.json())
-  .then(() => {
-    const dmSection = document.querySelector('.rec-dm');
-    if (dmSection) dmSection.innerHTML = `
-      <div style="text-align:center;padding:48px 32px;">
-        <div style="font-size:52px;margin-bottom:20px;">🙏</div>
-        <div style="font-family:'DM Sans',sans-serif;font-size:26px;font-weight:700;color:#CCFF00;margin-bottom:12px;">Thank you for continuing with FitFlux.</div>
-        <div style="font-size:13px;color:rgba(255,255,255,0.5);line-height:1.8;margin-bottom:28px;">Your plan has been renewed. Your content continues without interruption.<br>Your territory remains locked. Redirecting you to your portal now...</div>
-        <div style="width:40px;height:40px;border:3px solid rgba(204,255,0,0.3);border-top-color:#CCFF00;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto;"></div>
-        <style>@keyframes spin{to{transform:rotate(360deg);}}</style>
+  }).catch(() => {});
+
+  // Replace the bottom dark section with just receipt + portal button
+  const dmSection = document.querySelector('.rec-dm');
+  if (dmSection) {
+    dmSection.innerHTML = `
+      <div style="text-align:center;padding:40px 32px;">
+        <div style="font-size:48px;margin-bottom:16px;">🙏</div>
+        <div style="font-family:'DM Sans',sans-serif;font-size:22px;font-weight:700;color:#CCFF00;margin-bottom:10px;">Thank you for renewing with FitFlux.</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.5);line-height:1.8;margin-bottom:28px;">Your content continues without interruption.<br>Your territory remains locked.</div>
+        <a href="portal_smm.html?tier=${encodeURIComponent(tierKey)}" style="display:inline-block;background:#CCFF00;color:#0a1a00;font-family:'DM Sans',sans-serif;font-size:14px;font-weight:700;padding:16px 40px;border-radius:8px;text-decoration:none;letter-spacing:.04em;">Enter My Portal →</a>
+        <div style="font-size:11px;color:rgba(255,255,255,0.3);margin-top:16px;">Log in with your email and your existing 8-character token password.</div>
       </div>`;
-    setTimeout(() => {
-      window.location.href = 'portal_smm.html?tier=' + encodeURIComponent(tierKey) + '&renewed=1';
-    }, 3000);
-  })
-  .catch(() => {
-    setTimeout(() => {
-      window.location.href = 'portal_smm.html?tier=' + encodeURIComponent(tierKey) + '&renewed=1';
-    }, 3000);
-  });
-}
+  }
 } else {
   fetch(SHEET_URL, {
     method: 'POST',
@@ -465,10 +458,6 @@ const contractParams = new URLSearchParams({
   ig: rIg,
   rec: recNum
 });
-if (isRenewal) {
-  const dmSection = document.querySelector('.rec-dm');
-  if (dmSection) dmSection.innerHTML = '<div style="text-align:center;padding:32px;"><div style="font-size:24px;color:rgba(255,255,255,0.3);">Processing your renewal...</div></div>';
-}
 function goToContract() {
   if(!contractFile) { alert('Unable to determine contract. Please contact fitfluxstudio@gmail.com'); return; }
   window.location.href = contractFile + '?' + contractParams.toString();
