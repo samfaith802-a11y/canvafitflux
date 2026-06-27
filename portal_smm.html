@@ -4331,7 +4331,6 @@ async function loadPayments(){
   const now = new Date();
   const nextDue = new Date(paidDate);
   nextDue.setMonth(nextDue.getMonth() + 1);
-  while (nextDue < now) nextDue.setMonth(nextDue.getMonth() + 1);
 
   const daysLeft = Math.ceil((nextDue - now) / (1000 * 60 * 60 * 24));
   const daysOverdue = Math.ceil((now - nextDue) / (1000 * 60 * 60 * 24));
