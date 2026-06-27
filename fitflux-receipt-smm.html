@@ -396,16 +396,33 @@ if (isRenewal) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
       action: 'logRenewalPayment',
-      email:   rEmail,
-      tier:    tierKey,
-      amount:  pkg.price,
+      email: rEmail,
+      tier: tierKey,
+      amount: pkg.price,
       paidDate: new Date().toISOString()
     })
-  }).then(r => r.json()).then(data => {
-    if (data.status === 'renewed') {
-      window.location.href = 'portal_smm.html?tier=' + tierKey;
-    }
-  }).catch(() => {});
+  })
+  .then(r => r.json())
+  .then(() => {
+    const dmSection = document.querySelector('.rec-dm');
+    if (dmSection) dmSection.innerHTML = `
+      <div style="text-align:center;padding:48px 32px;">
+        <div style="font-size:52px;margin-bottom:20px;">🙏</div>
+        <div style="font-family:'DM Sans',sans-serif;font-size:26px;font-weight:700;color:#CCFF00;margin-bottom:12px;">Thank you for continuing with FitFlux.</div>
+        <div style="font-size:13px;color:rgba(255,255,255,0.5);line-height:1.8;margin-bottom:28px;">Your plan has been renewed. Your content continues without interruption.<br>Your territory remains locked. Redirecting you to your portal now...</div>
+        <div style="width:40px;height:40px;border:3px solid rgba(204,255,0,0.3);border-top-color:#CCFF00;border-radius:50%;animation:spin .8s linear infinite;margin:0 auto;"></div>
+        <style>@keyframes spin{to{transform:rotate(360deg);}}</style>
+      </div>`;
+    setTimeout(() => {
+      window.location.href = 'portal_smm.html?tier=' + encodeURIComponent(tierKey) + '&renewed=1';
+    }, 3000);
+  })
+  .catch(() => {
+    setTimeout(() => {
+      window.location.href = 'portal_smm.html?tier=' + encodeURIComponent(tierKey) + '&renewed=1';
+    }, 3000);
+  });
+}
 } else {
   fetch(SHEET_URL, {
     method: 'POST',
@@ -450,7 +467,7 @@ const contractParams = new URLSearchParams({
 });
 if (isRenewal) {
   const dmSection = document.querySelector('.rec-dm');
-  if (dmSection) dmSection.style.display = 'none';
+  if (dmSection) dmSection.innerHTML = '<div style="text-align:center;padding:32px;"><div style="font-size:24px;color:rgba(255,255,255,0.3);">Processing your renewal...</div></div>';
 }
 function goToContract() {
   if(!contractFile) { alert('Unable to determine contract. Please contact fitfluxstudio@gmail.com'); return; }
