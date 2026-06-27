@@ -1526,6 +1526,16 @@ async function initPortal(){
   CLIENT = window.FF_CLIENT || {};
   TIER   = window.FF_TIER   || '';
   fillClientData();
+
+  const renewedParam = new URLSearchParams(window.location.search).get('renewed');
+  if(renewedParam === '1'){
+    window._showRenewalWelcome = true;
+    history.replaceState(null, '', window.location.pathname + '?' +
+      Array.from(new URLSearchParams(window.location.search).entries())
+        .filter(([k]) => k !== 'renewed')
+        .map(([k,v]) => k+'='+encodeURIComponent(v))
+        .join('&'));
+  }
 const activeToken = window.FF_TOKEN || urlToken;
 apiPost('registerClient', {
     token: activeToken, name: CLIENT.name, email: CLIENT.email,
@@ -1688,7 +1698,29 @@ function showWelcomeModal(){
   sessionStorage.setItem('ff_welcomed','1');
   const name = (window.FF_CLIENT.name||'there').split(' ')[0];
   const tier = (window.FF_TIER||'').charAt(0).toUpperCase()+(window.FF_TIER||'').slice(1);
+  const isRenewal = window._showRenewalWelcome;
   const m = document.createElement('div');
+  m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px);';
+  m.innerHTML = `
+    <div style="background:#0d1f0a;border:1.5px solid rgba(204,255,0,.3);border-radius:20px;padding:48px 40px;max-width:420px;width:100%;text-align:center;position:relative;box-shadow:0 0 80px rgba(126,200,69,0.15);">
+      <div style="font-size:48px;margin-bottom:20px;">${isRenewal ? '🙏' : '🎉'}</div>
+      <div style="font-family:'Syne',sans-serif;font-size:28px;font-weight:800;color:#CCFF00;margin-bottom:10px;line-height:1.2;">
+        ${isRenewal ? 'Thank you, '+name+'.' : 'Welcome, '+name+'!'}
+      </div>
+      <div style="font-size:13px;color:rgba(255,255,255,.55);line-height:1.8;margin-bottom:8px;">
+        ${isRenewal ? 'Thank you for renewing your service with FitFlux.' : 'Your <strong style="color:#fff;">'+tier+'</strong> plan is now active.'}
+      </div>
+      <div style="font-size:12px;color:rgba(255,255,255,.35);line-height:1.75;margin-bottom:32px;">
+        ${isRenewal
+          ? 'Your content continues without interruption. Your territory remains locked. We appreciate your trust in us.'
+          : 'Your territory is locked. Your content is being built.<br>Check back here to approve your posts before they go live.'}
+      </div>
+      <button onclick="this.closest('[style*=fixed]').remove()" style="background:#CCFF00;color:#0D1F00;border:none;border-radius:10px;padding:14px 40px;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;letter-spacing:.06em;text-transform:uppercase;width:100%;">
+        ${isRenewal ? 'Back to My Portal →' : 'Let\'s Go →'}
+      </button>
+    </div>`;
+  document.body.appendChild(m);
+}
   m.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:99999;display:flex;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(8px);';
   m.innerHTML = `
     <div style="background:#0d1f0a;border:1.5px solid rgba(204,255,0,.3);border-radius:20px;padding:48px 40px;max-width:420px;width:100%;text-align:center;position:relative;box-shadow:0 0 80px rgba(126,200,69,0.15);">
