@@ -329,7 +329,7 @@
 <!-- RECEIPT UPLOAD -->
 <div class="inv-upload">
 <div class="upload-hed" style="font-size:18px;margin-top:8px;">Then Upload Your Receipt Below</div>
-    <div class="upload-sub">Once you've completed your bank transfer, upload your payment receipt screenshot below. Your receipt will be generated — from there you'll sign your contract and access your onboarding portal. These steps are required to activate your service.</div>
+    <div class="upload-sub id="upload-sub-text">Once you've completed your bank transfer, upload your payment receipt screenshot below. Your receipt will be generated — from there you'll sign your contract and access your onboarding portal. These steps are required to activate your service.</div>
     <div class="drop-zone" id="drop-zone">
       <input type="file" id="receipt-file" accept="image/*,application/pdf" onchange="handleUpload(this)"/>
       <div class="drop-icon">📎</div>
@@ -445,6 +445,10 @@ const clientCity = urlP.get('city')      || '';
 const clientTerritory = urlP.get('territory') || '';
 const clientNiche= urlP.get('niche')     || '';
 const isRenewal = urlP.get('renewal') === 'true';
+if(isRenewal){
+  const subEl = document.getElementById('upload-sub-text');
+  if(subEl) subEl.textContent = "Once you've completed your bank transfer, upload your payment receipt screenshot below. Your receipt will be generated and you'll be taken straight to your portal — no contract needed for renewals.";
+}
 
 const pkg = PKG[tierKey] || PKG['presence'];
 
@@ -583,7 +587,7 @@ const priceWithComma = pkg.price.toLocaleString('en-US');
 const priceWithCommaDecimals = pkg.price.toLocaleString('en-US', {minimumFractionDigits:2});
 const hasCorrectAmount = text.includes(priceStr) || text.includes(priceFormatted) || text.includes(priceWithComma) || text.includes(priceWithCommaDecimals);
       if(hasAccountNumber || (hasEnoughKeywords && hasCorrectAmount)){
-        btn.textContent   = '✅ Payment Uploaded — Proceed to Contract & Onboarding Portal →';
+        btn.textContent   = isRenewal ? '✅ Renewal Confirmed — Proceed to Your Portal →' : '✅ Payment Uploaded — Proceed to Contract & Onboarding Portal →';
         btn.disabled      = false;
         btn.style.opacity = '1';
         btn.style.cursor  = 'pointer';
@@ -637,7 +641,7 @@ const priceWithCommaDecimals = pkg.price.toLocaleString('en-US', {minimumFractio
 const hasCorrectAmount = text.includes(priceStr) || text.includes(priceFormatted) || text.includes(priceWithComma) || text.includes(priceWithCommaDecimals);
 
     if(hasAccountNumber || (hasEnoughKeywords && hasCorrectAmount)){
-      btn.textContent   = '✅ Payment Uploaded — Proceed to Contract & Onboarding Portal →';
+      btn.textContent   = isRenewal ? '✅ Renewal Confirmed — Proceed to Your Portal →' : '✅ Payment Uploaded — Proceed to Contract & Onboarding Portal →';
       btn.disabled      = false;
       btn.style.opacity = '1';
       btn.style.cursor  = 'pointer';
