@@ -102,7 +102,6 @@ window.FF_CLIENT = {
   territory:'', niche:'', rec:'', createdAt:'',
   billingCycle:''
 };
-};
 })();
 </script>
 <meta charset="UTF-8"/>
@@ -1500,6 +1499,7 @@ async function unlock(){
           niche:     client.Niche     || window.FF_CLIENT.niche     || '',
           rec:       window.FF_CLIENT.rec || '',
           createdAt: client.CreatedAt || '',
+            paymentConfirmedAt: client.PaymentConfirmedAt || client.CreatedAt || '',
 billingCycle: client.BillingCycle || 'monthly',
         };
      window.FF_TOKEN = client.Token || urlToken;
