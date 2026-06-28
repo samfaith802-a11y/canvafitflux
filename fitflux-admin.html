@@ -4803,6 +4803,16 @@ async function addAdminDocument(){
 let inboxMessages = [];
 let inboxData = { content: [], credentials: [], complaints: [], documents: [] };
 
+  function updateFBadge(type, count){
+  const el = document.getElementById('fbadge-'+type);
+  if(!el) return;
+  if(count>0){ el.textContent=count; el.style.display=''; }
+  else el.style.display='none';
+}
+
+let inboxMessages = [];
+let inboxData = { content: [], credentials: [], complaints: [], documents: [] };
+
 async function loadInbox(){
   if(!allClients.length) return;
   inboxData = { content: [], credentials: [], complaints: [], documents: [] };
@@ -4897,14 +4907,8 @@ async function loadInbox(){
   if(total > 0){ badge.textContent = total; badge.style.display = ''; }
   else badge.style.display = 'none';
 
-  // Update folder badges
-  const updateFBadge = (type, count) => {
-    const el = document.getElementById('fbadge-'+type);
-    if(!el) return;
-    if(count>0){ el.textContent=count; el.style.display=''; }
-    else el.style.display='none';
-  };
-updateFBadge('content', inboxData.content.length);
+// Update folder badges
+  updateFBadge('content', inboxData.content.length);
   updateFBadge('credentials', inboxData.credentials.length);
   updateFBadge('complaints', inboxData.complaints.length);
   updateFBadge('documents', inboxData.documents.length);
